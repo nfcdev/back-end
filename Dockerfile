@@ -1,7 +1,7 @@
 FROM node:10.16.3
 WORKDIR /back-end
-COPY package*.json /back-end/
+COPY package*.json ./
 RUN npm install
-COPY . /back-end/
+COPY . ./
 EXPOSE 3000
 CMD ["npm", "start"]
