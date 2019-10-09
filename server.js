@@ -45,4 +45,7 @@ app.get('*', (request, response) => {
 http.createServer(app).listen(port, () => {
     console.log('Server started!');
     console.log(`Server listening on port ${port}`);
+
+    // This is for the automatic building system
+    if (process.env.IS_CIRCLECI) process.exit(0);
 });
