@@ -27,13 +27,15 @@ const router = express.Router();
 
   // Register new article
   router.post('/addarticle', (req, res) => {
-    const article = { 
+    const newArticle = { 
       id: req.body.id,
       name: req.body.name,
       desc: req.body.desc,
       case: req.body.case,
       parent: req.body.parent
     };
+
+    res.send(newArticle);
   });
 
     // let sql = 'INSERT INTO articles SET ?';
@@ -56,12 +58,13 @@ const router = express.Router();
 
   //Return single article
   router.get('/getarticle/:id', (req, res) => {
-    let sql = 'SELECT * FROM articles WHERE id = ${req.params.id}';
-    let query = con.query(sql, article, (err, result) => {
+    // let sql = 'SELECT * FROM articles WHERE id = ${req.params.id}';
+    // let query = con.query(sql, article, (err, result) => {
+      const id = req.params.id;
+      res.send(id);
       if (err) throw err;
       console.log(result);
       res.send('Article fetched')
     });
-  });
 
   module.exports = router;
