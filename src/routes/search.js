@@ -5,8 +5,8 @@ const router = express.Router();
 const pool = require('../../connect');
 
 router.get('/', (request, response) => {
-
     pool.getConnection(function(err, connection) {
+        if (err) console.log(err);
         connection.query('SELECT * FROM Article', (err,rows) => {
             connection.release();
             console.log('Data received from Db:\n');
