@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-
+//Example: Establishing a connection and query to db
 const pool = require('../../connect');
 
 router.get('/', (request, response) => {
