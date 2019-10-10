@@ -7,7 +7,7 @@ router.get('/', (request, response)=>{
     console.log('inne i case');
     pool.getConnection(function(err, connection) {
         if (err) console.log(err);
-        let sql = 'SELECT * FROM Case';
+        let sql = 'SELECT * FROM `Case`';
         connection.query(sql, (err, result) => {
           connection.release();
           if (err) console.log(err);
@@ -22,7 +22,7 @@ router.get('/:id', (request, response)=>{
     console.log(id);
     pool.getConnection(function(err, connection) {
         if (err) console.log(err);
-        let sql = 'SELECT * FROM Case WHERE ID=?';
+        let sql = 'SELECT * FROM `Case` WHERE ID=?';
         connection.query(sql, [id], (err, result) => {
           connection.release();
           if (err) console.log(err);
