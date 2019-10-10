@@ -24,7 +24,7 @@ router.get('/branch/:branch_id', (request, response)=>{
     console.log(id);
     pool.getConnection(function(err, connection) {
         if (err) console.log(err);
-        let sql = 'SELECT * FROM StorageRoom WHERE branch_id = ?';
+        let sql = 'SELECT * FROM StorageRoom WHERE branch = ?';
         connection.query(sql, [id], (err, result) =>{
           if (err) console.log(err);
           console.log("Data recieved");
@@ -53,9 +53,10 @@ const updatedStorageRoom = request.body;
 
     pool.getConnection(function(err, connection) {
         if (err) throw err;
-        if (updatedStorageRoom.name & updatedStorageRoom.branch){   
-        let sql = 'UPDATE StorageRoom SET name = ?, branch = ? WHERE id = ?';
-        connection.query(sql, [updatedStorageRoom.name, updatedStorageRoom.branch, id], function (err, result) {
+        if (updatedStorageRoom.name && updatedStorageRoom.branch){   
+          console.log(updatedStorageRoom.branch);
+        let sql = 'UPDATE StorageRoom SET branch = ?, name = ? WHERE id = ?';
+        connection.query(sql, [updatedStorageRoom.branch, updatedStorageRoom.name, id], function (err, result) {
           if (err) throw err;
           console.log("Result: " + result);
         });
@@ -84,8 +85,8 @@ const newStorageRoom = {
 }
     pool.getConnection(function(err, connection) {
         if (err) throw err;
-        let sql = 'INSERT INTO StorageRoom VALUES ?';
-        connection.query(sql, [newStorageRoom], function (err, result) {
+        let sql = 'INSERT INTO StorageRoom(id, name, branch) VALUES (?, ?, ?)';
+        connection.query(sql, [newStorageRoom.id, newStorageRoom.name, newStorageRoom.branch], function (err, result) {
           if (err) throw err;
           console.log("Result: " + result);
          response.send(result);
