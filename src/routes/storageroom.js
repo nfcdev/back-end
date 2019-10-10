@@ -7,12 +7,14 @@ router.get('/', (request, response)=>{
     pool.getConnection(function(err, connection) {
         if (err) {
           console.log(err);
+          response.status(500).send('Could not connect to server');
         }
         let sql = 'SELECT * FROM StorageRoom ';
         connection.query(sql, (err, result) => {
           connection.release();
           if (err) {
             console.log(err);
+            response.status(500).send('Bad query');
           }
           console.log('Data received');
           response.send(result);
@@ -26,12 +28,14 @@ router.get('/branch/:branch_id', (request, response)=>{
     pool.getConnection(function(err, connection) {
         if (err) {
           console.log(err);
+          response.status(500).send('Could not connect to server');
         }
         let sql = 'SELECT * FROM StorageRoom WHERE branch = ?';
         connection.query(sql, [id], (err, result) =>{
           connection.release();
           if (err) {
             console.log(err);
+            response.status(500).send('Bad query');
           }
           console.log('Data received');
           response.send(result);
@@ -44,12 +48,14 @@ const id = request.params.id;
     pool.getConnection(function(err, connection) {
         if (err) {
           console.log(err);
+          response.status(500).send('Could not connect to server');
         }
         let sql = 'DELETE FROM StorageRoom WHERE id = ?';
         connection.query(sql, [id], function (err) {
           connection.release();
           if (err) {
             console.log(err);
+            response.status(500).send('Bad query');
           }
           console.log('Room deleted');
           response.send(`${id} deleted`);
@@ -64,6 +70,7 @@ const updatedStorageRoom = request.body;
     pool.getConnection(function(err, connection) {
       if (err) {
         console.log(err);
+        response.status(500).send('Could not connect to server');
       }
         if (updatedStorageRoom.name && updatedStorageRoom.branch){   
         let sql = 'UPDATE StorageRoom SET branch = ?, name = ? WHERE id = ?';
@@ -71,6 +78,7 @@ const updatedStorageRoom = request.body;
           connection.release();
           if (err) {
             console.log(err);
+            response.status(500).send('Bad query');
           }
           console.log('2 data updated');
         });
@@ -80,6 +88,7 @@ const updatedStorageRoom = request.body;
           connection.release();
           if (err) {
             console.log(err);
+            response.status(500).send('Bad query');
           }
           console.log('1 data updated');
         });
@@ -89,6 +98,7 @@ const updatedStorageRoom = request.body;
           connection.release();
           if (err) {
             console.log(err);
+            response.status(500).send('Bad query');
           }
           console.log('1 data updated');
         });
@@ -106,12 +116,14 @@ const newStorageRoom = {
     pool.getConnection(function(err, connection) {
       if (err) {
         console.log(err);
+        response.status(500).send('Could not connect to server');
       }
         let sql = 'INSERT INTO StorageRoom(id, name, branch) VALUES (?, ?, ?)';
         connection.query(sql, [newStorageRoom.id, newStorageRoom.name, newStorageRoom.branch], function (err, result) {
           connection.release();
           if (err) {
             console.log(err);
+            response.status(500).send('Bad query');
           }
           console.log('New room added');
          response.send(result);
