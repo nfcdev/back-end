@@ -14,7 +14,7 @@ router.get('/', (request, response)=>{
           connection.release();
           if (err) {
             console.log(err);
-            response.status(500).send('Bad query');
+            response.status(400).send('Bad query');
           }
           console.log('Data received');
           response.send(result);
@@ -35,7 +35,7 @@ router.get('/branch/:branch_id', (request, response)=>{
           connection.release();
           if (err) {
             console.log(err);
-            response.status(500).send('Bad query');
+            response.status(400).send('Bad query');
           }
           console.log('Data received');
           response.send(result);
@@ -55,7 +55,7 @@ const id = request.params.id;
           connection.release();
           if (err) {
             console.log(err);
-            response.status(500).send('Bad query');
+            response.status(400).send('Bad query');
           }
           console.log('Room deleted');
           response.send(`${id} deleted`);
@@ -78,7 +78,7 @@ const updatedStorageRoom = request.body;
           connection.release();
           if (err) {
             console.log(err);
-            response.status(500).send('Bad query');
+            response.status(400).send('Bad query');
           }
           console.log('2 data updated');
         });
@@ -88,7 +88,7 @@ const updatedStorageRoom = request.body;
           connection.release();
           if (err) {
             console.log(err);
-            response.status(500).send('Bad query');
+            response.status(400).send('Bad query');
           }
           console.log('1 data updated');
         });
@@ -98,10 +98,12 @@ const updatedStorageRoom = request.body;
           connection.release();
           if (err) {
             console.log(err);
-            response.status(500).send('Bad query');
+            response.status(400).send('Bad query');
           }
           console.log('1 data updated');
         });
+    } else {
+      response.status(400).send('Bad request');
     }
       });
       response.send(`${updatedStorageRoom.name} and ${updatedStorageRoom.branch} from id ${id}`);
@@ -109,26 +111,29 @@ const updatedStorageRoom = request.body;
 //creates a new storageroom
 router.post('/', (request, response) =>{
 const newStorageRoom = {
-    id : request.body.id,
     name : request.body.name,
     branch : request.body.branch
 }
+if(!newStorageRoom.branch || !newStorageRoom.name){
+  response.status(400).send('Bad request');
+} else {
     pool.getConnection(function(err, connection) {
       if (err) {
         console.log(err);
         response.status(500).send('Could not connect to server');
       }
-        let sql = 'INSERT INTO StorageRoom(id, name, branch) VALUES (?, ?, ?)';
-        connection.query(sql, [newStorageRoom.id, newStorageRoom.name, newStorageRoom.branch], function (err, result) {
+        let sql = 'INSERT INTO StorageRoom(name, branch) VALUES (?, ?)';
+        connection.query(sql, [newStorageRoom.name, newStorageRoom.branch], function (err, result) {
           connection.release();
           if (err) {
             console.log(err);
-            response.status(500).send('Bad query');
+            response.status(400).send('Bad query');
           }
           console.log('New room added');
          response.send(result);
         });
       });
+    }
 });
 
 
