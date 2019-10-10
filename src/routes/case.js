@@ -1,41 +1,35 @@
 const express = require('express');
 const router = express.Router();
-//const mysql = require('mysql');
+const pool = require('../../connect');
 
 
 router.get('/', (request, response)=>{
     console.log('inne i case');
-   // let sokning = '';
-    /*con.connect(function(err) {
-        if (err) throw err;
-        console.log("Connected!");
-        let sql = 'SELECT * FROM Cases ';
-        con.query(sql, function (err, result) {
-          if (err) throw err;
+    pool.getConnection(function(err, connection) {
+        if (err) console.log(err);
+        let sql = 'SELECT * FROM Case';
+        connection.query(sql, (err, result) => {
+          connection.release();
+          if (err) console.log(err);
           console.log("Result: " + result);
-          sokning = result;
+          response.send(result);
         });
       });
-    response.send(sokning);*/
-    response.send('case utan id');
 });
 router.get('/:id', (request, response)=>{
     console.log('inne i case id');
-    //let sokning = '';
     let id = request.params.id;
     console.log(id);
-    /*con.connect(function(err) {
-        if (err) throw err;
-        console.log("Connected!");
-        let sql = 'SELECT * FROM Cases WHERE ID=?';
-        con.query(sql, [id], function (err, result) {
-          if (err) throw err;
+    pool.getConnection(function(err, connection) {
+        if (err) console.log(err);
+        let sql = 'SELECT * FROM Case WHERE ID=?';
+        connection.query(sql, [id], (err, result) => {
+          connection.release();
+          if (err) console.log(err);
           console.log("Result: " + result);
-          sokning = result;
+          response.send(result);
         });
       });
-    response.send(sokning);*/
-    response.send(id);
 });
 
 module.exports = router;
