@@ -1,70 +1,67 @@
 const express = require('express');
 const router = express.Router();
 
-// const mysql = require('mysql');
-
-// // Create connection
-// const con = mysql.createConnection({
-//   host: "localhost",
-//   user: "yourusername",
-//   password: "yourpassword",
-//   database: "mydb"
-// });
-
-// Create table
-// con.connect(function (err) {
-//   if (err) throw err;
-//   console.log("Connected!");
-//   app.get('/createarticlestable', (req, res) => {
-//     let sql = 'CREATE TABLE articles (barcode_id int AUTO-INCREMENT, name VARCHAR(255), desc VARCHAR(255), parent VARCHAR(255), case VARCHAR(255), PRIMARY KEY barcode_id)';
-//     con.query(sql, (err, result) => {
-//       if (err) throw err;
-//       console.log(result);
-//       res.send('Articles table created...')
-//     });
-//   });
-// });
+//Example: Establishing a connection and query to db
+const pool = require('../../connect');
 
   // Register new article
-  router.post('/addarticle', (req, res) => {
+  router.post('/', (req, res) => {
     const newArticle = { 
-      id: req.body.id,
-      name: req.body.name,
-      desc: req.body.desc,
-      case: req.body.case,
-      parent: req.body.parent
-    };
-
-    res.send(newArticle);
-  });
-
-    // let sql = 'INSERT INTO articles SET ?';
-    // let query = con.query(sql, article, (err, result) => {
-  //     if (err) throw err;
-  //     console.log(result);
-  //     res.send('Article one...')
-  //   });
-  // });
+      material_number: req.body.material_number,
+      description: req.body.description,
+      parent: req.body.parent,
+      case: req.body.case
+    }
+    if(!newArticle.material_number || !newArticle.description || !newArticle.case || !newArticle.parent){
+      res.status(400).send('Bad request');
+    } else {
+        pool.getConnection(function(err, connection) {
+          if (err) {
+            console.log(err);
+            res.status(500).send('Could not connect to server');
+          }
+          let sql = 'INSERT INTO Article(material_number, description, parent, case) VALUES (?, ?, ?, ?)';
+          connection.query(sql, [newArticle.material_number, newArticle.description, newArticle.parent, newArticle.case], function (err, result) {
+            connection.release();
+            if (err) {
+              console.log(err);
+              res.status(400).send('Bad query');
+            } else {
+            console.log('New article added');
+           res.send(result);
+            }
+          });
+        })
+      }
+    });
+  
+ 
 
   //Return all articles in DB
-  router.get('/getarticles', (req, res) => {
-    let sql = 'SELECT * FROM articles';
-    let query = con.query(sql, article, (err, result) => {
-      if (err) throw err;
-      console.log(result);
-      res.send('Articles fetched')
+  router.get('/', (req, res) => {
+    pool.getConnection(function(err, connection) {
+      if (err) console.log(err);
+      connection.query('SELECT * FROM Article', (err,result) => {
+        connection.release();
+        if (err) throw err;
+        console.log(res);
+        res.send(result)
     });
   });
+});
 
   //Return single article
-  router.get('/getarticle/:id', (req, res) => {
-    // let sql = 'SELECT * FROM articles WHERE id = ${req.params.id}';
-    // let query = con.query(sql, article, (err, result) => {
-      const id = req.params.id;
-      res.send(id);
-      if (err) throw err;
-      console.log(result);
-      res.send('Article fetched')
+  router.get('/:id', (req, res) => {
+     let id = req.params.id;
+    pool.getConnection(function(err, connection) {
+      if (err) console.log(err);
+      connection.query('SELECT * FROM Article WHERE id = ?', [id], (err,result) => {
+        connection.release();
+        if (err) throw err;
+        console.log(res);
+        res.send(result)
     });
+  });
+});
 
   module.exports = router;
