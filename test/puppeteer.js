@@ -25,29 +25,29 @@
   await page.mouse.up();
 
   await browser.close(); */
-  const puppeteer = require('puppeteer');
-  (async () => {
-    const browser = await puppeteer.launch()
-    const page = await browser.newPage()
+  // const puppeteer = require('puppeteer');
+  // (async () => {
+  //   const browser = await puppeteer.launch()
+  //   const page = await browser.newPage()
     
-    const navigationPromise = page.waitForNavigation()
+  //   const navigationPromise = page.waitForNavigation()
     
-    await page.goto('https://vilse.studorg.liu.se/index.php')
+  //   await page.goto('https://vilse.studorg.liu.se/index.php')
     
-    await page.setViewport({ width: 871, height: 836 })
+  //   await page.setViewport({ width: 871, height: 836 })
   
-    await page.waitForSelector('body > #container > #header #loggan')
-    await page.click('body > #container > #header #loggan')
+  //   await page.waitForSelector('body > #container > #header #loggan')
+  //   await page.click('body > #container > #header #loggan')
     
-    await navigationPromise
+  //   await navigationPromise
     
-    await page.waitForSelector('table > tbody > tr > td:nth-child(5) > a')
-    await page.click('table > tbody > tr > td:nth-child(5) > a')
+  //   await page.waitForSelector('table > tbody > tr > td:nth-child(5) > a')
+  //   await page.click('table > tbody > tr > td:nth-child(5) > a')
     
-    await navigationPromise
+  //   await navigationPromise
 
-    await page.setViewport({ width: 1745, height: 852 })
-    await page.screenshot({path: 'vilse.png'});
-    await browser.close()
+  //   await page.setViewport({ width: 1745, height: 852 })
+  //   await page.screenshot({path: 'vilse.png'});
+  //   await browser.close()
 
-  })();
+  // })();
