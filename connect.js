@@ -1,12 +1,14 @@
 const mysql = require('mysql');
-//const t = process.env.DB_HOST;
+
+// eslint-disable-next-line no-undef
+const { MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD, MYSQL_PORT } = process.env;
 
 const pool = mysql.createPool({
   host: 'db',
-  port: '3306',
-  user: 'root',
-  password: '72hbH2ypfZLqJfEh',
-  database: 'c4db',
+  port: MYSQL_PORT,
+  user: MYSQL_USER,
+  password: MYSQL_PASSWORD,
+  database: MYSQL_DATABASE,
   connectionLimit: 10
 });
 

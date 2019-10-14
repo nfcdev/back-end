@@ -7,12 +7,12 @@ const pool = require('../../connect');
   // Register new article
   router.post('/', (req, res) => {
     const newArticle = { 
-      material_number: req.body.material_number,
-      description: req.body.description,
-      parent: req.body.parent,
-      case: req.body.case
+      material_number : req.body.material_number,
+      description : req.body.description,
+      parent : req.body.parent,
+      case : req.body.case
     }
-    if(!newArticle.material_number || !newArticle.description || !newArticle.case || !newArticle.parent){
+    if(!newArticle.material_number || !newArticle.description || !newArticle.parent || !newArticle.case){
       res.status(400).send('Bad request');
     } else {
         pool.getConnection(function(err, connection) {
@@ -21,7 +21,8 @@ const pool = require('../../connect');
             res.status(500).send('Could not connect to server');
           }
           let sql = 'INSERT INTO Article(material_number, description, parent, case) VALUES (?, ?, ?, ?)';
-          connection.query(sql, [newArticle.material_number, newArticle.description, newArticle.parent, newArticle.case], function (err, result) {
+          let article = [newArticle.material_number, newArticle.description, newArticle.parent, newArticle.case];
+          connection.query(sql, article, function (err, result) {
             connection.release();
             if (err) {
               console.log(err);
@@ -31,7 +32,7 @@ const pool = require('../../connect');
            res.send(result);
             }
           });
-        })
+        });
       }
     });
   
@@ -64,4 +65,4 @@ const pool = require('../../connect');
   });
 });
 
-  module.exports = router;
+module.exports = router;
