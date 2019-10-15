@@ -2,14 +2,25 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../../connect');
 
+// returns all storage events
 router.get('/', (request, response) => {
+
     pool.getConnection(function(err, connection) {
         if (err){
           console.log(err);
           response.status(500).send('Cannot conect to server');
         }
-        response.send("data-delivery");
-    });
+        let sql_query = "select * from StorageEvent";
+        connection.query(sql_query, (err, result) => {
+          connection.release();
+          if (err){
+            console.log(err);
+            response.status(500).send('Bad query');
+          }
+          console.log("Data received");
+          response.send(result);
+        });
+      });
 });
 
 
