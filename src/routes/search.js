@@ -9,22 +9,21 @@ router.get('/', (request, response) => {
     let material_number = request.query.material_number;
     let location = request.query.location;
     let shelf = request.query.shelf;
-    let sql_query = "select * from Article";
+    let sql_query = "select Article.id as id, Article.material_number as 'material number', Article.description as description, Article.parent as parent, Article.case as 'case', Case.reference_number as 'reference number', StorageRoom.name as 'storage room', StorageMap.placement as 'shelf' from StorageRoom inner join StorageMap on StorageRoom.id = StorageMap.storage_room inner join Article on StorageMap.article = Article.id inner join `Case` on Case.id = Article.case";
     let has_where_condition = false;
     let parameters = [];
 
     if(reference_number || material_number || location || shelf) sql_query = sql_query + " where ";
-    else sql_query = "select * from StorageRoom inner join StorageMap on StorageRoom.id = StorageMap.storage_room inner join Article on StorageMap.article = Article.id inner join `Case` on Case.id = Article.case";
 
     if(reference_number) {
-        sql_query = sql_query + "`case` = (select id from `Case` where reference_number = ?) ";
+        sql_query += "Article.case = (select id from `Case` where reference_number = ?) ";
         has_where_condition = true;
         parameters.push(reference_number);
     }
 
     if(material_number){
         if(has_where_condition) sql_query += "and ";
-        sql_query += "material_number = ? ";
+        sql_query += "Article.material_number = ? ";
         has_where_condition = true;
         parameters.push(material_number);
     } 
@@ -33,7 +32,7 @@ router.get('/', (request, response) => {
     // Location är storageroom
     if(location){
         if(has_where_condition) sql_query += "and ";
-        sql_query += "id in (select article from StorageMap where storage_room = (select id from StorageRoom where name = ?)) "
+        sql_query += "Article.id in (select article from StorageMap where storage_room = (select id from StorageRoom where name = ?)) "
         has_where_condition = true;
         parameters.push(location);
     } 
@@ -41,7 +40,7 @@ router.get('/', (request, response) => {
     // Shelf är placement
     if(shelf){
         if(has_where_condition) sql_query += "and ";
-        sql_query += "id in (select article from StorageMap where placement = ?) "
+        sql_query += "Article.id in (select article from StorageMap where placement = ?) "
         has_where_condition = true;
         parameters.push(shelf);
     } 
