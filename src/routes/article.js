@@ -11,7 +11,7 @@ router.get('/branch/:branch_id', (request, response)=>{
           console.log(err);
           response.status(500).send('Could not connect to server');
         } else{
-        let sql = 'SELECT * FROM Article WHERE id = (SELECT article FROM StorageMap WHERE container = (SELECT id FROM Container WHERE current_storage_room = (SELECT name FROM StorageRoom WHERE branch = ?)))';
+        let sql = 'SELECT * FROM Article  WHERE id IN (SELECT article FROM StorageMap WHERE container IN (SELECT id FROM Container WHERE current_storage_room IN (SELECT id FROM StorageRoom WHERE branch = ?)))';
         connection.query(sql, [branchid], (err, result) =>{
           connection.release();
           if (err) {
