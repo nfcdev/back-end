@@ -52,7 +52,7 @@ jobs:
           at: ~/
       - run:
           name: move back-end code
-          command: sudo mv ~/back-end/* ~/project/c4solutions/back-end/
+          command: mkdir ~/project/c4solutions/back-end sudo mv ~/back-end/* ~/project/c4solutions/back-end/
       - run:
           command: cd c4solutions && ls && pwd
       # - setup_remote_docker
