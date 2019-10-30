@@ -55,10 +55,10 @@ jobs:
           command: sudo mv ~/back-end ~/c4solutions/
       - run:
           command: cd c4solutions && ls && pwd
-      - setup_remote_docker
-      - run:
-          name: run test
-          command: cd c4solutions && npm run test:back-end:unit
+      # - setup_remote_docker
+      # - run:
+      #     name: run test
+      #     command: cd c4solutions && npm run test:back-end:unit
 
 workflows:
   version: 2
