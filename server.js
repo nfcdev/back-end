@@ -42,10 +42,17 @@ app.get('*', (request, response) => {
 })
 
 // Start the server
-http.createServer(app).listen(port, () => {
+const server = http.createServer(app);
+
+server.listen(port, () => {
     console.log('Server started!');
     console.log(`Server listening on port ${port}`);
+    app.emit('APP_STARTED');
+
 
     // This is for the automatic building system
     if (process.env.IS_CIRCLECI) process.exit(0);
 });
+
+
+module.exports = app;

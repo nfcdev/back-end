@@ -42,11 +42,21 @@ jobs:
       environment:
           IS_CIRCLECI: true
       steps:
+        - run:
+            name: Install Docker Compose
+            command: |
+              curl -L https://github.com/docker/compose/releases/download/1.19.0/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
+              chmod +x ~/docker-compose
+              sudo mv ~/docker-compose /usr/local/bin/docker-compose
+        - run:
+            name: Fetch Meta repository
+            command: git clone https://github.com/C4SolutionsTDDC88/c4solutions.git
       - attach_workspace:
-          at: ~/
+          at: ~/c4solutions/
+      - setup_remote_docker
       - run:
-          name: Build back-end
-          command: cd back-end && npm run test
+          name: run test
+          command: cd c4solutions && npm run test:front-end:unit
 
 workflows:
   version: 2
@@ -55,4 +65,7 @@ workflows:
       - setup-environment
       - build:
           requires:
-            - setup-environment 
+            - setup-environment
+      - unit-test:
+          requires:
+            - setup-environment

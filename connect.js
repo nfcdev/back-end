@@ -1,6 +1,6 @@
+/* eslint-disable no-undef */
 const mysql = require('mysql');
 
-// eslint-disable-next-line no-undef
 const { MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD, MYSQL_PORT } = process.env;
 
 const pool = mysql.createPool({

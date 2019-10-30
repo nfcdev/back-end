@@ -24,14 +24,14 @@
     "mysql": "^2.17.1",
     "nodemon": "^1.19.2",
     "normalize-port": "^1.0.0",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "supertest": "^4.0.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",
     "eslint": "^6.4.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-plugin-import": "^2.18.2",
-    "mocha": "^6.2.1",
-    "puppeteer": "^1.20.0"
+    "mocha": "^6.2.1"
   }
 }
