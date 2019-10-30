@@ -38,7 +38,6 @@ jobs:
   unit-test:
     docker:
       - image: circleci/node:10.16.3
-    working_directory: ~/
     steps:
       - run:
           name: Install Docker Compose
@@ -49,6 +48,8 @@ jobs:
       - run:
           name: Fetch Meta repository
           command: git clone https://github.com/C4SolutionsTDDC88/c4solutions.git
+      - run:
+          command: cd c4solutions && ls && pwd
       - attach_workspace:
           at: ~/c4solutions/
       - setup_remote_docker
