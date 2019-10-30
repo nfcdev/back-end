@@ -48,10 +48,13 @@ jobs:
       - run:
           name: Fetch Meta repository
           command: git clone https://github.com/C4SolutionsTDDC88/c4solutions.git
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: move back-end code
+          command: sudo mv ~/back-end ~/c4solutions/
       - run:
           command: cd c4solutions && ls && pwd
-      - attach_workspace:
-          at: ~/c4solutions/
       - setup_remote_docker
       - run:
           name: run test
