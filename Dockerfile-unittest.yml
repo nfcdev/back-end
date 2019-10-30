@@ -5,4 +5,5 @@ RUN chmod +x /wait
 COPY ./package*.json ./
 RUN npm install && npm install mocha -g
 COPY ./ ./
+RUN echo ls
 CMD /wait && mocha test/test.js --exit
