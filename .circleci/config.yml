@@ -39,8 +39,6 @@ jobs:
       docker:
         - image: circleci/node:10.16.3
       working_directory: ~/
-      environment:
-          IS_CIRCLECI: true
       steps:
         - run:
             name: Install Docker Compose
@@ -51,12 +49,12 @@ jobs:
         - run:
             name: Fetch Meta repository
             command: git clone https://github.com/C4SolutionsTDDC88/c4solutions.git
-      - attach_workspace:
-          at: ~/c4solutions/
-      - setup_remote_docker
-      - run:
-          name: run test
-          command: cd c4solutions && npm run test:front-end:unit
+        - attach_workspace:
+            at: ~/c4solutions/
+        - setup_remote_docker
+        - run:
+            name: run test
+            command: cd c4solutions && npm run test:front-end:unit
 
 workflows:
   version: 2
