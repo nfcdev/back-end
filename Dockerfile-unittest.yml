@@ -5,4 +5,4 @@ RUN chmod +x /wait
 COPY ./package*.json ./
 RUN npm install && npm install mocha -g
 COPY ./ ./
-CMD ls && /wait && mocha test/test.js --exit
+CMD /wait && mocha c4solutions/back-end/test/test.js --exit
