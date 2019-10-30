@@ -54,7 +54,7 @@ jobs:
       - setup_remote_docker
       - run:
           name: run test
-          command: cd c4solutions && npm run test:front-end:unit
+          command: cd c4solutions && npm run test:back-end:unit
 
 workflows:
   version: 2
