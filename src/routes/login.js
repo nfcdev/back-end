@@ -2,8 +2,8 @@ const express = require("express");
 const router = express.Router();
 const passport = require("../util/authentication").passport;
 const authenticatedRequest = require("../util/authentication").authenticatedRequest;
-
 const config = require("../../config");
+const jwt = require("jsonwebtoken");
 
 router.get(
   "/",
@@ -16,8 +16,24 @@ router.get(
 );
 
 router.get("/token", authenticatedRequest, function(req, res) {
-  console.log("TOKEN REQUESTED");
-  res.send({ token: "token-thingy" });
+  var payload = {
+    uid: req.user.uid,
+    edPersonAffiliation: req.user.eduPersonAffiliation,
+    email: req.user.email
+  };
+
+  console.log("Payload", payload);
+
+  var signOptions = {
+    issuer: "C4Solutions",
+    subject: "NFC Storage Tracker",
+    audience: "c4solutions.com",
+    expiresIn: "12h",
+    algorithm: "RS256"
+  };
+  var privateKEY = config.saml.samlPrivateCert;
+  var token = jwt.sign(payload, privateKEY, signOptions);
+  res.send({ token });
 });
 
 router.post(
