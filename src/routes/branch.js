@@ -8,7 +8,7 @@ router.get('/', (request, response) => {
       console.log(err);
       response.status(500).send('Cannot connect to server');
     }
-    let sql = 'SELECT * FROM Branch';
+    const sql = 'SELECT * FROM Branch';
     connection.query(sql, (err, result) => {
       connection.release();
       if (err) {
@@ -20,7 +20,6 @@ router.get('/', (request, response) => {
     });
   });
 });
-
 //Can't delete branches already in place, foreign key constraint.
 router.delete('/:id', (request, response) => {
   const id = request.params.id;
@@ -29,7 +28,7 @@ router.delete('/:id', (request, response) => {
       console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
-      let sql = 'DELETE FROM Branch WHERE id = ?';
+      const sql = 'DELETE FROM Branch WHERE id = ?';
       connection.query(sql, [id], function (err, res) {
         connection.release();
         if (err) {
@@ -45,9 +44,9 @@ router.delete('/:id', (request, response) => {
     }
   });
 });
-
+//Creates new branch
 router.post('/', (request, response) => {
-  name = request.body.nam
+  const name = request.body.name
   if (!name) {
     return response.status(400).send('Bad request');
   } else {
@@ -56,7 +55,7 @@ router.post('/', (request, response) => {
         console.log(err);
         return response.status(500).send('Could not connect to server');
       } else {
-        let sql = 'INSERT INTO Branch(name) VALUES (?)';
+        const sql = 'INSERT INTO Branch(name) VALUES (?)';
         connection.query(sql, [name], function (err, result) {
           connection.release();
           if (err) {
@@ -75,23 +74,20 @@ router.post('/', (request, response) => {
 router.put('/:id', (request, response) => {
   const id = request.params.id;
   const updatedBranch = request.body;
-
   pool.getConnection(function (err, connection) {
     if (err) {
       console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
-      let sql = 'UPDATE Branch SET name = ? WHERE id = ?';
+      const sql = 'UPDATE Branch SET name = ? WHERE id = ?';
       connection.query(sql, [updatedBranch.name, id], function (err) {
         connection.release();
         if (err) {
           console.log(err);
           response.status(400).send('Bad query');
         } else {
-          console.log('1 data updated');
-          response.send('name updated');
+          response.send('Name updated.');
         }
-
       });
     }
   });
