@@ -1,24 +1,30 @@
-const passport = require("passport");
-var saml = require("passport-saml");
-const config = require("../../config");
+const passport = require('passport');
+var saml = require('passport-saml');
+const config = require('../../config');
 
 // This file was setup according to the guide found here:
 // https://medium.com/disney-streaming/setup-a-single-sign-on-saml-test-environment-with-docker-and-nodejs-c53fc1a984c9
 
+
 passport.serializeUser(function(user, done) {
-  console.log("-----------------------------");
-  console.log("serialize user");
+  /*
+  console.log('-----------------------------');
+  console.log('serialize user');
   console.log(user);
-  console.log("-----------------------------");
+  console.log('-----------------------------');
+  */
   done(null, user);
 });
 passport.deserializeUser(function(user, done) {
-  console.log("-----------------------------");
-  console.log("deserialize user");
+  /*
+  console.log('-----------------------------');
+  console.log('deserialize user');
   console.log(user);
-  console.log("-----------------------------");
+  console.log('-----------------------------');
+  */
   done(null, user);
 });
+
 
 var samlStrategy = new saml.Strategy(
   {
@@ -36,16 +42,17 @@ var samlStrategy = new saml.Strategy(
   }
 );
 
-passport.use("samlStrategy", samlStrategy);
+passport.use('samlStrategy', samlStrategy);
 
 module.exports = {
   passport,
   authenticatedRequest: function(req, res, next) {
-    if (req.isAuthenticated()) {
+    // Don't require authenticated requests in debug mode
+    if (req.isAuthenticated() || config.debug) {
       //req.isAuthenticated() returns true if user is logged in
       next();
     } else {
-      res.send(401, "Unauthorized");
+      res.send(401, 'Unauthorized');
     }
   }
 };

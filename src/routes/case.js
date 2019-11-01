@@ -5,8 +5,6 @@ const authenticatedRequest = require("../util/authentication").authenticatedRequ
 
 //gets all cases
 router.get("/", authenticatedRequest, (request, response) => {
-  console.log(request.user);
-
   pool.getConnection(function(err, connection) {
     if (err) {
       console.log(err);
