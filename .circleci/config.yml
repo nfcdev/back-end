@@ -55,8 +55,6 @@ jobs:
           command: mkdir ~/project/c4solutions/back-end && sudo mv ~/back-end/* ~/project/c4solutions/back-end/
       - setup_remote_docker
       - run:
-          command: cd c4solutions && ls && pwd
-      - run:
           name: run test
           command: cd c4solutions && npm run test:back-end:unit
 
