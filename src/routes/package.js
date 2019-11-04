@@ -127,4 +127,76 @@ router.delete('/:id', (request, response) =>{
           });
     });
 
+    //edits a package
+router.put('/:id', (request, response) =>{
+  const id = request.params.id;
+  const updatedPackage = request.body;
+  let message = '';
+  let allowContinue = true;
+      pool.getConnection(function(err, connection) {
+        if (err) {
+          console.log(err);
+          allowContinue = false;
+          response.status(500).send('Could not connect to server');
+        } else{
+          //Updates package_number if it is given
+          if (updatedPackage.package_number && allowContinue){   
+          let sql = 'UPDATE Package SET package_number = ? WHERE id = ?';
+          connection.query(sql, [updatedPackage.package_number, id], function (err) {
+            
+            if (err) {
+              console.log(err);
+              allowContinue = false;
+              response.status(400).send('Bad query');
+            }else{
+             message = message + 'package_number';
+              }
+          });
+      } 
+       //Updates shelf if it is given
+       if (updatedPackage.shelf && allowContinue){   
+        let sql = 'UPDATE Package SET shelf = ? WHERE id = ?';
+        connection.query(sql, [updatedPackage.shelf, id], function (err) {
+          if (err) {
+            console.log(err);
+            allowContinue = false;
+            response.status(400).send('Bad query');
+          }else{
+            message = message + 'shelf ';
+            console.log('zero: ' + message)
+            }
+            console.log('first: ' + message)
+        });
+        console.log('second: ' + message)
+    } 
+    console.log('third: ' + message)
+     //Updates case if it is given
+     if (updatedPackage.case && allowContinue){   
+      let sql = 'UPDATE Package SET `case` = ? WHERE id = ?';
+      connection.query(sql, [updatedPackage.case, id], function (err) {
+        if (err) {
+          console.log(err);
+          allowContinue = false;
+          response.status(400).send('Bad query');
+        }else{
+  
+          message = message + 'case ';
+            }
+      });
+  } 
+  connection.release();
+ 
+  if( allowContinue){
+    console.log('fourth: ' + message)
+    if(message){
+      response.send(message + 'updated.');
+    }else{
+      response.send('Nothing updated');
+    }
+  }
+    }
+  
+        });
+       
+  });
 module.exports = router;
