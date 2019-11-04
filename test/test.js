@@ -1,6 +1,5 @@
 /* eslint-disable no-undef */
-const mocha = require('mocha');
-const { expect, assert } = require('chai');
+const { expect } = require('chai');
 const request = require('supertest');
 const pool = require('../connect');
 
@@ -29,8 +28,8 @@ describe('Testing route cases', function(){
             .get('/case')
             .end(function(err, resp){
             const cases = resp.body.length;
-            expect(err).equal(null);
-            expect(cases).equal(100);
+            expect(err).to.equal(null);
+            expect(cases).to.equal(100);
             done();
         });
     });
@@ -41,9 +40,9 @@ describe('Testing route cases', function(){
             .get('/case/5')
             .end(function(err, resp){
                 const reqCase = resp.body;
-                expect(err).equal(null);
-                expect(reqCase.length).equal(1);
-                expect(reqCase[0].id).equal(5);
+                expect(err).to.equal(null);
+                expect(reqCase.length).to.equal(1);
+                expect(reqCase[0].id).to.equal(5);
                 done();
             })
     })
