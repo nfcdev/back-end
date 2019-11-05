@@ -54,5 +54,4 @@ server.listen(port, () => {
   if (process.env.IS_CIRCLECI) process.exit(0);
 });
 
-
 module.exports = app;
