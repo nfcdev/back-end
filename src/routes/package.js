@@ -133,12 +133,16 @@ router.put('/:id', (request, response) =>{
   const updatedPackage = request.body;
   let message = '';
   let allowContinue = true;
+  console.log('uppe');
       pool.getConnection(function(err, connection) {
+        console.log('nästan uppe');
         if (err) {
           console.log(err);
           allowContinue = false;
           response.status(500).send('Could not connect to server');
         } else{
+          console.log('i elsen yo');
+          /** 
           //Updates package_number if it is given
           if (updatedPackage.package_number && allowContinue){   
           let sql = 'UPDATE Package SET package_number = ? WHERE id = ?';
@@ -148,11 +152,15 @@ router.put('/:id', (request, response) =>{
               console.log(err);
               allowContinue = false;
               response.status(400).send('Bad query');
+              console.log('inne: ' + allowContinue);
             }else{
              message = message + 'package_number';
+             console.log('funkar');
               }
           });
       } 
+    
+      
        //Updates shelf if it is given
        if (updatedPackage.shelf && allowContinue){   
         let sql = 'UPDATE Package SET shelf = ? WHERE id = ?';
@@ -170,22 +178,29 @@ router.put('/:id', (request, response) =>{
         console.log('second: ' + message)
     } 
     console.log('third: ' + message)
+    */
      //Updates case if it is given
      if (updatedPackage.case && allowContinue){   
       let sql = 'UPDATE Package SET `case` = ? WHERE id = ?';
       connection.query(sql, [updatedPackage.case, id], function (err) {
+        console.log('inne i connectorn');
         if (err) {
           console.log(err);
           allowContinue = false;
           response.status(400).send('Bad query');
+          console.log('bad query: ' + allowContinue);
         }else{
+          console.log('good query: ' + allowContinue);
   
           message = message + 'case ';
             }
       });
+      console.log('se hit först: ' + allowContinue);
   } 
   connection.release();
- 
+  console.log('se hit: ' + allowContinue);
+  
+  
   if( allowContinue){
     console.log('fourth: ' + message)
     if(message){
@@ -194,9 +209,11 @@ router.put('/:id', (request, response) =>{
       response.send('Nothing updated');
     }
   }
+  
     }
   
         });
        
   });
+  
 module.exports = router;
