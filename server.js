@@ -26,7 +26,6 @@ app.use(bodyParser.json({
   verify: rawBodyBuffer,
 }));
 
-
 // Import routes
 app.use(require('./src/routes'));
 
