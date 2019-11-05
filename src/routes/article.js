@@ -9,27 +9,26 @@ const pool = require('../../connect');
     const newArticle = { 
       material_number : req.body.material_number,
       description : req.body.description,
-      parent : req.body.parent,
       case : req.body.case
     }
-    if(!newArticle.material_number || !newArticle.description || !newArticle.parent || !newArticle.case){
+    if(!newArticle.material_number || !newArticle.description || !newArticle.case){
       res.status(400).send('Bad request');
     } else {
         pool.getConnection(function(err, connection) {
           if (err) {
             console.log(err);
-            res.status(500).send('Could not connect to server');
+           return res.status(500).send('Could not connect to server');
           }
-          let sql = 'INSERT INTO Article(material_number, description, parent, case) VALUES (?, ?, ?, ?)';
-          let article = [newArticle.material_number, newArticle.description, newArticle.parent, newArticle.case];
+          let sql = 'INSERT INTO Article(material_number, description, case) VALUES (?, ?, ?)';
+          let article = [newArticle.material_number, newArticle.description, newArticle.case];
           connection.query(sql, article, function (err, result) {
             connection.release();
             if (err) {
               console.log(err);
-              res.status(400).send('Bad query');
+             return res.status(400).send('Bad query');
             } else {
             console.log('New article added');
-           res.send(result);
+            res.send(result);
             }
           });
         });
