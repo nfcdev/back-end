@@ -19,8 +19,10 @@ const pool = require('../../connect');
             console.log(err);
            return res.status(500).send('Could not connect to server');
           }
-          let sql = 'INSERT INTO Article(material_number, description, case) VALUES (?, ?, ?)';
+          let sql = 'INSERT INTO Article(material_number, description, `case`) VALUES (?, ?, ?)';
           let article = [newArticle.material_number, newArticle.description, newArticle.case];
+          console.log(sql);
+          console.log(article);
           connection.query(sql, article, function (err, result) {
             connection.release();
             if (err) {
