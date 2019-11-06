@@ -106,9 +106,9 @@ describe('Testing api storage room', () => {
     request(app)
       .get('/storageroom/')
       .end((err, resp) => {
-        const cases = resp.body.length;
+        const rooms = resp.body.length;
         expect(err).to.equal(null);
-        expect(cases).to.equal(6);
+        expect(rooms).to.equal(6);
         done();
       });
   });
@@ -119,9 +119,9 @@ it('should now be 7 rooms, testing post', (done) => {
   request(app)
       .get('/storageroom/')
       .end((err, resp) => {
-        const cases = resp.body.length;
+        const rooms = resp.body.length;
         expect(err).to.equal(null);
-        expect(cases).to.equal(7);
+        expect(rooms).to.equal(7);
         done();
     });
 });
