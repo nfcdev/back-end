@@ -40,7 +40,7 @@ router.get('/', (request, response) => {
     // Shelf
     if(shelf){
         if(has_where_condition) sql_query += "and ";
-        sql_query += "Article.id in (select article from StorageEvent where shelf = ?) "
+        sql_query += "Article.id in (select article from StorageEvent where shelf = ? )"
         has_where_condition = true;
         parameters.push(shelf);
     } 
@@ -52,7 +52,8 @@ router.get('/', (request, response) => {
     pool.getConnection(function(err, connection) {
         if (err) console.log(err);
 
-            //sql_query = "select * from Article where `case`=6"
+            //sql_query = ""
+            sql_query += " Order by Article.id asc"
             //sql_query = "select * from Article where id in (select article from StorageMap where storage_room = (select id from StorageRoom where name='Vapen 1'))"
             console.log(sql_query);
             console.log(parameters);
