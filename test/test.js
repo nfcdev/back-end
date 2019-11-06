@@ -91,10 +91,13 @@ describe('Testing branch function post', () => {
 
 
 //delete
-//API - /storageroom
-describe('Testing api storage room', () => {
+//API - /storageroom Written Simon
+describe('Testing api storage room', () => { 
  
  //post
+// write in body
+
+
  //get
  //put
  //get
