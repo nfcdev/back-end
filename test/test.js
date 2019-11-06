@@ -47,13 +47,22 @@ describe('Testing route cases', () => {
         done();
       });
   });
+
 });
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 648b229a5f07df65034489df26413f14503feaa0
 //post
  
-//delete
 
+//delete
+//API - /storageroom
+describe('Testing api storage room', () => {
+
+<<<<<<< HEAD
 describe('Test route branches', () => {
     it('Should reurn all branches (5 branches)', (done) => {
         request(app)
@@ -78,3 +87,27 @@ describe('Test route branches', () => {
             });
     });
 });
+=======
+ /*  it('should update specified storageroom', (done) => {
+    request(app)
+      .post('/case/5')
+      .end((err, resp) => {
+        const cases = resp.body.length;
+        expect(err).to.equal(null);
+        expect(cases).to.equal(100);
+        done();
+      });
+  }); */
+  
+  it('Should return all storage room (6 rooms)', (done) => {
+    request(app)
+      .get('/storageroom')
+      .end((err, resp) => {
+        const cases = resp.body.length;
+        expect(err).to.equal(null);
+        expect(cases).to.equal(6);
+        done();
+      });
+  });
+});
+>>>>>>> 648b229a5f07df65034489df26413f14503feaa0
