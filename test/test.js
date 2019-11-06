@@ -114,11 +114,17 @@ describe('Testing api storage room', () => {
   });
  //post
 // write in body
-request(app).post('/storageroom/').
+
+request(app).post('/storageroom/').send(body)
+
 it('should now be 7 rooms, testing post', (done) => {
   request(app)
       .get('/storageroom/')
       .end((err, resp) => {
+
+
+
+        
         const rooms = resp.body.length;
         expect(err).to.equal(null);
         expect(rooms).to.equal(7);
