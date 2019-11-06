@@ -84,20 +84,19 @@ describe('Test route branches', () => {
 
 /*describe('Testing PUT funtionality on branch', () => {
   it('Should ')
-})*/
+})
+*/
 
-/*
 describe('Testing branch function post', () => {
   it('Should add a new branch', (done) => {
     request(app)
-      .get('/branch')
+      .post('/branch/Testing facility')
       .end((err, resp) => {
-        const branches = resp.body.length;
-        expect(err.to.equal(null);
+        expect(err).to.equal(null);
       });
   });
 });
-*/
+
 
 //delete
 //API - /storageroom Written Simon
@@ -152,7 +151,7 @@ it('should now be 7 rooms, testing post', (done) => {
 
 
   
-  it('Should return storage rooms in a branch (branch id: 2)', (done) => {
+  it('Should return stooragerooms in a branch (branch id: 2)', (done) => {
     request(app)
       .get('/storageroom/branch/2')
       .end((err, resp) => {
