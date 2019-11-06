@@ -58,16 +58,16 @@ describe('Testing route cases', () => {
 
 
 describe('Test route branches', () => {
-    it('Should return all branches(GET) (5 branches)', (done) => {
-        request(app)
-            .get('/branch')
-            .end((err, resp) => {
-                const branches = resp.body.length;
-                expect(err).to.equal(null);
-                expect(branches).to.equal(5);
-                done();
-            });
-    });
+  it('Should return all branches(GET) (5 branches)', (done) => {
+    request(app)
+      .get('/branch')
+      .end((err, resp) => {
+        const branches = resp.body.length;
+        expect(err).to.equal(null);
+        expect(branches).to.equal(5);
+      done();
+      });
+  });
 
    /* it('Should return specific branch (id: 3)', (done) => {
         request(app)
@@ -82,13 +82,18 @@ describe('Test route branches', () => {
     }); */
 });
 
-
+/*
 describe('Testing branch function post', () => {
   it('Should add a new branch', (done) => {
     request(app)
+      .get('/branch')
+      .end((err, resp) => {
+        const branches = resp.body.length;
+        expect(err.to.equal(null);
+      });
   });
 });
-
+*/
 
 //delete
 //API - /storageroom Written Simon
