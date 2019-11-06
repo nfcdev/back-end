@@ -47,9 +47,36 @@ describe('Testing route cases', () => {
         done();
       });
   });
+
 });
+
+
 
 //post
  
-//delete
 
+//delete
+//API - /storageroom
+describe('Testing api storage room', () => {
+
+ /*  it('should update specified storageroom', (done) => {
+    request(app)
+      .post('/case/5')
+      .end((err, resp) => {
+        const cases = resp.body.length;
+        expect(err).to.equal(null);
+        expect(cases).to.equal(100);
+        done();
+      });
+  }); */
+  it('Should return all storage room (100 rooms)', (done) => {
+    request(app)
+      .get('/case')
+      .end((err, resp) => {
+        const cases = resp.body.length;
+        expect(err).to.equal(null);
+        expect(cases).to.equal(100);
+        done();
+      });
+  });
+});
