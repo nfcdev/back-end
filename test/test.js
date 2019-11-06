@@ -96,7 +96,16 @@ describe('Testing api storage room', () => {
  
  //post
 // write in body
-
+it('should now be 7 rooms', (done) => {
+  request(app)
+    .get('/case')
+    .end((err, resp) => {
+      const cases = resp.body.length;
+      expect(err).to.equal(null);
+      expect(cases).to.equal(7);
+      done();
+    });
+});
 
  //get
  //put
