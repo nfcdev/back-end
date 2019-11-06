@@ -58,7 +58,7 @@ describe('Testing route cases', () => {
 
 
 describe('Test route branches', () => {
-    it('Should reurn all branches (5 branches)', (done) => {
+    it('Should return all branches(GET) (5 branches)', (done) => {
         request(app)
             .get('/branch')
             .end((err, resp) => {
@@ -69,7 +69,7 @@ describe('Test route branches', () => {
             });
     });
 
-    it('Should return specific branch (id: 3)', (done) => {
+   /* it('Should return specific branch (id: 3)', (done) => {
         request(app)
             .get('/branch/3')
             .end((err, resp) => {
@@ -79,7 +79,7 @@ describe('Test route branches', () => {
                 expect(reqBranch[0].id).to.equal(3);
                 done();
             });
-    });
+    }); */
 });
 
 
