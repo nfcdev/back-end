@@ -69,6 +69,7 @@ describe('Testing api storage room', () => {
         done();
       });
   }); */
+  
   it('Should return all storage room (100 rooms)', (done) => {
     request(app)
       .get('/case')
