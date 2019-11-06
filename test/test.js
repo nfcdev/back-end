@@ -82,6 +82,14 @@ describe('Test route branches', () => {
     });
 });
 
+
+describe('Testing branch function post', () => {
+  it('Should add a new branch', (done) => {
+    request(app)
+  });
+});
+
+
 //delete
 //API - /storageroom
 describe('Testing api storage room', () => {
