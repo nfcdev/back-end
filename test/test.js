@@ -82,13 +82,18 @@ describe('Test route branches', () => {
     });
 });
 
-
+/*
 describe('Testing branch function post', () => {
   it('Should add a new branch', (done) => {
     request(app)
+      .get('/branch')
+      .end((err, resp) => {
+        const branches = resp.body.length;
+        expect(err.to.equal(null);
+      });
   });
 });
-
+*/
 
 //delete
 //API - /storageroom
