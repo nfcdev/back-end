@@ -49,3 +49,6 @@ describe('Testing route cases', function(){
     })
 })
 
+//post
+//get 
+//delete
