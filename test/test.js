@@ -49,7 +49,32 @@ describe('Testing route cases', () => {
   });
 });
 
+
 //post
  
 //delete
 
+describe('Test route branches', () => {
+    it('Should reurn all branches (5 branches)', (done) => {
+        request(app)
+            .get('/branch')
+            .end((err, resp) => {
+                const branches = resp.body.length;
+                expect(err).to.equal(null);
+                expect(branches).to.equal(5);
+                done();
+            });
+    });
+
+    it('Should return specific branch (id: 3)', (done) => {
+        request(app)
+            .get('/branch/3')
+            .end((err, resp) => {
+                const reqBranch = resp.body;
+                expect(err).to.equal(null);
+                expect(reqBranch.length).to.equal(1);
+                expect(reqBranch[0].id).to.equal(3);
+                done();
+            });
+    });
+});
