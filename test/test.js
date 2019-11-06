@@ -58,7 +58,7 @@ describe('Testing route cases', () => {
 
 
 describe('Test route branches', () => {
-    it('Should reurn all branches (5 branches)', (done) => {
+    it('Should return all branches (5 branches)', (done) => {
         request(app)
             .get('/branch')
             .end((err, resp) => {
