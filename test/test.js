@@ -85,7 +85,14 @@ describe('Test route branches', () => {
 //delete
 //API - /storageroom
 describe('Testing api storage room', () => {
- /*  it('should update specified storageroom', (done) => {
+ 
+ //post
+ //get
+ //put
+ //get
+ //delete
+ 
+  /*  it('should update specified storageroom', (done) => {
     request(app)
       .post('/case/5')
       .end((err, resp) => {
@@ -95,6 +102,7 @@ describe('Testing api storage room', () => {
         done();
       });
   }); */
+
   
   it('Should return all storage room (6 rooms)', (done) => {
     request(app)
