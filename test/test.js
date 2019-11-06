@@ -107,5 +107,16 @@ describe('Testing api storage room', () => {
       });
   });
 
-  //it
+  
+  it('Should return stooragerooms in a branch (branch id: 2)', (done) => {
+    request(app)
+      .get('/storageroom/branch/2')
+      .end((err, resp) => {
+        const reqroom = resp.body;
+        expect(err).to.equal(null);
+        expect(reqroom.length).to.equal(1);
+        expect(reqroom[0].id).to.equal(3);
+        done();
+      });
+  });
 });
