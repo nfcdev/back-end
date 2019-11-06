@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon server.js",
-    "build": "node server.js"
+    "build": "node server.js",
+    "lint": "eslint src -c .eslintrc.json --ext js,jsx"
   },
   "repository": {
     "type": "git",
@@ -20,10 +21,17 @@
   "homepage": "https://github.com/C4SolutionsTDDC88/back-end#readme",
   "dependencies": {
     "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.4",
+    "cors": "^2.8.5",
     "express": "^4.15.2",
+    "express-session": "^1.17.0",
+    "jsonwebtoken": "^8.5.1",
     "mysql": "^2.17.1",
     "nodemon": "^1.19.2",
     "normalize-port": "^1.0.0",
+    "npm": "^6.12.1",
+    "passport": "^0.4.0",
+    "passport-saml": "^1.2.0",
     "path": "^0.12.7"
   },
   "devDependencies": {
