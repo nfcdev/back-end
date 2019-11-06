@@ -102,17 +102,27 @@ describe('Testing branch function post', () => {
 //delete
 //API - /storageroom Written Simon
 describe('Testing api storage room', () => { 
- 
+  it('Should return all storage room (6 rooms)', (done) => {
+    request(app)
+      .get('/storageroom/')
+      .end((err, resp) => {
+        const cases = resp.body.length;
+        expect(err).to.equal(null);
+        expect(cases).to.equal(6);
+        done();
+      });
+  });
  //post
 // write in body
-it('should now be 7 rooms', (done) => {
+request(app).post('/storageroom/').
+it('should now be 7 rooms, testing post', (done) => {
   request(app)
-    .get('/case')
-    .end((err, resp) => {
-      const cases = resp.body.length;
-      expect(err).to.equal(null);
-      expect(cases).to.equal(7);
-      done();
+      .get('/storageroom/')
+      .end((err, resp) => {
+        const cases = resp.body.length;
+        expect(err).to.equal(null);
+        expect(cases).to.equal(7);
+        done();
     });
 });
 
@@ -133,16 +143,7 @@ it('should now be 7 rooms', (done) => {
   }); */
 
   
-  it('Should return all storage room (6 rooms)', (done) => {
-    request(app)
-      .get('/storageroom/')
-      .end((err, resp) => {
-        const cases = resp.body.length;
-        expect(err).to.equal(null);
-        expect(cases).to.equal(6);
-        done();
-      });
-  });
+
 
   
   it('Should return stooragerooms in a branch (branch id: 2)', (done) => {
