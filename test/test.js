@@ -85,7 +85,7 @@ describe('Test route branches', () => {
 /*describe('Testing PUT funtionality on branch', () => {
   it('Should ')
 })
-
+*/
 
 describe('Testing branch function post', () => {
   it('Should add a new branch', (done) => {
