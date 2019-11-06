@@ -145,7 +145,7 @@ it('should now be 7 rooms', (done) => {
   });
 
   
-  it('Should return stooragerooms in a branch (branch id: 2)', (done) => {
+  it('Should return storage rooms in a branch (branch id: 2)', (done) => {
     request(app)
       .get('/storageroom/branch/2')
       .end((err, resp) => {
