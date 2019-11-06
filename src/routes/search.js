@@ -29,7 +29,7 @@ router.get('/', (request, response) => {
     } 
 
 
-    // Location är storageroom
+    // storageroom
     if(location){
         if(has_where_condition) sql_query += "and ";
         sql_query += "Article.id in (select article from StorageEvent where storage_room = (select id from StorageRoom where name = ?)) "
@@ -37,13 +37,15 @@ router.get('/', (request, response) => {
         parameters.push(location);
     } 
 
-    // Shelf är placement
+    // Shelf
     if(shelf){
         if(has_where_condition) sql_query += "and ";
         sql_query += "Article.id in (select article from StorageEvent where shelf = ?) "
         has_where_condition = true;
         parameters.push(shelf);
     } 
+
+
 
 
 
