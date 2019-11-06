@@ -51,18 +51,12 @@ describe('Testing route cases', () => {
 });
 
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 648b229a5f07df65034489df26413f14503feaa0
 //post
  
 
-//delete
-//API - /storageroom
-describe('Testing api storage room', () => {
 
-<<<<<<< HEAD
+
 describe('Test route branches', () => {
     it('Should reurn all branches (5 branches)', (done) => {
         request(app)
@@ -87,7 +81,10 @@ describe('Test route branches', () => {
             });
     });
 });
-=======
+
+//delete
+//API - /storageroom
+describe('Testing api storage room', () => {
  /*  it('should update specified storageroom', (done) => {
     request(app)
       .post('/case/5')
@@ -109,5 +106,6 @@ describe('Test route branches', () => {
         done();
       });
   });
+
+  //it
 });
->>>>>>> 648b229a5f07df65034489df26413f14503feaa0
