@@ -35,7 +35,6 @@ describe('Testing route cases', () => {
   });
 
 
-
   it('Should return specific case (id: 5)', (done) => {
     request(app)
       .get('/case/5')
@@ -51,9 +50,8 @@ describe('Testing route cases', () => {
 });
 
 
+// post
 
-//post
- 
 
 
 
@@ -65,11 +63,11 @@ describe('Test route branches', () => {
         const branches = resp.body.length;
         expect(err).to.equal(null);
         expect(branches).to.equal(5);
-      done();
+        done();
       });
   });
 
-   /* it('Should return specific branch (id: 3)', (done) => {
+  /* it('Should return specific branch (id: 3)', (done) => {
         request(app)
             .get('/branch/3')
             .end((err, resp) => {
@@ -82,7 +80,7 @@ describe('Test route branches', () => {
     }); */
 });
 
-/*describe('Testing PUT funtionality on branch', () => {
+/* describe('Testing PUT funtionality on branch', () => {
   it('Should ')
 })
 */
@@ -98,9 +96,9 @@ describe('Testing branch function post', () => {
 });
 
 
-//delete
-//API - /storageroom Written Simon
-describe('Testing api storage room', () => { 
+// delete
+// API - /storageroom Written Simon
+describe('Testing api storage room', () => {
   it('Should return all storage room (6 rooms)', (done) => {
     request(app)
       .get('/storageroom/')
@@ -111,31 +109,31 @@ describe('Testing api storage room', () => {
         done();
       });
   });
- //post
-// write in body
+  // post
+  // write in body
 
-request(app).post('/storageroom/').send(body)
+  request(app).post('/storageroom/').send(body);
 
-it('should now be 7 rooms, testing post', (done) => {
-  request(app)
+  it('should now be 7 rooms, testing post', (done) => {
+    request(app)
       .get('/storageroom/')
       .end((err, resp) => {
 
 
 
-        
+
         const rooms = resp.body.length;
         expect(err).to.equal(null);
         expect(rooms).to.equal(7);
         done();
-    });
-});
+      });
+  });
 
- //get
- //put
- //get
- //delete
- 
+  // get
+  // put
+  // get
+  // delete
+
   /*  it('should update specified storageroom', (done) => {
     request(app)
       .post('/case/5')
@@ -147,10 +145,10 @@ it('should now be 7 rooms, testing post', (done) => {
       });
   }); */
 
-  
 
 
-  
+
+
   it('Should return stooragerooms in a branch (branch id: 2)', (done) => {
     request(app)
       .get('/storageroom/branch/2')
