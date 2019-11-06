@@ -58,7 +58,7 @@ describe('Testing route cases', () => {
 
 
 describe('Test route branches', () => {
-    it('Should reurn all branches (5 branches)', (done) => {
+    it('Should return all branches(GET) (5 branches)', (done) => {
         request(app)
             .get('/branch')
             .end((err, resp) => {
@@ -69,7 +69,7 @@ describe('Test route branches', () => {
             });
     });
 
-    it('Should return specific branch (id: 3)', (done) => {
+   /* it('Should return specific branch (id: 3)', (done) => {
         request(app)
             .get('/branch/3')
             .end((err, resp) => {
@@ -79,7 +79,7 @@ describe('Test route branches', () => {
                 expect(reqBranch[0].id).to.equal(3);
                 done();
             });
-    });
+    }); */
 });
 
 /*
@@ -96,9 +96,19 @@ describe('Testing branch function post', () => {
 */
 
 //delete
-//API - /storageroom
-describe('Testing api storage room', () => {
- /*  it('should update specified storageroom', (done) => {
+//API - /storageroom Written Simon
+describe('Testing api storage room', () => { 
+ 
+ //post
+// write in body
+
+
+ //get
+ //put
+ //get
+ //delete
+ 
+  /*  it('should update specified storageroom', (done) => {
     request(app)
       .post('/case/5')
       .end((err, resp) => {
@@ -108,6 +118,7 @@ describe('Testing api storage room', () => {
         done();
       });
   }); */
+
   
   it('Should return all storage room (6 rooms)', (done) => {
     request(app)
