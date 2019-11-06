@@ -35,11 +35,7 @@ describe('Testing route cases', () => {
   });
 
 
-<<<<<<< HEAD
-//post
-//get 
-//delete
-=======
+
   it('Should return specific case (id: 5)', (done) => {
     request(app)
       .get('/case/5')
@@ -52,4 +48,8 @@ describe('Testing route cases', () => {
       });
   });
 });
->>>>>>> 55a036484c3f820abb7d685bad5c5ce45f03def0
+
+//post
+ 
+//delete
+
