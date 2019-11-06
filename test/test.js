@@ -98,7 +98,7 @@ describe('Testing api storage room', () => {
   
   it('Should return all storage room (6 rooms)', (done) => {
     request(app)
-      .get('/storageroom')
+      .get('/storageroom/')
       .end((err, resp) => {
         const cases = resp.body.length;
         expect(err).to.equal(null);
