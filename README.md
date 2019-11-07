@@ -375,7 +375,7 @@ If successful, the response will be the created article:
 {
     "material_number": "129274-90",
     "reference_number": "129274",
-    "description": "Gun"
+    "description": "Gun",
     "id": 4
 }
 ```
@@ -584,6 +584,47 @@ Example response:
     "description": "Gevärspipa"
 }
 ```
+
+## Get all articles for a specific case
+This endpoint returns all articles belonging to a specific case.
+##### HTTP Request
+`GET http://localhost:9000/article/case/<ID>`
+
+##### URL Parameters
+Parameter | Description
+--------- | -----------
+ID | The ID of the specific case
+
+##### HTTP Response
+Example response:
+```json
+ [ 
+    {
+        "material_number": "743996-44",
+        "reference_number": "743996",
+        "storage_room": "Vapen 1",
+        "shelf": "B3",
+        "package": " - ",
+        "status": "check_out",
+        "timestamp": 1552942078,
+        "last_modified": 1552942078,
+        "description": "",
+        "id": 12
+    },
+    {
+        "material_number": "743996-57",
+        "reference_number": "743996",
+        "storage_room": "Vapen 1",
+        "shelf": "B10",
+        "package": " - ",
+        "status": "check_in",
+        "timestamp": 1549895201,
+        "last_modified": 1549895201,
+        "description": "Gevärspipa",
+        "id": 18
+    },
+    ...
+]
 
 ## Get all articles stored by a specific branch
 This endpoint returns all articles currently stored by the branch with the specified id.
