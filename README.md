@@ -985,44 +985,6 @@ The endpoint returns JSON data structured like this:
 ]
 ```
 
-## Update a package
-This endpoint updates a specific package
-
-##### HTTP Request
-`PUT http://localhost:9000/package/<ID>`
-
-##### URL Parameters
-Parameter | Description
---------- | -----------
-ID | The ID of the package to update
-
-##### JSON Parameters 
-Parameter |Description
---------- | -----------
-package_number | The updated package number
-current_storage_room | The id of the updated storage room for a package
-shelf | The the id of the updated shelf for a package
-
-Example body of request:
-```json
-{
-    "package_number": "213876-K02",
-    "current_storage_room": 3,
-    "shelf": 2
-}
-```
-
-##### HTTP Response
-If successful, the response will be the updated package object:
-```json
-{
-    "package_number": "213876-K02",
-    "current_storage_room": 3,
-    "shelf": 2,
-    "id": 4
-}
-```
-
 ## Create a package for a given case
 This endpoint creates the next package for a given case. For example, if no packages exists for a certain case (e.g. reference number 12738) this endpoint will create a package with package number 12738-K01. The next time this endpoint is called, 12738-K02 will be created
 
