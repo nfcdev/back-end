@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-// Example: Establishing a connection and query to db
+// Example: Establishing a connection and query to db   nyhet!
 const pool = require('../../connect');
 
 router.get('/', (request, response) => {
@@ -9,7 +9,8 @@ router.get('/', (request, response) => {
     let material_number = request.query.material_number;
     let location = request.query.location;
     let shelf = request.query.shelf;
-    let sql_query = "select Article.id as id, Article.material_number as 'material number', Article.description as description, Article.case as 'case', Case.reference_number as 'reference number', StorageRoom.name as 'storage room', StorageEvent.shelf as 'shelf' from StorageRoom inner join StorageEvent on StorageRoom.id = StorageEvent.storage_room inner join Article on StorageEvent.article = Article.id inner join `Case` on Case.id = Article.case";
+    let sql_query = "select Article.id as id, Article.material_number as 'material number', Article.description as description, Article.case as 'case', Case.reference_number as 'reference number', StorageRoom.name as 'storage room', StorageEvent.shelf as 'shelf'";
+    sql_query += "from StorageRoom inner join StorageEvent on StorageRoom.id = StorageEvent.storage_room inner join Article on StorageEvent.article = Article.id inner join `Case` on Case.id = Article.case";
     let has_where_condition = false;
     let parameters = [];
 
