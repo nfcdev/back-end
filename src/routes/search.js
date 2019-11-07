@@ -32,7 +32,7 @@ router.get('/', (request, response) => {
     // storageroom
     if(location){
         if(has_where_condition) sql_query += "and ";
-        sql_query += "Article.id in (select article from StorageEvent where storage_room = (select id from StorageRoom where name = ?)) "
+        sql_query += "Article.id in (select article from StorageEvent where storage_room = (select id from StorageRoom where name = ?)) ";
         has_where_condition = true;
         parameters.push(location);
     } 
@@ -40,20 +40,19 @@ router.get('/', (request, response) => {
     // Shelf
     if(shelf){
         if(has_where_condition) sql_query += "and ";
-        sql_query += "Article.id in (select article from StorageEvent where shelf = ? )"
+        sql_query += "Article.id in (select article from StorageEvent where shelf = ? )";
         has_where_condition = true;
         parameters.push(shelf);
     } 
 
-
+    sql_query += " Order by Article.id asc";
 
 
 
     pool.getConnection(function(err, connection) {
         if (err) console.log(err);
 
-            //sql_query = ""
-            sql_query += " Order by Article.id asc"
+            sql_query = "select * from Article";
             //sql_query = "select * from Article where id in (select article from StorageMap where storage_room = (select id from StorageRoom where name='Vapen 1'))"
             console.log(sql_query);
             console.log(parameters);
