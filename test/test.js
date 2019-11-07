@@ -2,7 +2,7 @@
 /* eslint-disable no-undef */
 const { expect } = require('chai');
 const request = require('supertest');
-const pool = require('../connect');
+const pool = require('../src/util/connect');
 
 let app;
 
