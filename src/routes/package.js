@@ -127,91 +127,105 @@ router.delete('/:id', (request, response) =>{
           });
     });
 
-    //edits a package
+   //edits a package
 router.put('/:id', (request, response) =>{
   const id = request.params.id;
   const updatedPackage = request.body;
-  let message = '';
-  let allowContinue = true;
-  console.log('uppe');
+  //This solution scales very badly, requires a lot of code if more columns are added
       pool.getConnection(function(err, connection) {
-        console.log('nästan uppe');
         if (err) {
           console.log(err);
-          allowContinue = false;
           response.status(500).send('Could not connect to server');
         } else{
-          console.log('i elsen yo');
-          /** 
-          //Updates package_number if it is given
-          if (updatedPackage.package_number && allowContinue){   
-          let sql = 'UPDATE Package SET package_number = ? WHERE id = ?';
-          connection.query(sql, [updatedPackage.package_number, id], function (err) {
-            
+          if (updatedPackage.package_number && updatedPackage.shelf && updatedPackage.case){   
+          let sql = 'UPDATE Package SET package_number = ?, shelf = ?, `case` = ? WHERE id = ?';
+          connection.query(sql, [updatedPackage.package_number, updatedPackage.shelf, updatedPackage.case, id], function (err) {
+            connection.release();
             if (err) {
               console.log(err);
-              allowContinue = false;
               response.status(400).send('Bad query');
-              console.log('inne: ' + allowContinue);
             }else{
-             message = message + 'package_number';
-             console.log('funkar');
+              console.log('3 data updated');
+              response.send(`Package_number, shelf and case updated`);
               }
           });
-      } 
-    
-      
-       //Updates shelf if it is given
-       if (updatedPackage.shelf && allowContinue){   
-        let sql = 'UPDATE Package SET shelf = ? WHERE id = ?';
-        connection.query(sql, [updatedPackage.shelf, id], function (err) {
+      } else if (updatedPackage.package_number && updatedPackage.shelf){
+          let sql = 'UPDATE Package SET package_number = ?, shelf = ? WHERE id = ?';
+          connection.query(sql, [updatedPackage.package_number, updatedPackage.shelf, id], function (err) {
+            connection.release();
+            if (err) {
+              console.log(err);
+              response.status(400).send('Bad query');
+            }else{
+              console.log('2 data updated');
+              response.send(`Package_number and shelf updated`);
+              }
+          });
+      } else if (updatedPackage.package_number && updatedPackage.case){
+          let sql = 'UPDATE Package SET package_number = ?, `case` = ? WHERE id = ?';
+          connection.query(sql, [updatedPackage.package_number, updatedPackage.case, id], function (err) {
+            connection.release();
+            if (err) {
+              console.log(err);
+             response.status(400).send('Bad query');
+            } else{
+            console.log('2 data updated');
+            response.send(`Package_number and case updated`);
+            }
+          });
+      }else if (updatedPackage.shelf && updatedPackage.case){
+        let sql = 'UPDATE Package SET shelf = ?, `case` = ? WHERE id = ?';
+        connection.query(sql, [updatedPackage.shelf, updatedPackage.case, id], function (err) {
+          connection.release();
           if (err) {
             console.log(err);
-            allowContinue = false;
-            response.status(400).send('Bad query');
-          }else{
-            message = message + 'shelf ';
-            console.log('zero: ' + message)
-            }
-            console.log('first: ' + message)
+           response.status(400).send('Bad query');
+          } else{
+          console.log('2 data updated');
+          response.send(`Shelf and case updated`);
+          }
         });
-        console.log('second: ' + message)
-    } 
-    console.log('third: ' + message)
-    */
-     //Updates case if it is given
-     if (updatedPackage.case && allowContinue){   
-      let sql = 'UPDATE Package SET `case` = ? WHERE id = ?';
-      connection.query(sql, [updatedPackage.case, id], function (err) {
-        console.log('inne i connectorn');
+    }else if (updatedPackage.package_number){
+      let sql = 'UPDATE Package SET package_number = ? WHERE id = ?';
+      connection.query(sql, [updatedPackage.package_number, id], function (err) {
+        connection.release();
         if (err) {
           console.log(err);
-          allowContinue = false;
-          response.status(400).send('Bad query');
-          console.log('bad query: ' + allowContinue);
-        }else{
-          console.log('good query: ' + allowContinue);
-  
-          message = message + 'case ';
-            }
+         response.status(400).send('Bad query');
+        } else{
+        console.log('1 data updated');
+        response.send(`Package_number updated`);
+        }
       });
-      console.log('se hit först: ' + allowContinue);
-  } 
-  connection.release();
-  console.log('se hit: ' + allowContinue);
-  
-  
-  if( allowContinue){
-    console.log('fourth: ' + message)
-    if(message){
-      response.send(message + 'updated.');
-    }else{
-      response.send('Nothing updated');
+  }else if (updatedPackage.case){
+    let sql = 'UPDATE Package SET `case` = ? WHERE id = ?';
+    connection.query(sql, [ updatedPackage.case, id], function (err) {
+      connection.release();
+      if (err) {
+        console.log(err);
+       response.status(400).send('Bad query');
+      } else{
+      console.log('1 data updated');
+      response.send(`Case updated`);
+      }
+    });
+}else if (updatedPackage.shelf){
+  let sql = 'UPDATE Package SET shelf = ? WHERE id = ?';
+  connection.query(sql, [updatedPackage.shelf, id], function (err) {
+    connection.release();
+    if (err) {
+      console.log(err);
+     response.status(400).send('Bad query');
+    } else{
+    console.log('1 data updated');
+    response.send(`Shelf updated`);
     }
-  }
-  
+  });
+} else {
+        response.status(400).send('Bad request');
+        
+      }
     }
-  
         });
        
   });
