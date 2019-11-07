@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../../connect');
+const pool = require('../util/connect');
 
 
 //gets all articles belonging to a specifik branch

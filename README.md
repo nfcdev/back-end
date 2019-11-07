@@ -375,7 +375,7 @@ If successful, the response will be the created article:
 {
     "material_number": "129274-90",
     "reference_number": "129274",
-    "description": "Gun"
+    "description": "Gun",
     "id": 4
 }
 ```
@@ -585,6 +585,48 @@ Example response:
 }
 ```
 
+## Get all articles for a specific case
+This endpoint returns all articles belonging to a specific case.
+##### HTTP Request
+`GET http://localhost:9000/article/case/<ID>`
+
+##### URL Parameters
+Parameter | Description
+--------- | -----------
+ID | The ID of the specific case
+
+##### HTTP Response
+Example response:
+```json
+ [ 
+    {
+        "material_number": "743996-44",
+        "reference_number": "743996",
+        "storage_room": "Vapen 1",
+        "shelf": "B3",
+        "package": " - ",
+        "status": "check_out",
+        "timestamp": 1552942078,
+        "last_modified": 1552942078,
+        "description": "",
+        "id": 12
+    },
+    {
+        "material_number": "743996-57",
+        "reference_number": "743996",
+        "storage_room": "Vapen 1",
+        "shelf": "B10",
+        "package": " - ",
+        "status": "check_in",
+        "timestamp": 1549895201,
+        "last_modified": 1549895201,
+        "description": "Gevärspipa",
+        "id": 18
+    },
+    ...
+]
+```
+
 ## Get all articles stored by a specific branch
 This endpoint returns all articles currently stored by the branch with the specified id.
 ##### HTTP Request
@@ -789,6 +831,68 @@ The endpoint returns JSON data structured like this:
 ```
 
 # Package
+
+## Check in a package 
+This endpoint checks in a pacakge in a storage room and shelf. If a package with the specified package number does not exist, the response will return an error code. A check in of a package will result in a check-in event for **all** articles in the specified package and update the location of these articles.
+
+##### HTTP Request
+`POST http://localhost:9000/package/check-in`
+
+##### JSON Parameters 
+Parameter | Required | Description
+--------- | ----------- | -----------
+package_number | yes | The name complete material number of the article. I.e. reference-number + article-number.
+comment | no | Optional comment describing the reason behind the check-in
+storage_room | yes | The id of the storage room where the check in was made
+shelf | yes | The id of the shelf where the check in was made
+
+Example body of request where shelf was specified:
+```json
+{
+    "package_number": "129274-K01",
+    "comment": "Move package from Weapon storage to DNA storage",
+    "storage_room": 3,
+    "shelf": 6,
+}
+```
+
+##### HTTP Response
+If the check in was successful, the response will be a status message:
+```json
+{
+    "result:": "ok
+}
+```
+
+## Check out a package 
+This endpoint checks out a pacakge in from storage room. If a package with the specified package number does not exist, the response will return an error code. A check out of a package will result in a check-out event for **all** articles in the specified package update the location of these articles.
+
+##### HTTP Request
+`POST http://localhost:9000/package/check-out`
+
+##### JSON Parameters 
+Parameter | Required | Description
+--------- | ----------- | -----------
+package_number | yes | The name complete material number of the article. I.e. reference-number + article-number.
+comment | no | Optional comment describing the reason behind the check-in
+storage_room | yes | The id of the storage room where the check in was made
+
+Example body of request where shelf was specified:
+```json
+{
+    "package_number": "129274-K01",
+    "comment": "Check out package from DNA storage",
+    "storage_room": 3
+}
+```
+
+##### HTTP Response
+If the check in was successful, the response will be a status message:
+```json
+{
+    "result:": "ok
+}
+```
 
 ## Get all packages
 This endpoint returns all packages
