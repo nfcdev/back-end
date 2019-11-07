@@ -467,6 +467,81 @@ If the check out was successful, the response will be the storage event that was
 }
 ```
 
+## Discard an article
+This endpoints discards an existing article from a storage room. If an article with the specified material number does not exist, the response will return an error code. Discarding of an article results in the article having no location in the storage map. Essentially the same as a check-out but is meant for material that has been discarded and will not have any further storage events.
+
+##### HTTP Request
+`POST http://localhost:9000/article/discard`
+
+##### JSON Parameters 
+Parameter | Required | Description
+--------- | ----------- | -----------
+material_number | yes | The name complete material number of the article. I.e. reference-number + article-number.
+comment | no | Optional comment describing the reason behind the discard
+storage_room | yes | The id of the storage room where the discard was made
+
+Example body of request:
+```json
+{
+    "material_number": "129274-90",
+    "comment": "Discarded",
+    "storage_room": 3,
+}
+```
+##### HTTP Response
+If the action was successful, the response will be the storage event that was created:
+```json
+{
+    "id": 67,
+    "action": "discarded",
+    "timestamp": 1579679491,
+    "user": "1688042193699",
+    "comment": "Discarded",
+    "package": null,
+    "shelf": "Hylla 8",
+    "storage_room": "DNA materialrum 2",
+    "article": 58
+}
+```
+
+
+## Process an article
+This endpoints commits a 'processed' action for an existing article in a storage room. If an article with the specified material number does not exist, the response will return an error code. Processing of an article results in the article having no location in the storage map. Essentially the same as a check-out but is meant for material that has been processed and finished and will not have any further storage events.
+
+##### HTTP Request
+`POST http://localhost:9000/article/process`
+
+##### JSON Parameters 
+Parameter | Required | Description
+--------- | ----------- | -----------
+material_number | yes | The name complete material number of the article. I.e. reference-number + article-number.
+comment | no | Optional comment describing the reason behind the discard
+storage_room | yes | The id of the storage room where the discard was made
+
+Example body of request:
+```json
+{
+    "material_number": "129274-90",
+    "comment": "Finished processing",
+    "storage_room": 3,
+}
+```
+##### HTTP Response
+If the action was successful, the response will be the storage event that was created:
+```json
+{
+    "id": 67,
+    "action": "processed",
+    "timestamp": 1579679491,
+    "user": "1688042193699",
+    "comment": "Finished processing",
+    "package": null,
+    "shelf": "Hylla 8",
+    "storage_room": "DNA materialrum 2",
+    "article": 58
+}
+```
+
 ## Register new article 
 This endpoints registers a new article and creates a first check-in in a storage room with shelf/package. If an article with the specified material number already exists, the response will return an error code. 
 
