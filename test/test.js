@@ -127,10 +127,10 @@ describe('Testing storage room post', () => {
       .end((err, resp) => {
         expect(err).to.equal(null);
       });
-      request(app).get('/storageroom/')
+      request(app).get('/storageroom/7')
         .end((err, resp) => {
-          const testroom = resp.body.el => el.id === 'test room';
-          expect(testroom).to.not.equal(undefined);
+          const testroom = resp.body.name;
+          expect(testroom).to.equal('test room');
           done();
         });
   });
@@ -147,10 +147,10 @@ describe('Testing storage room put', () => {
       .end((err, resp) => {
         expect(err).to.equal(null);
       });
-      request(app).get('/storageroom/')
+      request(app).get('/storageroom/1')
         .end((err, resp) => {
-          const testingroom = resp.body.el => el.id === 'Testing room';
-          expect(testroom).to.not.equal(undefined);
+          const testingroom = resp.body.name;
+          expect(testingroom).to.equal('Testing room')
           done();
         })
   });
