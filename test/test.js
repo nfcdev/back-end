@@ -116,7 +116,7 @@ describe('Testing storage room get', () => {
   });
 });
 
-
+/*
 describe('Testing storage room post', () => {
   it('Making sure a room is added, testing post', (done) => {
     request(app)
@@ -173,7 +173,7 @@ describe('Testing storage room delete', () => {
           expect(delroom).to.equal(undefined);
         });
   });
-});
+}); */
 
 describe('Testing storage room branch', () => {
   it('Should test to printing every storage room on a branch', (done) => {
