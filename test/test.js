@@ -6,6 +6,7 @@ const pool = require('../src/util/connect');
 
 let app;
 
+
 before((done) => {
   app = require('../server');
   app.on('APP_STARTED', () => {
@@ -52,35 +53,58 @@ describe('Testing route cases', () => {
 // // post
 
 
-// describe('Test route branches', () => {
-//   it('Should return all branches(GET) (5 branches)', (done) => {
-//     request(app)
-//       .get('/branch')
-//       .end((err, resp) => {
-//         const branches = resp.body.length;
-//         expect(err).to.equal(null);
-//         expect(branches).to.equal(5);
-//         done();
-//       });
-//   });
+describe('Test route branches', () => {
+  it('Should return all branches(GET) (5 branches)', (done) => {
+    request(app)
+      .get('/branch')
+      .end((err, resp) => {
+        const branches = resp.body.length;
+        expect(err).to.equal(null);
+        expect(branches).to.equal(5);
+        done();
+      });
+  }
+  );
 
-//   /* it('Should return specific branch (id: 3)', (done) => {
-//         request(app)
-//             .get('/branch/3')
-//             .end((err, resp) => {
-//                 const reqBranch = resp.body;
-//                 expect(err).to.equal(null);
-//                 expect(reqBranch.length).to.equal(1);
-//                 expect(reqBranch[0].id).to.equal(3);
-//                 done();
-//             });
-//     }); */
-// });
+  // it('Should return specific branch (id: 3)', (done) => {
+  //   request(app)
+  //     .get('/branch/3')
+  //     .end((err, resp) => {
+  //       const reqBranch = resp.body;
+  //       expect(err).to.equal(null);
+  //       expect(reqBranch.length).to.equal(1);
+  //       expect(reqBranch[0].id).to.equal(3);
+  //       done();
+  //     });
+  // });
+});
 
-// /* describe('Testing PUT funtionality on branch', () => {
-//   it('Should ')
-// })
-// */
+let p1;
+let updated;
+describe('Testing PUT funtionality on branch', () => {
+  it('Should update the name of a branch'), (done) => {
+    p1 = new Promise(request(app)
+      .put('/branch/3')
+      .send({
+        name: 'Test_Branch',
+      })
+      .end((err, resp) => {
+        expect(err).to.be.equal(null);
+      }));
+    p1.then(request(app)
+      .get('/branch')
+      .end((err, resp) => {
+        const branches = resp.body;
+        branches.forEach(name => {
+          if (name === 'Test_Branch') {
+            updated = name;
+          }
+        });
+        expect(updated).to.be.equal('Test_Branch');
+      }));
+  }
+});
+
 
 // describe('Testing branch function post', () => {
 //   it('Should add a new branch', (done) => {
