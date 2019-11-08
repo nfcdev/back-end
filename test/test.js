@@ -220,8 +220,7 @@ describe('Testing storage room delete', () => {
         });
       request(app).get('/storageroom/1')
         .end((err, resp) => {
-          expect(err).to.equal(null);
-          expect(delroom).to.equal(undefined);
+          expect(err).to.not.equal(null);
           done();
         });
   });
@@ -236,6 +235,7 @@ describe('Testing storage room branch', () => {
         const rooms = resp.body.length;
         expect(err).to.equal(null)
         expect(rooms).to.equal(2);
+        done();
       });
   });
 });
