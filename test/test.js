@@ -170,59 +170,60 @@ describe('Testing storage room get', () => {
 
 describe('Testing storage room post', () => {
   it('Making sure a room is added, testing post', (done) => {
-    request(app)
+    let p1 = new Promise(request(app)
       .post('/storageroom')
       .send({
         name: 'test room',
       })
       .end((err, resp) => {
         expect(err).to.equal(null);
-      });
-      request(app).get('/storageroom/7')
+      }));
+
+      p1.then(request(app).get('/storageroom/7')
         .end((err, resp) => {
           const testroom = resp.body.name;
           expect(testroom).to.equal('test room');
           done();
-        });
+        }));
   });
 });
 
 
 describe('Testing storage room put', () => {
   it('should update specified storageroom', (done) => {
-    request(app)
+    let p1 = new Promise(request(app)
       .put('/storageroom/1')
       .send({
         name: 'Testing room'
       })
       .end((err, resp) => {
         expect(err).to.equal(null);
-      });
-      request(app).get('/storageroom/1')
+      }));
+      p1.then(request(app).get('/storageroom/1')
         .end((err, resp) => {
           const testingroom = resp.body.name;
           expect(testingroom).to.equal('Testing room')
           done();
-        })
+        }));
   });
 });
 
 
 describe('Testing storage room delete', () => {
   it('Should test removing a storage room', (done) => {
-     request(app)
+    let p1 = new Promise(request(app)
        .delete('/storageroom/')
        .send({
          name: 'Vapen materialrum 1'
        })
        .end((err, resp) => {
           expect(err).to.equal(null);
-        });
-      request(app).get('/storageroom/1')
+        }));
+      p1.then(request(app).get('/storageroom/1')
         .end((err, resp) => {
           expect(err).to.not.equal(null);
           done();
-        });
+        }));
   });
 }); 
 
