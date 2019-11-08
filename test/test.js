@@ -156,16 +156,22 @@ describe('Testing storage room put', () => {
   });
 });
 
-
-//   it('Should return stooragerooms in a branch (branch id: 2)', (done) => {
-//     request(app)
-//       .get('/storageroom/branch/2')
-//       .end((err, resp) => {
-//         const reqroom = resp.body;
-//         expect(err).to.equal(null);
-//         expect(reqroom.length).to.equal(1);
-//         expect(reqroom[0].id).to.equal(3);
-//         done();
-//       });
-//   });
-// });
+describe('Testing storage room delete', () => {
+  it('Should test storage room delete', (done) => {
+     request(app)
+       .delete('/storageroom/')
+       .send({
+         name: 'Vapen materialrum 1'
+       })
+       .end((err, resp) => {
+          expect(err).to.equal(null);
+        });
+      request(app).get('/storageroom/')
+        .end((err, resp) => {
+          const delroom = resp.body.el => el.id === 'Vapen materialrum 1'
+          expect(err).to.equal(null);
+          expect(delroom).to.equal(undefined);
+          
+        });
+  });
+});
