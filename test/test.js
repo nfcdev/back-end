@@ -115,63 +115,127 @@ describe('Testing PUT funtionality on branch', () => {
 //       });
 //   });
 // });
-
-
-// // delete
-// // API - /storageroom Written Simon
-// describe('Testing api storage room', () => {
-//   it('Should return all storage room (6 rooms)', (done) => {
-//     request(app)
-//       .get('/storageroom/')
-//       .end((err, resp) => {
-//         const rooms = resp.body.length;
-//         expect(err).to.equal(null);
-//         expect(rooms).to.equal(6);
-//         done();
-//       });
-//   });
-//   // post
-//   // write in body
-
-//   request(app).post('/storageroom/').send(body);
-
-//   it('should now be 7 rooms, testing post', (done) => {
-//     request(app)
-//       .get('/storageroom/')
-//       .end((err, resp) => {
-//         const rooms = resp.body.length;
-//         expect(err).to.equal(null);
-//         expect(rooms).to.equal(7);
-//         done();
-//       });
-//   });
-
-//   // get
-//   // put
-//   // get
-//   // delete
-
-//   /*  it('should update specified storageroom', (done) => {
-//     request(app)
-//       .post('/case/5')
-//       .end((err, resp) => {
-//         const cases = resp.body.length;
-//         expect(err).to.equal(null);
-//         expect(cases).to.equal(100);
-//         done();
-//       });
-//   }); */
-
-
-//   it('Should return stooragerooms in a branch (branch id: 2)', (done) => {
-//     request(app)
-//       .get('/storageroom/branch/2')
-//       .end((err, resp) => {
-//         const reqroom = resp.body;
-//         expect(err).to.equal(null);
-//         expect(reqroom.length).to.equal(1);
-//         expect(reqroom[0].id).to.equal(3);
-//         done();
-//       });
-//   });
+//   it('Should return specific branch (id: 3)', (done) => {
+//         request(app)
+//             .get('/branch/3')
+//             .end((err, resp) => {
+//                 const reqBranch = resp.body;
+//                 expect(err).to.equal(null);
+//                 expect(reqBranch.length).to.equal(1);
+//                 expect(reqBranch[0].id).to.equal(3);
+//                 done();
+//             });
+//     }); 
 // });
+
+// describe('Testing PUT funtionality on branch', () => {
+//   it('Should ')
+// })
+// 
+
+//describe('Testing branch function post', () => {
+//  it('Should add a new branch', (done) => {
+//    request(app)
+//      .post('/branch')
+//      .send({
+//        name: 'test branch',
+//      })
+//      .end((err, resp) => {
+//        expect(err).to.equal(null);
+//      });
+//    request(app).get('/branch/')
+//      .end((err, resp) => {
+//        const branchName = resp.body.el => el.id === 'test branch';
+//        expect(branchName).to.not.equal(undefined);
+//      });
+//  });
+//});
+
+
+// delete
+// API - /storageroom Written Simon
+describe('Testing storage room get', () => {
+  it('Should return all storage room (6 rooms)', (done) => {
+    request(app)
+      .get('/storageroom/')
+      .end((err, resp) => {
+        const rooms = resp.body.length;
+        expect(err).to.equal(null);
+        expect(rooms).to.equal(6);
+        done();
+      });
+  });
+});
+
+
+describe('Testing storage room post', () => {
+  it('Making sure a room is added, testing post', (done) => {
+    request(app)
+      .post('/storageroom')
+      .send({
+        name: 'test room',
+      })
+      .end((err, resp) => {
+        expect(err).to.equal(null);
+      });
+      request(app).get('/storageroom/7')
+        .end((err, resp) => {
+          const testroom = resp.body.name;
+          expect(testroom).to.equal('test room');
+          done();
+        });
+  });
+});
+
+
+describe('Testing storage room put', () => {
+  it('should update specified storageroom', (done) => {
+    request(app)
+      .put('/storageroom/1')
+      .send({
+        name: 'Testing room'
+      })
+      .end((err, resp) => {
+        expect(err).to.equal(null);
+      });
+      request(app).get('/storageroom/1')
+        .end((err, resp) => {
+          const testingroom = resp.body.name;
+          expect(testingroom).to.equal('Testing room')
+          done();
+        })
+  });
+});
+
+
+describe('Testing storage room delete', () => {
+  it('Should test removing a storage room', (done) => {
+     request(app)
+       .delete('/storageroom/')
+       .send({
+         name: 'Vapen materialrum 1'
+       })
+       .end((err, resp) => {
+          expect(err).to.equal(null);
+        });
+      request(app).get('/storageroom/1')
+        .end((err, resp) => {
+          expect(err).to.equal(null);
+          expect(delroom).to.equal(undefined);
+          done();
+        });
+  });
+}); 
+
+
+describe('Testing storage room branch', () => {
+  it('Should test to printing every storage room on a branch', (done) => {
+    request(app)
+      .get('/storageroom/branch/1')
+      .end((err, resp) => {
+        const rooms = resp.body.length;
+        expect(err).to.equal(null)
+        expect(rooms).to.equal(2);
+      });
+  });
+});
