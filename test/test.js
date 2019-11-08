@@ -116,7 +116,7 @@ describe('Testing storage room get', () => {
   });
 });
 
-/*
+
 describe('Testing storage room post', () => {
   it('Making sure a room is added, testing post', (done) => {
     request(app)
@@ -156,6 +156,7 @@ describe('Testing storage room put', () => {
   });
 });
 
+
 describe('Testing storage room delete', () => {
   it('Should test removing a storage room', (done) => {
      request(app)
@@ -166,14 +167,15 @@ describe('Testing storage room delete', () => {
        .end((err, resp) => {
           expect(err).to.equal(null);
         });
-      request(app).get('/storageroom/')
+      request(app).get('/storageroom/1')
         .end((err, resp) => {
-          const delroom = resp.body.el => el.id === 'Vapen materialrum 1'
           expect(err).to.equal(null);
           expect(delroom).to.equal(undefined);
+          done();
         });
   });
-}); */
+}); 
+
 
 describe('Testing storage room branch', () => {
   it('Should test to printing every storage room on a branch', (done) => {
