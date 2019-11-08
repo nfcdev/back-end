@@ -131,21 +131,30 @@ describe('Testing storage room post', () => {
         .end((err, resp) => {
           const testroom = resp.body.el => el.id === 'test room';
           expect(testroom).to.not.equal(undefined);
-          done()
+          done();
         });
   });
 });
 
-//   it('should update specified storageroom', (done) => {
-//     request(app)
-//       .post('/case/5')
-//       .end((err, resp) => {
-//         const cases = resp.body.length;
-//         expect(err).to.equal(null);
-//         expect(cases).to.equal(100);
-//         done();
-//       });
-//   });
+
+describe('Testing storage room put', () => {
+  it('should update specified storageroom', (done) => {
+    request(app)
+      .put('/storageroom/1')
+      .send({
+        name: 'Testing room'
+      })
+      .end((err, resp) => {
+        expect(err).to.equal(null);
+      });
+      request(app).get('/storageroom/')
+        .end((err, resp) => {
+          const testingroom = resp.body.el => el.id === 'Testing room';
+          expect(testroom).to.not.equal(undefined);
+          done();
+        })
+  });
+});
 
 
 //   it('Should return stooragerooms in a branch (branch id: 2)', (done) => {
