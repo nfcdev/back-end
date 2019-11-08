@@ -110,8 +110,8 @@ describe('Testing storage room get', () => {
       .end((err, resp) => {
         const rooms = resp.body.length;
         expect(err).to.equal(null);
-         expect(rooms).to.equal(6);
-         done();
+        expect(rooms).to.equal(6);
+        done();
       });
   });
 });
@@ -157,7 +157,7 @@ describe('Testing storage room put', () => {
 });
 
 describe('Testing storage room delete', () => {
-  it('Should test storage room delete', (done) => {
+  it('Should test removing a storage room', (done) => {
      request(app)
        .delete('/storageroom/')
        .send({
@@ -172,5 +172,17 @@ describe('Testing storage room delete', () => {
           expect(err).to.equal(null);
           expect(delroom).to.equal(undefined);
         });
+  });
+});
+
+describe('Testing storage room branch', () => {
+  it('Should test to printing every storage room on a branch', (done) => {
+    request(app)
+      .get('/storageroom/branch/1')
+      .end((err, resp) => {
+        const rooms = resp.body.length;
+        expect(err).to.equal(null)
+        expect(rooms).to.equal(2);
+      });
   });
 });
