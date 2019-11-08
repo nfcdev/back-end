@@ -120,16 +120,19 @@ describe('Testing storage room get', () => {
 describe('Testing storage room post', () => {
   it('Making sure a room is added, testing post', (done) => {
     request(app)
-      .post('/branch')
+      .post('/storageroom')
       .send({
-        
+        name: 'test room',
       })
       .end((err, resp) => {
-        const rooms = resp.body.length;
         expect(err).to.equal(null);
-        expect(rooms).to.equal(7);
-        done();
       });
+      request(app).get('/storageroom/')
+        .end((err, resp) => {
+          const testroom = resp.body.el => el.id === 'test room';
+          expect(testroom).to.not.equal(undefined);
+          done()
+        });
   });
 });
 
