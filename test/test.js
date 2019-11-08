@@ -171,7 +171,6 @@ describe('Testing storage room delete', () => {
           const delroom = resp.body.el => el.id === 'Vapen materialrum 1'
           expect(err).to.equal(null);
           expect(delroom).to.equal(undefined);
-          
         });
   });
 });
