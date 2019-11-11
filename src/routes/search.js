@@ -9,6 +9,7 @@ router.get('/', (request, response) => {
     let material_number = request.query.material_number;
     let location = request.query.location;
     let shelf = request.query.shelf;
+    let package_number = request.query.package_number;
 
     sql_query = "select Article.material_number, Case.reference_number, StorageRoom.name as 'storage_room', Shelf.shelf_name as 'shelf',"
     sql_query += " CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = Article.id))" 
@@ -25,26 +26,33 @@ router.get('/', (request, response) => {
     let has_where_condition = false;
     let parameters = [];
 
-    if (reference_number || material_number || location || shelf) sql_query += " and";
+    if (reference_number || material_number || location || shelf || package_number) sql_query += " and";
 
     if (reference_number) {
-        sql_query += " Case.reference_number = ? ";
+        sql_query += " Case.reference_number = ?";
         has_where_condition = true;
         parameters.push(reference_number);
     }
 
     if (material_number) {
         if (has_where_condition) sql_query += " and";
-        sql_query += " Article.material_number = ? ";
+        sql_query += " Article.material_number = ?";
         has_where_condition = true;
         parameters.push(material_number);
     }
 
+    if (package_number) {
+        if (has_where_condition) sql_query += " and";
+        sql_query += " Article.id in (select article from StorageMap where container=(select id from Package where package_number=?))";
+        has_where_condition = true;
+        parameters.push(package_number);
+    }
 
-    // storageroom
+
+    // Storageroom
     if (location) {
         if (has_where_condition) sql_query += " and";
-        sql_query += " StorageRoom.name = ? ";
+        sql_query += " StorageRoom.name = ?";
         has_where_condition = true;
         parameters.push(location);
     }
@@ -52,11 +60,11 @@ router.get('/', (request, response) => {
     // Shelf
     if (shelf) {
         if (has_where_condition) sql_query += " and";
-        sql_query += " Shelf.shelf_name = ? ";
+        sql_query += " Shelf.shelf_name = ?";
         has_where_condition = true;
         parameters.push(shelf);
     }
-
+    
     sql_query += " Order by Article.material_number asc";
 
 
