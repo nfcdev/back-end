@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../util/connect');
 
-//gets all packages belonging to a specifik storageroom
+// gets all packages belonging to a specifik storageroom
 
 router.get('/storageroom/:storageroom_id', (request, response) => {
     const storageroom_id = request.params.storageroom_id;
