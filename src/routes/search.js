@@ -6,11 +6,11 @@ const router = express.Router();
 const pool = require('../util/connect');
 
 router.get('/', (request, response) => {
-  const { reference_number } = request.query;
-  const { material_number } = request.query;
-  const { location } = request.query;
-  const { shelf } = request.query;
-  const { package_number } = request.query;
+  const {reference_number} = request.query;
+  const {material_number} = request.query;
+  const {location} = request.query;
+  const {shelf} = request.query;
+  const {package_number} = request.query;
 
   sql_query =    "select Article.material_number, Case.reference_number, StorageRoom.name as 'storage_room', Shelf.shelf_name as 'shelf',";
   sql_query
@@ -40,9 +40,7 @@ router.get('/', (request, response) => {
     || location
     || shelf
     || package_number
-  ) {
-    sql_query += ' and';
-  }
+  ) {sql_query += " and";}
 
   if (reference_number) {
     sql_query += ' Case.reference_number = ?';
@@ -89,10 +87,9 @@ router.get('/', (request, response) => {
     console.log(parameters);
     connection.query(sql_query, parameters, (err, rows) => {
       connection.release();
-      console.log('Data received from Db:\n');
+      console.log("Data received from Db:\n");
       response.send(rows);
     });
   });
 });
-
 module.exports = router;
