@@ -78,11 +78,6 @@ router.get('/', (request, response) => {
             response.send(rows);
         });
 
-
-
-
     });
 });
-
-
 module.exports = router;
