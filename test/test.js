@@ -194,14 +194,15 @@ describe('Testing storage room put', () => {
     let p1 = new Promise(request(app)
       .put('/storageroom/1')
       .send({
-        name: 'Testing room'
+        name: 'Testing room',
+        branch: 1
       })
       .end((err, resp) => {
         expect(err).to.equal(null);
       }));
-      p1.then(request(app).get('/storageroom/1')
+      p1.then(request(app).get('/storageroom/')
         .end((err, resp) => {
-          const testingroom = resp.body.name;
+          const testingroom = resp.body(el) => el(id) === 1;
           expect(testingroom).to.equal('Testing room')
           done();
         }));
@@ -212,16 +213,15 @@ describe('Testing storage room put', () => {
 describe('Testing storage room delete', () => {
   it('Should test removing a storage room', (done) => {
     let p1 = new Promise(request(app)
-       .delete('/storageroom/')
-       .send({
-         name: 'Vapen materialrum 1'
-       })
+       .delete('/storageroom/1')
        .end((err, resp) => {
           expect(err).to.equal(null);
         }));
-      p1.then(request(app).get('/storageroom/1')
+      p1.then(request(app).get('/storageroom/branch/3')
         .end((err, resp) => {
-          expect(err).to.not.equal(null);
+          const rooms = resp.body.length;
+          expect(err).to.equal(null);
+          expect(rooms).to.equal(1);
           done();
         }));
   });
