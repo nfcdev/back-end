@@ -82,11 +82,11 @@ describe('Test route branches', () => {
 let p1;
 let updated;
 describe('Testing PUT funtionality on branch', () => {
-  it('Should update the name of a branch'), (done) => {
+  it('Should update the name of a branch (id:3)'), (done) => {
     p1 = new Promise(request(app)
       .put('/branch/3')
       .send({
-        name: 'Test_Branch',
+        name: 'Test Branch',
       })
       .end((err, resp) => {
         expect(err).to.be.equal(null);
@@ -96,13 +96,32 @@ describe('Testing PUT funtionality on branch', () => {
       .end((err, resp) => {
         const branches = resp.body;
         branches.forEach(name => {
-          if (name === 'Test_Branch') {
+          if (name === 'Test Branch') {
             updated = name;
           }
         });
-        expect(updated).to.be.equal('Test_Branch');
+        expect(updated).to.not.equal(undefined);
+        expect(updated).to.be.equal('Test Branch');
       }));
   }
+});
+
+describe('Testing branch function post', () => {
+  it('Should add a new branch', (done) => {
+    request(app)
+      .post('/branch')
+      .send({
+        name: 'Post Branch',
+      })
+      .end((err, resp) => {
+        expect(err).to.equal(null);
+      });
+    //   request(app).get('/branch/')
+    //     .end((err, resp) => {
+    //       const branchName = resp.body.el => el.id === 'Post Branch';
+    //       expect(branchName).to.not.equal(undefined);
+    //     });
+  });
 });
 
 
@@ -127,29 +146,6 @@ describe('Testing PUT funtionality on branch', () => {
 //             });
 //     }); 
 // });
-
-// describe('Testing PUT funtionality on branch', () => {
-//   it('Should ')
-// })
-// 
-
-//describe('Testing branch function post', () => {
-//  it('Should add a new branch', (done) => {
-//    request(app)
-//      .post('/branch')
-//      .send({
-//        name: 'test branch',
-//      })
-//      .end((err, resp) => {
-//        expect(err).to.equal(null);
-//      });
-//    request(app).get('/branch/')
-//      .end((err, resp) => {
-//        const branchName = resp.body.el => el.id === 'test branch';
-//        expect(branchName).to.not.equal(undefined);
-//      });
-//  });
-//});
 
 
 // delete
@@ -179,12 +175,12 @@ describe('Testing storage room post', () => {
         expect(err).to.equal(null);
       }));
 
-      p1.then(request(app).get('/storageroom/7')
-        .end((err, resp) => {
-          const testroom = resp.body.name;
-          expect(testroom).to.equal('test room');
-          done();
-        }));
+    p1.then(request(app).get('/storageroom/7')
+      .end((err, resp) => {
+        const testroom = resp.body.name;
+        expect(testroom).to.equal('test room');
+        done();
+      }));
   });
 });
 
@@ -199,12 +195,12 @@ describe('Testing storage room put', () => {
       .end((err, resp) => {
         expect(err).to.equal(null);
       }));
-      p1.then(request(app).get('/storageroom/1')
-        .end((err, resp) => {
-          const testingroom = resp.body.name;
-          expect(testingroom).to.equal('Testing room')
-          done();
-        }));
+    p1.then(request(app).get('/storageroom/1')
+      .end((err, resp) => {
+        const testingroom = resp.body.name;
+        expect(testingroom).to.equal('Testing room')
+        done();
+      }));
   });
 });
 
@@ -212,20 +208,20 @@ describe('Testing storage room put', () => {
 describe('Testing storage room delete', () => {
   it('Should test removing a storage room', (done) => {
     let p1 = new Promise(request(app)
-       .delete('/storageroom/')
-       .send({
-         name: 'Vapen materialrum 1'
-       })
-       .end((err, resp) => {
-          expect(err).to.equal(null);
-        }));
-      p1.then(request(app).get('/storageroom/1')
-        .end((err, resp) => {
-          expect(err).to.not.equal(null);
-          done();
-        }));
+      .delete('/storageroom/')
+      .send({
+        name: 'Vapen materialrum 1'
+      })
+      .end((err, resp) => {
+        expect(err).to.equal(null);
+      }));
+    p1.then(request(app).get('/storageroom/1')
+      .end((err, resp) => {
+        expect(err).to.not.equal(null);
+        done();
+      }));
   });
-}); 
+});
 
 
 describe('Testing storage room branch', () => {
