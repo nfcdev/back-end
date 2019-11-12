@@ -24,7 +24,7 @@ router.get('/', (request, response)=>{
       }
       });
 });
-// deletes a package
+// deletes a package and its container
 
 router.delete('/:id', (request, response) => {
     const id = request.params.id;
