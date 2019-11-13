@@ -61,12 +61,17 @@ router.post('/case/:id', (request, response) => {
                                             console.log(err3);
                                             response.status(400).send('Bad query3');
                                         } else{
-                                            console.log(result);
-                                            console.log("-------------------");
-                                            console.log(result1);
-                                            console.log("xxxxxxxxxxxxxxxxx");
-                                            console.log(result2);
-                                            response.json({ current_storage_room: newPackage.current_storage_room, shelf: newPackage.shelf, id:result.insertId});
+                                            sql = 'SELECT package_number AS pn FROM Package WHERE id=?'
+                                            connection.query(sql,[result.insertId], function (err4, result3){
+                                                if (err4){
+                                                    console.log(err4);
+                                                    response.status(400).send('Bad query4');
+                                                } else{
+                                                    response.json({ package_number: result3[0].pn, current_storage_room: newPackage.current_storage_room, shelf: newPackage.shelf, id:result.insertId});
+                                                }
+                                            })
+
+                                           
                                         }
                                     })
 
