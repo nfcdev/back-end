@@ -47,14 +47,28 @@ router.post('/case/:id', (request, response) => {
                         console.log(err1);
                         response.status(400).send('Bad query1');
                     } else {
-                        sql = 'SET @counting = (SELECT COUNT(package_number)+1 FROM Package WHERE `case` = ?); INSERT INTO Package(id, shelf, `case`, package_number) VALUES(?, ?, ?, (CONCAT ((SELECT reference_number FROM `Case` WHERE id = ?),"-",@counting)))'
-                            connection.query(sql,[id, result.insertId, newPackage.shelf, id, id], function (err2, result1){
+                        sql = 'SELECT COUNT(package_number)+1 AS orderstamp FROM Package WHERE `case` = ?';
+                            connection.query(sql,[id], function (err2, result1){
                                 if (err2){
                                     console.log(err2);
                                     response.status(400).send('Bad query2');
 
                                 } else{
-                                    response.send("funka");
+                                    sql = 'INSERT INTO Package(id, shelf, `case`, package_number) VALUES(?, ?, ?, (CONCAT ((SELECT reference_number FROM `Case` WHERE id = ?),"-K",?)))'
+                                    // Over 99 packages for a case is not supported with this solution
+                                    connection.query(sql,[result.insertId, newPackage.shelf, id, id, ('0' + result1[0].orderstamp).slice(-2)],function (err3, result2){
+                                        if (err3){
+                                            console.log(err3);
+                                            response.status(400).send('Bad query3');
+                                        } else{
+                                            console.log(result);
+                                            console.log("-------------------");
+                                            console.log(result1);
+                                            console.log("xxxxxxxxxxxxxxxxx");
+                                            console.log(result2);
+                                            response.json({ current_storage_room: newPackage.current_storage_room, shelf: newPackage.shelf, id:result.insertId});
+                                        }
+                                    })
 
                                 }
 
