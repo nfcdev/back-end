@@ -47,8 +47,8 @@ router.post('/case/:id', (request, response) => {
                         console.log(err1);
                         response.status(400).send('Bad query1');
                     } else {
-                        sql = 'INSERT INTO Package(id, shelf, `case`, package_number) VALUES(?, ?, ?, (CONCAT ((SELECT reference_number FROM `Case` WHERE id = ?),"-",(SELECT COUNT(package_number)+1 FROM Package WHERE `case` = ?))))'
-                            connection.query(sql,[result.insertId, newPackage.shelf, id, id, id], function (err2, result1){
+                        sql = 'SET @counting = (SELECT COUNT(package_number)+1 FROM Package WHERE `case` = ?); INSERT INTO Package(id, shelf, `case`, package_number) VALUES(?, ?, ?, (CONCAT ((SELECT reference_number FROM `Case` WHERE id = ?),"-",@counting)))'
+                            connection.query(sql,[id, result.insertId, newPackage.shelf, id, id], function (err2, result1){
                                 if (err2){
                                     console.log(err2);
                                     response.status(400).send('Bad query2');
