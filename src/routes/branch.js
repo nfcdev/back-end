@@ -63,7 +63,7 @@ router.post('/', (request, response) => {
             return response.status(400).send('Bad query');
           } else {
             console.log('New branch added');
-            response.send(result);
+            response.json({id: result.insertId, name: name});
           }
         });
       }
