@@ -52,8 +52,6 @@ describe('Testing route cases', () => {
 });
 
 
-// // post
-
 
 describe('Test route branches', () => {
   it('Should return all branches(GET) (5 branches)', (done) => {
@@ -80,54 +78,62 @@ describe('Test route branches', () => {
   //     });
   // });
 });
-
 let p1;
-let updated;
 describe('Testing PUT funtionality on branch', () => {
   it('Should update the name of a branch (id:3)'), (done) => {
-    p1 = new Promise(request(app)
+    p1 = new promise((request(app)
       .put('/branch/3')
       .send({
         name: 'Test Branch',
       })
       .end((err, resp) => {
         expect(err).to.be.equal(null);
-      }));
-    p1.then(request(app)
-      .get('/branch')
-      .end((err, resp) => {
-        const branches = resp.body;
-        branches.forEach(name => {
-          if (name === 'Test Branch') {
-            updated = name;
-          }
-        });
-        expect(updated).to.not.equal(undefined);
-        expect(updated).to.be.equal('Test Branch');
-      }));
-      done();
+        expect(resp.body.name).to.be.equal('Test Branch');
+      })));
+    p1.then(done());
   }
 });
-let p;
+
 describe('Testing branch function post', () => {
   it('Should add a new branch', (done) => {
-   // p = new promise(
-      request(app)
+    request(app)
       .post('/branch')
       .send({
         name: 'Post Branch',
       })
       .end((err, resp) => {
-        expect(err).to.equal(null);
-       // expect(resp.body).not.to.be(null);
+        expect(err).to.be.equal(null);
         expect(resp.body.name).to.be.equal('Post Branch');
       });
-    // p.then(request(app)
-    //   .get('/branch/')
-    //   .end((err, resp) => {
-    //     expect(resp.body.length).to.be.equal(6);
-    //   }));
+    request(app)
+      .get('/branch')
+      .end((err, resp) => {
+        expect(err).to.be.equal(null);
+        expect(resp.body.length).to.be.equal(6);
+      });
     done();
+  });
+});
+
+
+describe('Testing branch function DELETE', () => {
+  it('Should delete the branch with id: 6 (Post Branch)', (done) => {
+    request(app)
+      .delete('/branch/1')
+      .end((err, resp) => {
+        expect(err).to.be.equal(null);
+        //expect(resp.body.result).to.be.equal('ok');
+        done();
+      });
+  });
+  it('Should now be 5 branches', (done) => {
+    request(app)
+      .get('/branch')
+      .end((err, resp) => {
+        expect(err).to.be.equal(null);
+        expect(resp.body.length).to.be.equal(5);
+        done();
+      });
   });
 });
 
@@ -170,8 +176,8 @@ describe('Testing storage room get', () => {
   });
 });
 
-let p1;
-let updated;
+// let p1;
+// let updated;
 
 // describe('Testing storage room post', () => {
 //   it('Making sure a room is added, testing post', (done) => {
@@ -266,15 +272,15 @@ describe('Testing storage room branch', () => {
 });
 
 
-describe('Testing package get', () => {
-  it('Should test printing all packages from a specific branch', (done) => {
-    request(app)
-      .get('/package/branch/6')
-      .end((err, resp) => {
-        const packages = resp.body.length;
-        expect(err).to.equal(null);
-        expect(packages).to.equal(2);
-        done();
-      });
-  });
-});
+// describe('Testing package get', () => {
+//   it('Should test printing all packages from a specific branch', (done) => {
+//     request(app)
+//       .get('/package/branch/6')
+//       .end((err, resp) => {
+//         const packages = resp.body.length;
+//         expect(err).to.equal(null);
+//         expect(packages).to.equal(2);
+//         done();
+//       });
+//   });
+// });
