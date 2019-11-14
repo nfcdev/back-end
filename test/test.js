@@ -105,28 +105,29 @@ describe('Testing PUT funtionality on branch', () => {
         expect(updated).to.not.equal(undefined);
         expect(updated).to.be.equal('Test Branch');
       }));
+      done();
   }
 });
-
+let p;
 describe('Testing branch function post', () => {
   it('Should add a new branch', (done) => {
-    request(app)
+   // p = new promise(
+      request(app)
       .post('/branch')
       .send({
         name: 'Post Branch',
       })
       .end((err, resp) => {
         expect(err).to.equal(null);
+       // expect(resp.body).not.to.be(null);
+        expect(resp.body.name).to.be.equal('Post Branch');
       });
-    request(app)
-      .get('/branch/')
-      .end((err, resp) => {
-        const branchName = (resp.body.name === 'Post Branch');
-        const branchNumb = resp.body.length;
-        expect(branchName).to.not.equal(undefined);
-        expect(branchName).to.be.equal('Post Branch');
-        expect(branchNumb).to.be.equal(6);
-      });
+    // p.then(request(app)
+    //   .get('/branch/')
+    //   .end((err, resp) => {
+    //     expect(resp.body.length).to.be.equal(6);
+    //   }));
+    done();
   });
 });
 
