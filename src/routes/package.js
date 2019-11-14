@@ -3,27 +3,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../util/connect');
 
-//gets all packages
-router.get('/', (request, response)=>{
-    pool.getConnection(function(err, connection) {
-        if (err) {
-          console.log(err);
-          response.status(500).send('Could not connect to server');
-        } else {
-        let sql = 'SELECT * FROM Package LEFT JOIN Container ON Package.id = Container.id UNION SELECT * FROM Package RIGHT JOIN Container ON Package.id = Container.id';
-        connection.query(sql, (err, result) => {
-          connection.release();
-          if (err) {
-            console.log(err);
-            response.status(400).send('Bad query');
-          } else {
-          console.log('Data received');
-          response.send(result);
-          }
-        });
-      }
-      });
-});
+
 // creates a new package
 
 router.post('/case/:id', (request, response) => {
@@ -32,56 +12,84 @@ router.post('/case/:id', (request, response) => {
         shelf: request.body.shelf,
         current_storage_room: request.body.current_storage_room
     }
+
     if (!newPackage.shelf || !newPackage.current_storage_room) {
         response.status(400).send('Bad request');
     } else {
         pool.getConnection(function (err, connection) {
+
             if (err) {
                 console.log(err);
-                return response.status(500).send('Could not connect to server');
+                response.status(500).send('Could not connect to server');
             } else {
-                let sql = 'INSERT INTO Container(current_storage_room) VALUES (?)';
-                connection.query(sql, [newPackage.current_storage_room], function (err1, result) {
+                connection.beginTransaction(function (err0) {
+                    if (err0) {
+                        console.log(err0);
+                        response.status(500).send('Could not start transaction');
 
-                    if (err1) {
-                        console.log(err1);
-                        response.status(400).send('Bad query1');
                     } else {
-                        sql = 'SELECT COUNT(package_number)+1 AS orderstamp FROM Package WHERE `case` = ?';
-                            connection.query(sql,[id], function (err2, result1){
-                                if (err2){
-                                    console.log(err2);
-                                    response.status(400).send('Bad query2');
+                        // Creates the container that is the package
+                        let sql = 'INSERT INTO Container(current_storage_room) VALUES (?)';
+                        connection.query(sql, [newPackage.current_storage_room], function (err1, result) {
 
-                                } else{
-                                    sql = 'INSERT INTO Package(id, shelf, `case`, package_number) VALUES(?, ?, ?, (CONCAT ((SELECT reference_number FROM `Case` WHERE id = ?),"-K",?)))'
-                                    // Over 99 packages for a case is not supported with this solution
-                                    connection.query(sql,[result.insertId, newPackage.shelf, id, id, ('0' + result1[0].orderstamp).slice(-2)],function (err3, result2){
-                                        if (err3){
-                                            console.log(err3);
-                                            response.status(400).send('Bad query3');
-                                        } else{
-                                            sql = 'SELECT package_number AS pn FROM Package WHERE id=?'
-                                            connection.query(sql,[result.insertId], function (err4, result3){
-                                                if (err4){
-                                                    console.log(err4);
-                                                    response.status(400).send('Bad query4');
-                                                } else{
-                                                    response.json({ package_number: result3[0].pn, current_storage_room: newPackage.current_storage_room, shelf: newPackage.shelf, id:result.insertId});
-                                                }
-                                            })
+                            if (err1) {
+                                connection.rollback(function () {
+                                    console.log(err1);
+                                    response.status(400).send('Bad query');
+                                });
 
-                                           
-                                        }
-                                    })
+                            } else {
+                                //Calculates how many packages the case has already to be able to get an accurate package_number
+                                sql = 'SELECT COUNT(package_number)+1 AS orderstamp FROM Package WHERE `case` = ?';
+                                connection.query(sql, [id], function (err2, result1) {
+                                    if (err2) {
+                                        connection.rollback(function () {
+                                            console.log(err2);
+                                            response.status(400).send('Bad query');
+                                        });
 
-                                }
 
-                            })
+                                    } else {
+                                        //Creates the package
+                                        sql = 'INSERT INTO Package(id, shelf, `case`, package_number) VALUES(?, ?, ?, (CONCAT ((SELECT reference_number FROM `Case` WHERE id = ?),"-K",?)))';
+                                        // Over 99 packages for a case is not supported with this solution
+                                        connection.query(sql, [result.insertId, newPackage.shelf, id, id, ('0' + result1[0].orderstamp).slice(-2)], function (err3, result2) {
+                                            if (err3) {
 
+                                                connection.rollback(function () {
+                                                    console.log(err3);
+                                                    response.status(400).send('Bad query');
+                                                });
+                                            } else {
+                                                // Gets the package_number for an accurate return message. Maybe possible to do in a better way, but this works.
+                                                sql = 'SELECT package_number AS pn FROM Package WHERE id=?';
+                                                connection.query(sql, [result.insertId], function (err4, result3) {
+                                                    if (err4) {
+                                                        connection.rollback(function () {
+                                                            console.log(err4);
+                                                            response.status(400).send('Bad query');
+                                                        });
+
+                                                    } else {
+                                                        response.json({ package_number: result3[0].pn, current_storage_room: newPackage.current_storage_room, shelf: newPackage.shelf, id: result.insertId });
+                                                    }
+                                                })
+
+
+                                            }
+                                        })
+
+                                    }
+
+                                })
+
+                            }
+                        });
                     }
                 });
             }
+            connection.release();
+
         });
     }
 });
