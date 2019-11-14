@@ -170,6 +170,8 @@ describe('Testing storage room get', () => {
   });
 });
 
+let p1;
+let updated;
 
 // describe('Testing storage room post', () => {
 //   it('Making sure a room is added, testing post', (done) => {
@@ -258,6 +260,20 @@ describe('Testing storage room branch', () => {
         const rooms = resp.body.length;
         expect(err).to.equal(null)
         expect(rooms).to.equal(2);
+        done();
+      });
+  });
+});
+
+
+describe('Testing package get', () => {
+  it('Should test printing all packages from a specific branch', (done) => {
+    request(app)
+      .get('/package/branch/6')
+      .end((err, resp) => {
+        const packages = resp.body.length;
+        expect(err).to.equal(null);
+        expect(packages).to.equal(2);
         done();
       });
   });
