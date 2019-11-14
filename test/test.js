@@ -263,3 +263,17 @@ describe('Testing storage room branch', () => {
       });
   });
 });
+
+
+describe('Testing package get', () => {
+  it('Should test printing all packages from a specific branch', (done) => {
+    request(app)
+      .get('/package/branch/6')
+      .end((err, resp) => {
+        const packages = resp.body.length;
+        expect(err).to.equal(null);
+        expect(packages).to.equal(2);
+        done();
+      });
+  });
+});
