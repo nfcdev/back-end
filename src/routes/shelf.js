@@ -2,34 +2,16 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../util/connect");
 
-router.get('/', (request, response) => {
-    pool.getConnection(function(err, connection) {
-      if (err) {
-        console.log(err);
-        response.status(500).send('Cannot connect to server');
-      }
-      const sql = 'SELECT * FROM Shelf';
-      connection.query(sql, (err, result) => {
-        connection.release();
-        if (err) {
-          console.log(err);
-          response.status(400).send('Bad query');
-        }
-        console.log('Data received');
-        response.send(result);
-      });
-    });
-  });
-  
-// creates a new package
+
+// creates a new shelf in a storageroom
 
 router.post('/storageroom/:id', (request, response) => {
   const id = request.params.id;
   const newShelf = {
-      shelf_name: request.body.shelf_name;
+      shelf_name: request.body.shelf_name
   }
 
-  if (!newPackage.shelf_name) {
+  if (!newShelf.shelf_name) {
       response.status(400).send('Bad request');
   } else {
       pool.getConnection(function (err, connection) {
