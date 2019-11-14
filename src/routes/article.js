@@ -42,8 +42,21 @@ const pool = require('../../connect');
   //Return all articles in DB
   router.get('/', (req, res) => {
     pool.getConnection(function(err, connection) {
+
+    sql_query = "select Article.material_number, Case.reference_number, StorageRoom.name as 'storage_room',"
+    sql_query += " CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = Article.id))" 
+    sql_query += " THEN (select package_number from Package where id  = (select container from StorageMap where article = Article.id)) ELSE ' - ' END as package,"
+    sql_query += " Shelf.shelf_name as 'shelf', se2.action as 'status',se1.timestamp as 'timestamp', se2.timestamp as 'last modified', Article.description"
+    sql_query += " FROM Article, `Case`, StorageRoom, Shelf, StorageEvent as se1, StorageEvent as se2"
+    sql_query += " WHERE Article.case = Case.id"
+    sql_query += " and (StorageRoom.id = (select current_storage_room from Container where id = (select container from StorageMap where article = Article.id)))"
+    sql_query += " and (Shelf.id = (select container from StorageMap where article = Article.id) OR Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = Article.id)))"
+    sql_query += " AND se1.id = (SELECT id from StorageEvent WHERE article = Article.id ORDER BY timestamp ASC LIMIT 1)"
+    sql_query += " AND se2.id = (SELECT id from StorageEvent WHERE article = Article.id ORDER BY timestamp DESC LIMIT 1)";
+    sql_query += " ORDER BY Article.material_number asc"
+
       if (err) console.log(err);
-      connection.query('SELECT * FROM Article', (err,result) => {
+      connection.query(sql_query, (err,result) => {
         connection.release();
         if (err) throw err;
         console.log(res);
