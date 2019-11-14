@@ -610,7 +610,7 @@ Example response:
     {
         "material_number": "743996-44",
         "reference_number": "743996",
-        "branch": "Vapen materialrum",
+        "branch": "Vapen",
         "storage_room": "Vapen 1",
         "package": " - ",
         "shelf": "B3",
@@ -622,7 +622,7 @@ Example response:
     {
         "material_number": "505841-57",
         "reference_number": "505841",
-        "branch": "Vapen materialrum",
+        "branch": "Vapen",
         "storage_room": "Vapen 1",
         "shelf": "B10",
         "package": " - ",
@@ -652,7 +652,7 @@ Example response:
 {
     "material_number": "505841-57",
     "reference_number": "505841",
-    "branch": "Vapen materialrum",
+    "branch": "Vapen",
     "storage_room": "Vapen 1",
     "shelf": "B10",
     "package": " - ",
@@ -680,7 +680,7 @@ Example response:
     {
         "material_number": "743996-44",
         "reference_number": "743996",
-        "branch": "Vapen materialrum",
+        "branch": "Vapen",
         "storage_room": "Vapen 1",
         "shelf": "B3",
         "package": " - ",
@@ -693,7 +693,7 @@ Example response:
     {
         "material_number": "743996-57",
         "reference_number": "743996",
-        "branch": "Vapen materialrum",
+        "branch": "Vapen",
         "storage_room": "Vapen 1",
         "shelf": "B10",
         "package": " - ",
@@ -724,7 +724,7 @@ Example response:
     {
         "material_number": "743996-44",
         "reference_number": "743996",
-        "branch": "Vapen materialrum",
+        "branch": "Vapen",
         "storage_room": "Vapen 1",
         "shelf": "B3",
         "package": " - ",
@@ -737,7 +737,7 @@ Example response:
     {
         "material_number": "505841-57",
         "reference_number": "505841",
-        "branch": "Vapen materialrum",
+        "branch": "Vapen",
         "storage_room": "Vapen 1",
         "shelf": "B10",
         "package": " - ",
@@ -769,7 +769,7 @@ Example response:
   {
         "material_number": "743996-44",
         "reference_number": "743996",
-        "branch": "Vapen materialrum",
+        "branch": "Vapen",
         "storage_room": "Vapen 1",
         "shelf": "B3",
         "package": " - ",
@@ -782,7 +782,7 @@ Example response:
     {
         "material_number": "505841-57",
         "reference_number": "505841",
-        "branch": "Vapen materialrum",
+        "branch": "Vapen",
         "storage_room": "Vapen 1",
         "shelf": "B10",
         "package": " - ",
@@ -814,7 +814,7 @@ Example response:
     {
         "material_number": "505841-01",
         "reference_number": "505841",
-        "branch": "Vapen materialrum",
+        "branch": "Vapen",
         "storage_room": "Vapen 1",
         "package": "505841-K01",
         "shelf": "B3",
@@ -827,7 +827,7 @@ Example response:
     {
         "material_number": "505841-02",
         "reference_number": "505841",
-        "branch": "Vapen materialrum",
+        "branch": "Vapen",
         "storage_room": "Vapen 1",
         "shelf": "B3",
         "package": "505841-K01",
@@ -904,6 +904,7 @@ The endpoint returns JSON data structured like this:
   {
         "material_number": "743996-44",
         "reference_number": "743996",
+        "branch": "Vapen",
         "storage_room": "Vapen 1",
         "shelf": "B3",
         "package": " - ",
