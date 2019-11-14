@@ -169,6 +169,8 @@ describe('Testing storage room get', () => {
   });
 });
 
+let p1;
+let updated;
 
 // describe('Testing storage room post', () => {
 //   it('Making sure a room is added, testing post', (done) => {
