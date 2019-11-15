@@ -86,7 +86,7 @@ router.put('/:id', (request, response) => {
           console.log(err);
           response.status(400).send('Bad query');
         } else {
-          response.send('Name updated.');
+          response.json({ id: id, name: updatedBranch.name });
         }
       });
     }
