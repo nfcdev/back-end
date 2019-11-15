@@ -5,10 +5,10 @@ const authenticatedRequest = require("../util/authentication").authenticatedRequ
 
 //gets all cases
 router.get("/", authenticatedRequest, (request, response) => {
-  pool.getConnection(function(err, connection) {
+  pool.getConnection(function (err, connection) {
     if (err) {
       console.log(err);
-      response.status(500).send("Cannot conect to server");
+      response.status(500).send("Cannot connect to server");
     }
     let sql = "SELECT * FROM `Case`";
     connection.query(sql, (err, result) => {
@@ -25,10 +25,10 @@ router.get("/", authenticatedRequest, (request, response) => {
 //gets case of a specific ID
 router.get("/:id", authenticatedRequest, (request, response) => {
   let id = request.params.id;
-  pool.getConnection(function(err, connection) {
+  pool.getConnection(function (err, connection) {
     if (err) {
       console.log(err);
-      response.status(500).send("Cannot conect to server");
+      response.status(500).send("Cannot connect to server");
     }
     let sql = "SELECT * FROM `Case` WHERE ID = ?";
     connection.query(sql, [id], (err, result) => {
