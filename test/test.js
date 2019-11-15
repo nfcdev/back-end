@@ -3,8 +3,8 @@
 /* eslint-disable no-undef */
 const { expect } = require('chai');
 const request = require('supertest');
+const mockdata = require('./mockdata')
 const pool = require('../src/util/connect');
-
 
 let app;
 
@@ -78,10 +78,10 @@ describe('Test route branches', () => {
   //     });
   // });
 });
-let p1;
 describe('Testing PUT funtionality on branch', () => {
   it('Should update the name of a branch (id:3)'), (done) => {
-    p1 = new promise((request(app)
+    const p1 = new Promise ((res, rej) => {
+      request(app)
       .put('/branch/3')
       .send({
         name: 'Test Branch',
@@ -89,8 +89,30 @@ describe('Testing PUT funtionality on branch', () => {
       .end((err, resp) => {
         expect(err).to.be.equal(null);
         expect(resp.body.name).to.be.equal('Test Branch');
-      })));
-    p1.then(done());
+        res(res.body);
+      });
+    });
+
+    p1.then(res => {
+      request(app)
+      .get('/branch')
+      .end((err, resp) => {
+        let updatedBranch;
+        resp.body.forEach((branch) => {
+          if (branch.id === res.id){
+            updatedBranch = branch;
+          }
+        })
+
+        updatedBranch.expect.to.be.equal()
+
+        done();
+      })
+    }).catch(err => {
+
+    })
+
+    
   }
 });
 
