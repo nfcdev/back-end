@@ -79,40 +79,35 @@ describe('Test route branches', () => {
   // });
 });
 describe('Testing PUT funtionality on branch', () => {
-  it('Should update the name of a branch (id:3)'), (done) => {
-    const p1 = new Promise ((res, rej) => {
+  it('Should update the name of a branch (id:2)'), (done) => {
+    const p1 = new Promise((res, rej) => {
       request(app)
-      .put('/branch/3')
-      .send({
-        name: 'Test Branch',
-      })
-      .end((err, resp) => {
-        expect(err).to.be.equal(null);
-        expect(resp.body.name).to.be.equal('Test Branch');
-        res(res.body);
-      });
+        .put('/branch/2')
+        .send({
+          name: 'Test Branch',
+        })
+        .end((err, resp) => {
+          expect(err).to.be.equal(null);
+          expect(resp.body.name).to.be.equal('Test Branch');
+          res(res.body);
+        });
     });
 
     p1.then(res => {
       request(app)
-      .get('/branch')
-      .end((err, resp) => {
-        let updatedBranch;
-        resp.body.forEach((branch) => {
-          if (branch.id === res.id){
-            updatedBranch = branch;
-          }
+        .get('/branch')
+        .end((err, resp) => {
+          let updatedBranch;
+          resp.body.forEach((branch) => {
+            if (branch.id === res.id) {
+              updatedBranch = branch;
+            }
+          })
+          expect(updatedBranch).to.be.equal('Test Branch')
+          done();
         })
-
-        updatedBranch.expect.to.be.equal()
-
-        done();
-      })
     }).catch(err => {
-
     })
-
-    
   }
 });
 
