@@ -84,4 +84,28 @@ router.put('/:id', (request, response) => {
   });
 });
 
+router.delete('/:id', (request, response) => {
+  const { id } = request.params;
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Could not connect to server');
+    } else {
+      const sql =        'DELETE sh, co FROM Shelf sh JOIN Container co ON sh.id = co.id WHERE sh.id = ?';
+      connection.query(sql, [id], (err, res) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          response.status(400).send('Bad query');
+        } else if (res.affectedRows) {
+          console.log('Shelf deleted');
+          response.json({ result: 'ok' });
+        } else {
+          response.send('Shelf does not exist');
+        }
+      });
+    }
+  });
+});
+
 module.exports = router;
