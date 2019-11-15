@@ -36,7 +36,7 @@ router.delete('/:id', (request, response) => {
           response.status(400).send('Bad query');
         } else if (res.affectedRows) {
           console.log('Branch deleted');
-          response.send(`${id} deleted`);
+          response.json({ result: "ok" });
         } else {
           response.send('Branch does not exist');
         }
