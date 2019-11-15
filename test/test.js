@@ -206,7 +206,7 @@ describe('Testing storage room post', () => {
     let p1 = new Promise(request(app)
       .post('/storageroom')
       .send({
-        name: 'test room',
+        "name": 'test room',
       })
       .end((err, resp) => {
         const storage = resp.body.name;
@@ -225,31 +225,27 @@ describe('Testing storage room post', () => {
 });
 
 
-// describe('Testing storage room put', () => {
-//   it('should update specified storageroom', (done) => {
-//     let p1 = new Promise(request(app)
-//       .put('/storageroom/1')
-//       .send({
-//         name: 'Testing room',
-//         branch: 1
-//       })
-//       .end((err, resp) => {
-//         expect(err).to.equal(null);
-//       }));
-//     p1.then(request(app).get('/storageroom/')
-//       .end((err, resp) => {
-//         const testingroom = resp.body(el) => el(id) === 1;
-//         expect(testingroom).to.equal('Testing room')
-//         done();
-//       }));
-//     p1.then(request(app).get('/storageroom/1')
-//       .end((err, resp) => {
-//         const testingroom = resp.body.name;
-//         expect(testingroom).to.equal('Testing room')
-//         done();
-//       }));
-//   });
-// });
+describe('Testing storage room put', () => {
+  it('should update specified storageroom', (done) => {
+    let p1 = new Promise(request(app)
+      .put('/storageroom/1')
+      .send({
+        "name": 'Testing room',
+        "branch": 1
+      })
+      .end((err, resp) => {
+        let testingroom = res.body.name;
+        expect(err).to.equal(null);
+        expect(testingroom).to.equal('Testing room');
+      }));
+    p1.then(request(app).get('/storageroom/1')
+      .end((err, resp) => {
+        testingroom = resp.body.name;
+        expect(testingroom).to.equal('Testing room')
+        done();
+      }));
+  });
+});
 
 
 // describe('Testing storage room delete', () => {
