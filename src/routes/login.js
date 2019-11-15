@@ -16,11 +16,16 @@ router.get(
 );
 
 router.get('/token', authenticatedRequest, function(req, res) {
-  if (!req.isAuthenticated()) return res.send(401);
+  // if (!req.isAuthenticated()) return res.send(401);
+  // var payload = {
+  //   uid: req.user.uid,
+  //   edPersonAffiliation: req.user.eduPersonAffiliation,
+  //   email: req.user.email
+  // };
   var payload = {
-    uid: req.user.uid,
-    edPersonAffiliation: req.user.eduPersonAffiliation,
-    email: req.user.email
+    uid: 1337,
+    edPersonAffiliation: "req.user.eduPersonAffiliation",
+    email: "test.testsson@c4.se"
   };
 
   var signOptions = {
