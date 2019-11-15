@@ -62,4 +62,26 @@ router.post('/storageroom/:id', (request, response) => {
   }
 });
 
+router.put('/:id', (request, response) => {
+  const { id } = request.params;
+  const updatedShelf = request.body;
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Could not connect to server');
+    } else {
+      const sql = 'UPDATE Shelf SET shelf_name = ? WHERE id = ?';
+      connection.query(sql, [updatedShelf.shelf_name, id], (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          response.status(400).send('Bad query');
+        } else {
+          response.json({ shelf_name: updatedShelf.shelf_name, id: id });
+        }
+      });
+    }
+  });
+});
+
 module.exports = router;

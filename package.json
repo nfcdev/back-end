@@ -4,7 +4,7 @@
   "description": "Back end",
   "main": "server.js",
   "scripts": {
-    "test": "mocha test/test.js --exit",
+    "test": "cross-env TESTING=1 mocha test/test.js --exit",
     "start": "nodemon server.js",
     "build": "node server.js",
     "lint": "eslint src -c .eslintrc.json --ext js,jsx"
@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "cross-env": "^6.0.3",
     "eslint": "^6.4.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-plugin-import": "^2.18.2",
