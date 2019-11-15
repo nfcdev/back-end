@@ -141,7 +141,7 @@ describe('Testing branch function DELETE', () => {
 // describe('Testing branch function post', () => {
 //   it('Should add a new branch', (done) => {
 //     request(app)
-//       .post('/branch/Testing facility')
+//       .post('/branch')
 //       .end((err, resp) => {
 //         expect(err).to.equal(null);
 //       });
@@ -179,25 +179,28 @@ describe('Testing storage room get', () => {
 // let p1;
 // let updated;
 
-// describe('Testing storage room post', () => {
-//   it('Making sure a room is added, testing post', (done) => {
-//     let p1 = new Promise(request(app)
-//       .post('/storageroom')
-//       .send({
-//         name: 'test room',
-//       })
-//       .end((err, resp) => {
-//         expect(err).to.equal(null);
-//       }));
+describe('Testing storage room post', () => {
+  it('Making sure a room is added, testing post', (done) => {
+    let p1 = new Promise(request(app)
+      .post('/storageroom')
+      .send({
+        name: 'test room',
+      })
+      .end((err, resp) => {
+        const storage = resp.body.name;
+        expect(err).to.equal(null);
+        expect(storage).to.equal('test room');
+      }));
 
-//     p1.then(request(app).get('/storageroom/7')
-//       .end((err, resp) => {
-//         const testroom = resp.body.name;
-//         expect(testroom).to.equal('test room');
-//         done();
-//       }));
-//   });
-// });
+    p1.then(request(app).get('/storageroom')
+      .end((err, resp) => {
+        const storageroom = resp.body.length;
+        expect(err).to.equal(null);
+        expect(storageroom).to.equal(7);
+        done();
+      }));
+  });
+});
 
 
 // describe('Testing storage room put', () => {
