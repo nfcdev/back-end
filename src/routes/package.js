@@ -237,7 +237,7 @@ router.post('/check-in', (request, response) => {
                     });
                   } else if (result1.affectedRows) {
                     // Selects all articles in the package that is getting checked in
-                    sql = 'SELECT article FROM StorageMap WHERE container = (SELECT id FROM Package WHERE package_number = ?';
+                    sql = 'SELECT article FROM StorageMap WHERE container = (SELECT id FROM Package WHERE package_number = ?)';
 
                     connection.query(
                       sql,
@@ -252,7 +252,7 @@ router.post('/check-in', (request, response) => {
                           });
                         } else {
                           // Creates Storage events for the articles in the package
-                          for (id in result2) {
+                          for (a in result2) {
 
                             sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, ?,(SELECT shelf_name FROM Shelf WHERE id = ?), (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
 
@@ -263,22 +263,23 @@ router.post('/check-in', (request, response) => {
                                 checkIn.package_number,
                                 checkIn.shelf,
                                 checkIn.storage_room,
-                                id,
+                                result2[a].article,
                                 checkIn.storage_room,
                               ],
-                              function (err3, result2) {
-                                if (err3) {
+                              function (err4, result3) {
+                                if (err4) {
                                   connection.rollback(function () {
                                     console.log(err3);
                                     response.status(400).send('Bad query');
                                   });
                                 } else {
-
+                                  console.log(result2[a].article + "created");
 
                                 }
                               },
                             );
                           }
+                          response.json({ resultat: "Ok" });
                         }
 
 
@@ -328,17 +329,19 @@ router.get('/test', (request, response) => {
       console.log(err);
       response.status(500).send('Cannot conect to server');
     } else {
-      const sql ='SELECT * FROM StorageMap';
-      //const sql = 'SELECT id FROM Article WHERE id = (SELECT article FROM StorageMap WHERE container = (SELECT id FROM Package WHERE package_number ="846405-01"))';
+
+      const sql = 'SELECT article FROM StorageMap WHERE container = (SELECT id FROM Package WHERE package_number ="846405-01")';
       connection.query(sql, (err, result) => {
         connection.release();
         if (err) {
           console.log(err);
           response.status(400).send('Bad query');
         } else {
-         /* for (article in result) {
-            console.log(article);
-          }*/
+          console.log(result);
+          console.log("-------------")
+          for (a in result) {
+            console.log(result[a].article);
+          }
 
 
           response.send(result);
