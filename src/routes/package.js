@@ -39,7 +39,7 @@ router.post('/case/:id', (request, response) => {
                 });
               } else {
                 // Calculates how many packages the case has already to be able to get an accurate package_number
-                sql =                  'SELECT COUNT(package_number)+1 AS orderstamp FROM Package WHERE `case` = ?';
+                sql = 'SELECT COUNT(package_number)+1 AS orderstamp FROM Package WHERE `case` = ?';
                 connection.query(sql, [id], function (err2, result1) {
                   if (err2) {
                     connection.rollback(function () {
@@ -48,7 +48,7 @@ router.post('/case/:id', (request, response) => {
                     });
                   } else {
                     // Creates the package
-                    sql =                      'INSERT INTO Package(id, shelf, `case`, package_number) VALUES(?, ?, ?, (CONCAT ((SELECT reference_number FROM `Case` WHERE id = ?),"-K",?)))';
+                    sql = 'INSERT INTO Package(id, shelf, `case`, package_number) VALUES(?, ?, ?, (CONCAT ((SELECT reference_number FROM `Case` WHERE id = ?),"-K",?)))';
                     // Over 99 packages for a case is not supported with this solution
                     connection.query(
                       sql,
@@ -67,7 +67,7 @@ router.post('/case/:id', (request, response) => {
                           });
                         } else {
                           // Gets the package_number for an accurate return message. Maybe possible to do in a better way, but this works.
-                          sql =                            'SELECT package_number AS pn FROM Package WHERE id=?';
+                          sql = 'SELECT package_number AS pn FROM Package WHERE id=?';
                           connection.query(sql, [result.insertId], function (
                             err4,
                             result3,
@@ -109,7 +109,7 @@ router.get('/', (request, response) => {
       console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
-      const sql =        'SELECT * FROM Package INNER JOIN Container ON Package.id = Container.id';
+      const sql = 'SELECT * FROM Package INNER JOIN Container ON Package.id = Container.id';
       connection.query(sql, (err, result) => {
         connection.release();
         if (err) {
@@ -132,7 +132,7 @@ router.get('/storageroom/:storageroom_id', (request, response) => {
       console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
-      const sql =        'SELECT * FROM Package INNER JOIN Container ON Package.id = Container.id WHERE Package.id IN (SELECT id FROM Container WHERE Current_Storage_Room = ?)';
+      const sql = 'SELECT * FROM Package INNER JOIN Container ON Package.id = Container.id WHERE Package.id IN (SELECT id FROM Container WHERE Current_Storage_Room = ?)';
       connection.query(sql, [storageroom_id], (err, result) => {
         connection.release();
         if (err) {
@@ -155,7 +155,7 @@ router.get('/branch/:branch_id', (request, response) => {
       console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
-      const sql =        'SELECT * FROM Package INNER JOIN Container ON Package.id = Container.id WHERE Package.id IN (SELECT id FROM Container WHERE Current_Storage_Room IN (SELECT id FROM StorageRoom WHERE Branch = ?))';
+      const sql = 'SELECT * FROM Package INNER JOIN Container ON Package.id = Container.id WHERE Package.id IN (SELECT id FROM Container WHERE Current_Storage_Room IN (SELECT id FROM StorageRoom WHERE Branch = ?))';
       connection.query(sql, [branch_id], (err, result) => {
         connection.release();
         if (err) {
@@ -177,7 +177,7 @@ router.delete('/:id', (request, response) => {
       console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
-      const sql =        'DELETE pa, co FROM Package pa JOIN Container co ON pa.id = co.id WHERE pa.id = ?';
+      const sql = 'DELETE pa, co FROM Package pa JOIN Container co ON pa.id = co.id WHERE pa.id = ?';
       connection.query(sql, [id], function (err, res) {
         connection.release();
         if (err) {
@@ -194,4 +194,158 @@ router.delete('/:id', (request, response) => {
   });
 });
 
+// Checks in a package
+router.post('/check-in', (request, response) => {
+  const checkIn = {
+    shelf: request.body.shelf,
+    package_number: request.body.package_number,
+    comment: request.body.comment,
+    storage_room: request.body.storage_room,
+  };
+  if (!checkIn.shelf || !checkIn.storage_room || !checkIn.package_number) {
+    response.status(400).send('Bad request');
+  } else {
+    pool.getConnection(function (err, connection) {
+      if (err) {
+        console.log(err);
+        response.status(500).send('Could not connect to server');
+      } else {
+        connection.beginTransaction(function (err0) {
+          if (err0) {
+            console.log(err0);
+            response.status(500).send('Could not start transaction');
+          } else {
+            // Updates shelf of package
+            let sql = 'UPDATE Package SET shelf = ? WHERE package_number = ?';
+            connection.query(sql, [checkIn.shelf, checkIn.package_number], function (
+              err1,
+              result,
+            ) {
+              if (err1) {
+                connection.rollback(function () {
+                  console.log(err1);
+                  response.status(400).send('Bad query');
+                });
+              } else if (result.affectedRows) {
+                // Updates storage room in container
+                sql = 'UPDATE Container SET current_storage_room = ? WHERE id = (SELECT id FROM Package WHERE package_number = ?) ';
+                connection.query(sql, [checkIn.storage_room, checkIn.package_number], function (err2, result1) {
+                  if (err2) {
+                    connection.rollback(function () {
+                      console.log(err2);
+                      response.status(400).send('Bad query');
+                    });
+                  } else if (result1.affectedRows) {
+                    // Selects all articles in the package that is getting checked in
+                    sql = 'SELECT article FROM StorageMap WHERE container = (SELECT id FROM Package WHERE package_number = ?';
+
+                    connection.query(
+                      sql,
+                      [
+                        checkIn.package_number,
+                      ],
+                      function (err3, result2) {
+                        if (err3) {
+                          connection.rollback(function () {
+                            console.log(err3);
+                            response.status(400).send('Bad query');
+                          });
+                        } else {
+                          // Creates Storage events for the articles in the package
+                          for (id in result2) {
+
+                            sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, ?,(SELECT shelf_name FROM Shelf WHERE id = ?), (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
+
+                            connection.query(
+                              sql,
+                              [
+                                checkIn.comment,
+                                checkIn.package_number,
+                                checkIn.shelf,
+                                checkIn.storage_room,
+                                id,
+                                checkIn.storage_room,
+                              ],
+                              function (err3, result2) {
+                                if (err3) {
+                                  connection.rollback(function () {
+                                    console.log(err3);
+                                    response.status(400).send('Bad query');
+                                  });
+                                } else {
+
+
+                                }
+                              },
+                            );
+                          }
+                        }
+
+
+                      });
+
+                  } else {
+                    response.send("Package does not exist");
+                  }
+                });
+              } else {
+                response.send("Package does not exist");
+              }
+            });
+          }
+        });
+      }
+      connection.release();
+    });
+  }
+});
+
+router.get('/event', (request, response) => {
+  pool.getConnection(function (err, connection) {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Cannot conect to server');
+    } else {
+      const sql = 'SELECT * FROM StorageEvent';
+      connection.query(sql, (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          response.status(400).send('Bad query');
+        } else {
+          console.log(result);
+          response.send(result);
+        }
+      });
+    }
+
+  });
+});
+
+router.get('/test', (request, response) => {
+  pool.getConnection(function (err, connection) {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Cannot conect to server');
+    } else {
+      const sql ='SELECT * FROM StorageMap';
+      //const sql = 'SELECT id FROM Article WHERE id = (SELECT article FROM StorageMap WHERE container = (SELECT id FROM Package WHERE package_number ="846405-01"))';
+      connection.query(sql, (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          response.status(400).send('Bad query');
+        } else {
+         /* for (article in result) {
+            console.log(article);
+          }*/
+
+
+          response.send(result);
+        }
+      });
+    }
+
+  });
+});
 module.exports = router;
