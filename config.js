@@ -17,6 +17,21 @@ const config = {
     host: 'http://localhost',
     port: 9001
   },
+  mock_users: [
+    {
+      id: 1,
+      name: 'user1',
+      password: 'user1pass'
+    },
+    {
+      id: 2,
+      name: 'user2',
+      password: 'user2pass'
+    }
+  ],
+  jwtOptions: {
+    secretOrKey:'mysecret123'
+  },
   debug: process.env.NODE_ENV == 'debug'
 };
 

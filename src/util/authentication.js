@@ -1,9 +1,17 @@
+const _ = require("lodash");
 const passport = require('passport');
-var saml = require('passport-saml');
 const config = require('../../config');
 
+var jwt = require('jsonwebtoken');
+var passportJWT = require("passport-jwt");
+var ExtractJwt = passportJWT.ExtractJwt;
+var JwtStrategy = passportJWT.Strategy;
+
 // This file was setup according to the guide found here:
-// https://medium.com/disney-streaming/setup-a-single-sign-on-saml-test-environment-with-docker-and-nodejs-c53fc1a984c9
+// https://jonathanmh.com/express-passport-json-web-token-jwt-authentication-beginners/
+// https://itnext.io/implementing-json-web-tokens-passport-js-in-a-javascript-application-with-react-b86b1f313436
+
+var users = config.mock_users
 
 
 passport.serializeUser(function(user, done) {
@@ -25,24 +33,38 @@ passport.deserializeUser(function(user, done) {
   done(null, user);
 });
 
+var jwtOptions = config.jwtOptions
+jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderWithScheme('JWT')
 
-var samlStrategy = new saml.Strategy(
-  {
-    callbackUrl: config.saml.samlCallbackUrl,
-    entryPoint: config.saml.samlEntryPoint,
-    issuer: config.saml.samlIssuer,
-    identifierFormat: null,
-    decryptionPvk: config.saml.samlDecryptionPvk,
-    privateCert: config.saml.samlPrivateCert,
-    validateInResponseTo: true,
-    disableRequestedAuthnContext: true
-  },
-  function(profile, done) {
-    return done(null, profile);
+var jwtStrategy = new JwtStrategy(jwtOptions, function(jwt_payload, next) {
+  console.log('payload received', jwt_payload);
+  // usually this would be a database call:
+  var user = users[_.findIndex(users, {id: jwt_payload.id})];
+  if (user) {
+    next(null, user);
+  } else {
+    next(null, false);
   }
-);
+});
 
-passport.use('samlStrategy', samlStrategy);
+
+// var samlStrategy = new saml.Strategy(
+//   {
+//     callbackUrl: config.saml.samlCallbackUrl,
+//     entryPoint: config.saml.samlEntryPoint,
+//     issuer: config.saml.samlIssuer,
+//     identifierFormat: null,
+//     decryptionPvk: config.saml.samlDecryptionPvk,
+//     privateCert: config.saml.samlPrivateCert,
+//     validateInResponseTo: true,
+//     disableRequestedAuthnContext: true
+//   },
+//   function(profile, done) {
+//     return done(null, profile);
+//   }
+// );
+
+passport.use('jwtStrategy', jwtStrategy);
 
 module.exports = {
   passport,
