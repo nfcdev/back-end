@@ -38,7 +38,7 @@ router.post("/", function (req, res) {
 
   if (user.password === req.body.password) {
     // from now on we'll identify the user by the id and the id is the only personalized value that goes into our token
-    var payload = { id: user.id };
+    var payload = { id: user.id, shortcode:name };
     var signOptions = {
       issuer: 'C4Solutions',
       subject: 'NFC Storage Tracker',
