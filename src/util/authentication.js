@@ -1,15 +1,15 @@
 const _ = require("lodash");
 const passport = require('passport');
 const config = require('../../config');
-
 var jwt = require('jsonwebtoken');
 var passportJWT = require("passport-jwt");
 var ExtractJwt = passportJWT.ExtractJwt;
 var JwtStrategy = passportJWT.Strategy;
 
-// This file was setup according to the guide found here:
+// This file was setup according to the guides found here:
 // https://jonathanmh.com/express-passport-json-web-token-jwt-authentication-beginners/
 // https://itnext.io/implementing-json-web-tokens-passport-js-in-a-javascript-application-with-react-b86b1f313436
+// https://medium.com/front-end-weekly/learn-using-jwt-with-passport-authentication-9761539c4314
 
 var users = config.mock_users
 
@@ -46,23 +46,6 @@ var jwtStrategy = new JwtStrategy(jwtOptions, function(jwt_payload, next) {
     next(null, false);
   }
 });
-
-
-// var samlStrategy = new saml.Strategy(
-//   {
-//     callbackUrl: config.saml.samlCallbackUrl,
-//     entryPoint: config.saml.samlEntryPoint,
-//     issuer: config.saml.samlIssuer,
-//     identifierFormat: null,
-//     decryptionPvk: config.saml.samlDecryptionPvk,
-//     privateCert: config.saml.samlPrivateCert,
-//     validateInResponseTo: true,
-//     disableRequestedAuthnContext: true
-//   },
-//   function(profile, done) {
-//     return done(null, profile);
-//   }
-// );
 
 passport.use('jwtStrategy', jwtStrategy);
 
