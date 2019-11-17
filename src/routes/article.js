@@ -16,45 +16,92 @@ router.post('/process', (req, res) => {
     res.status(400).send('Bad request');
   } else {
     // eslint-disable-next-line consistent-return
+
+
+
+    let sql1 = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
+
+    sql1 += ' SELECT "processed", 55555, 1, ?, Package.package_number, Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Package, Shelf, StorageRoom, Branch, Article WHERE';
+    
+    sql1 += ' Package.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) AND';
+
+    sql1 += ' (Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?)))) AND';
+
+    sql1 += ' StorageRoom.id = ? AND';
+
+    sql1 += ' Branch.id = (select branch from StorageRoom where id=?) AND';
+
+    sql1 += ' Article.material_number = ?';
+
+    //let sql2 = 'delete from StorageMap where article = (select id from Article where material_number = ?)';
+    let sql2 = "select * from StorageEvent";
+
+
+    let sql3 = 'SELECT "processed" as "action", 55555 as "timestamp", 1 as "user", ? as "comment", Package.package_number as "package", Shelf.shelf_name as "shelf", StorageRoom.name as "storage_room", Branch.name as "branch", Article.id as "article" FROM Package, Shelf, StorageRoom, Branch, Article WHERE';
+    
+    sql3 += ' Package.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) AND';
+
+    sql3 += ' (Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?)))) AND';
+
+    sql3 += ' StorageRoom.id = ? AND';
+
+    sql3 += ' Branch.id = (select branch from StorageRoom where id=?) AND';
+
+    sql3 += ' Article.material_number = ?';
+
+
     pool.getConnection((err, connection) => {
       if (err) {
         console.log(err);
         return res.status(500).send('Could not connect to server');
       }
-
-      let sql = 'Delete from StorageMap where article = (select id from Article where material_number = ?)';
-
-      let sql2 = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article)';
-      sql2 += ' VALUES ("processed", Select UNIX_TIMESTAMP(), 1, ?,';
-      sql2 += ' Select package from Package where Package.id = (select id from Container where Container.id = (select container from StorageMap where article = (select id from Article where material_number = ?,)))';
-      sql2 += ' Select shelf_name from Shelf where Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Select shelf_name from Shelf where Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?))),';
-      sql2 += ' Select name from StorageRoom where StorageRoom.id = (select current_storage_room from Container where id = (select container from StorageMap where article = (select id from Article where material_number = ?))),';
-      sql2 += ' Select id from Article where material_number = ?';
-
-      // eslint-disable-next-line consistent-return
-      connection.query(sql, [processArticle.material_number], (err, result) => {
+      connection.query(sql1, [processArticle.comment, processArticle.material_number, processArticle.material_number, processArticle.material_number, processArticle.storage_room, processArticle.storage_room, processArticle.material_number], (err1, result1) => {
         connection.release();
-        if (err) {
-          console.log(err);
-          return res.status(400).send('Bad query');
+        if (err1) {
+          console.log(err1);
+          return res.status(400).send('Bad query1');
         }
-        console.log('Article has been processed!');
-        console.log(sql);
-        res.send(result);
       });
+    });
 
+    pool.getConnection((err, connection) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).send('Could not connect to server');
+      }
       connection.query(sql2, [processArticle.material_number], (err, result) => {
         connection.release();
         if (err) {
           console.log(err);
-          return res.status(400).send('Bad query');
+          return res.status(400).send('Bad query2');
         }
-        console.log('Article has been processed!');
-        console.log(sql2);
-        res.send(result);
       });
     });
+
+
+    pool.getConnection((err, connection) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).send('Could not connect to server');
+      }
+      connection.query(sql3, [processArticle.comment, processArticle.material_number, processArticle.material_number, processArticle.material_number, processArticle.storage_room, processArticle.storage_room, processArticle.material_number], (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          return res.status(400).send('Bad query3');
+        }
+       res.send(result);
+      });
+    });
+
+
   }
 });
 
 module.exports = router;
+
+
+
+
+
+
