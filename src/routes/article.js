@@ -22,10 +22,10 @@ router.post('/process', (req, res) => {
         return res.status(500).send('Could not connect to server');
       }
 
-        let sql = 'Delete from StorageMap where article = (select id from Article where material_number = ?)';
+      let sql = 'Delete from StorageMap where article = (select id from Article where material_number = ?)';
 
       let sql2 = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article)';
-      sql2 += ' VALUES (?, Select UNIX_TIMESTAMP(), 1, ?,';
+      sql2 += ' VALUES ("processed", Select UNIX_TIMESTAMP(), 1, ?,';
       sql2 += ' Select package from Package where Package.id = (select id from Container where Container.id = (select container from StorageMap where article = (select id from Article where material_number = ?,)))';
       sql2 += ' Select shelf_name from Shelf where Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Select shelf_name from Shelf where Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?))),';
       sql2 += ' Select name from StorageRoom where StorageRoom.id = (select current_storage_room from Container where id = (select container from StorageMap where article = (select id from Article where material_number = ?))),';
