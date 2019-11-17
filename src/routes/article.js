@@ -244,5 +244,19 @@ router.post('/process', (req, res) => {
   }
 });
 
+// Create a new storage-event
+router.post('/???', (req, res) => {
+  const storageEvent = {
+    action: req.body.action,
+    timestamp: req.body.timestamp,
+    user: req.body.user,
+    comment: req.body.comment,
+    package: req.body.package,
+    shelf: req.body.shelf,
+    storage_room: req.body.storage_room,
+    article: req.body.article,
+  };
+
+});
 
 module.exports = router;
