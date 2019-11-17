@@ -63,7 +63,11 @@ router.post('/???', (req, res) => {
     }
 
     let sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article)';
-    sql += 'VALUES (Select UNIX_TIMESTAMP)';
+    sql += 'VALUES (get_action(?), Select UNIX_TIMESTAMP, get_user_id, get_optional_comment(?),';
+    sql += ' Select package from Package where Package.id = (select id from Container where Container.id = (select container from StorageMap where article = (select id from Article where material_number = ?,)))';
+    sql += ' Select shelf_name from Shelf where Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Select shelf_name from Shelf where Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?))),';
+    sql += ' Select name from StorageRoom where StorageRoom.id = (select current_storage_room from Container where id = (select container from StorageMap where article = (select id from Article where material_number = ?))),';
+    sql += ' Select id from Article where material_number = ?';
 
     connection.query(sql, (err, result) => {
       connection.release();
@@ -71,7 +75,7 @@ router.post('/???', (req, res) => {
         console.log(err);
         return res.status(400).send('Bad query');
       }
-      console.log('Article has been processed!');
+      console.log('Storage event has been created!');
       console.log(sql);
       res.send(result);
     });
