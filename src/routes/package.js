@@ -194,6 +194,23 @@ router.delete('/:id', (request, response) => {
   });
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Checks out a package
 router.post('/check-out', (request, response) => {
   const checkOut = {
