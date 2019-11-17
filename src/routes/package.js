@@ -96,7 +96,11 @@ router.post('/case/:id', (request, response) => {
                                 id: result.insertId,
                               });
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+                            
+>>>>>>> 5969d0ca661a768da339b471da27645fd11219be
 =======
                             
 >>>>>>> 5969d0ca661a768da339b471da27645fd11219be
@@ -113,7 +117,11 @@ router.post('/case/:id', (request, response) => {
         });
       }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> 5969d0ca661a768da339b471da27645fd11219be
 =======
       
 >>>>>>> 5969d0ca661a768da339b471da27645fd11219be
@@ -325,7 +333,11 @@ router.post('/check-in', (request, response) => {
           }
         });
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 5969d0ca661a768da339b471da27645fd11219be
 =======
         
 >>>>>>> 5969d0ca661a768da339b471da27645fd11219be
@@ -337,6 +349,7 @@ router.post('/check-in', (request, response) => {
 });
 
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 // Checks out a package
 router.post('/check-out', (request, response) => {
@@ -437,6 +450,9 @@ router.post('/check-out', (request, response) => {
     });
   }
 });
+=======
+
+>>>>>>> 5969d0ca661a768da339b471da27645fd11219be
 =======
 
 >>>>>>> 5969d0ca661a768da339b471da27645fd11219be
