@@ -96,12 +96,7 @@ router.post('/case/:id', (request, response) => {
                                 id: result.insertId,
                               });
                             
-=======
-                            
->>>>>>> 5969d0ca661a768da339b471da27645fd11219be
-=======
-                            
->>>>>>> 5969d0ca661a768da339b471da27645fd11219be
+
                             }
                           });
                         }
