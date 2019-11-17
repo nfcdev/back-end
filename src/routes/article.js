@@ -6,7 +6,7 @@ const express = require('express');
 const router = express.Router();
 
 // Example: Establishing a connection and query to db
-const pool = require('../../connect');
+const pool = require('../util/connect');
 
 // Register new article
 router.post('/', (req, res) => {
@@ -103,7 +103,6 @@ router.get('/:id', (req, res) => {
 // Return all articles for a specific case
 router.get('/case/:id', (req, res) => {
   const { id } = req.params;
-  // eslint-disable-next-line func-names
   // eslint-disable-next-line consistent-return
   pool.getConnection((err, connection) => {
     if (err) {
@@ -203,6 +202,29 @@ router.get('/package/:id', (req, res) => {
       console.log(sql_query);
       res.send(result);
     });
+  });
+});
+
+// gets all articles belonging to a specific branch
+router.get('/branch/:branch_id', (request, response) => {
+  const branchid = request.params.branch_id;
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Could not connect to server');
+    } else {
+      const sql = 'SELECT * FROM Article  WHERE id IN (SELECT article FROM StorageMap WHERE container IN (SELECT id FROM Container WHERE current_storage_room IN (SELECT id FROM StorageRoom WHERE branch = ?)))';
+      connection.query(sql, [branchid], (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          response.status(400).send('Bad query');
+        } else {
+          console.log('Data received');
+          response.send(result);
+        }
+      });
+    }
   });
 });
 
