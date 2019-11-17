@@ -194,15 +194,15 @@ router.delete('/:id', (request, response) => {
   });
 });
 
-// Checks in a package
-router.post('/check-in', (request, response) => {
-  const checkIn = {
-    shelf: request.body.shelf,
+// Checks out a package
+router.post('/check-out', (request, response) => {
+  const checkOut = {
+    
     package_number: request.body.package_number,
     comment: request.body.comment,
     storage_room: request.body.storage_room,
   };
-  if (!checkIn.shelf || !checkIn.storage_room || !checkIn.package_number) {
+  if (!checkOut.storage_room || !checkOut.package_number) {
     response.status(400).send('Bad request');
   } else {
     pool.getConnection(function (err, connection) {
