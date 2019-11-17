@@ -253,7 +253,7 @@ router.post('/check-in', (request, response) => {
                         } else {
                           // Creates Storage events for the articles in the package
                           for (a in result2) {
-
+                            // User hardcoded to "1" right now
                             sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, ?,(SELECT shelf_name FROM Shelf WHERE id = ?), (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
 
                             connection.query(
@@ -301,54 +301,7 @@ router.post('/check-in', (request, response) => {
   }
 });
 
-router.get('/event', (request, response) => {
-  pool.getConnection(function (err, connection) {
-    if (err) {
-      console.log(err);
-      response.status(500).send('Cannot conect to server');
-    } else {
-      const sql = 'SELECT * FROM StorageEvent';
-      connection.query(sql, (err, result) => {
-        connection.release();
-        if (err) {
-          console.log(err);
-          response.status(400).send('Bad query');
-        } else {
-          console.log(result);
-          response.send(result);
-        }
-      });
-    }
-
-  });
-});
-
-router.get('/test', (request, response) => {
-  pool.getConnection(function (err, connection) {
-    if (err) {
-      console.log(err);
-      response.status(500).send('Cannot conect to server');
-    } else {
-
-      const sql = 'SELECT article FROM StorageMap WHERE container = (SELECT id FROM Package WHERE package_number ="846405-01")';
-      connection.query(sql, (err, result) => {
-        connection.release();
-        if (err) {
-          console.log(err);
-          response.status(400).send('Bad query');
-        } else {
-          console.log(result);
-          console.log("-------------")
-          for (a in result) {
-            console.log(result[a].article);
-          }
 
 
-          response.send(result);
-        }
-      });
-    }
 
-  });
-});
 module.exports = router;
