@@ -33,21 +33,9 @@ router.post('/process', (req, res) => {
 
     sql1 += ' Article.material_number = ?';
 
-    //let sql2 = 'delete from StorageMap where article = (select id from Article where material_number = ?)';
-    let sql2 = "select * from StorageEvent";
+    let sql2 = 'delete from StorageMap where article = (select id from Article where material_number = ?)';
 
-
-    let sql3 = 'SELECT "processed" as "action", 55555 as "timestamp", 1 as "user", ? as "comment", Package.package_number as "package", Shelf.shelf_name as "shelf", StorageRoom.name as "storage_room", Branch.name as "branch", Article.id as "article" FROM Package, Shelf, StorageRoom, Branch, Article WHERE';
-    
-    sql3 += ' Package.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) AND';
-
-    sql3 += ' (Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?)))) AND';
-
-    sql3 += ' StorageRoom.id = ? AND';
-
-    sql3 += ' Branch.id = (select branch from StorageRoom where id=?) AND';
-
-    sql3 += ' Article.material_number = ?';
+    let sql3 = 'select * from StorageEvent order by id desc limit 1';
 
 
     pool.getConnection((err, connection) => {
