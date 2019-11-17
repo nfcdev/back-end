@@ -78,6 +78,16 @@ router.post('/case/:id', (request, response) => {
                                 response.status(400).send('Bad query');
                               });
                             } else {
+                              connection.commit(function (err5) {
+                                if (err5) {
+                                  connection.rollback(function () {
+                                    console.log(err5);
+                                  });
+                                } else {
+                                  console.log('Transaction Complete.');
+                                  connection.end();
+                                }
+                              });
                               response.json({
                                 package_number: result3[0].pn,
                                 current_storage_room:
@@ -85,6 +95,7 @@ router.post('/case/:id', (request, response) => {
                                 shelf: newPackage.shelf,
                                 id: result.insertId,
                               });
+                            
                             }
                           });
                         }
@@ -97,7 +108,7 @@ router.post('/case/:id', (request, response) => {
           }
         });
       }
-      connection.release();
+      
     });
   }
 });
@@ -279,6 +290,16 @@ router.post('/check-in', (request, response) => {
                               },
                             );
                           }
+                          connection.commit(function (err5) {
+                            if (err5) {
+                              connection.rollback(function () {
+                                console.log(err5);
+                              });
+                            } else {
+                              console.log('Transaction Complete.');
+                              connection.end();
+                            }
+                          });
                           response.json({ resultat: "Ok" });
                         }
 
@@ -295,8 +316,10 @@ router.post('/check-in', (request, response) => {
             });
           }
         });
+        
+
       }
-      connection.release();
+
     });
   }
 });
