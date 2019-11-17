@@ -195,22 +195,6 @@ router.delete('/:id', (request, response) => {
 });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Checks out a package
 router.post('/check-out', (request, response) => {
   const checkOut = {
@@ -232,7 +216,7 @@ router.post('/check-out', (request, response) => {
             response.status(500).send('Could not start transaction');
           } else {
 
-            // Updates storage room in container
+            // Gets storageroom to compare with given storageroom from user
             let sql = 'SELECT current_storage_room FROM Container WHERE id = (SELECT id FROM Package WHERE package_number = ?) ';
             connection.query(sql, [checkOut.package_number], function (err2, result1) {
               if (err2) {
@@ -241,7 +225,7 @@ router.post('/check-out', (request, response) => {
                   response.status(400).send('Bad query');
                 });
               } else if (result1[0].current_storage_room == checkOut.storage_room) {
-                // Selects all articles in the package that is getting checked in
+                // Selects all articles in the package that is getting checked out
                 sql = 'SELECT article FROM StorageMap WHERE container = (SELECT id FROM Package WHERE package_number = ?)';
 
                 connection.query(
@@ -256,9 +240,9 @@ router.post('/check-out', (request, response) => {
                         response.status(400).send('Bad query');
                       });
                     } else {
-                      // Creates Storage events for the articles in the package
+                      // Creates Storage events for all the articles in the package
                       for (a in result2) {
-                        // User hardcoded to "1" right now
+                        // User is hardcoded to "1" right now
                         sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, ?,(SELECT shelf_name FROM Shelf WHERE id = (SELECT shelf FROM Package WHERE package_number = ?)), (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
 
                         connection.query(
