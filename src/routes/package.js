@@ -78,6 +78,16 @@ router.post('/case/:id', (request, response) => {
                                 response.status(400).send('Bad query');
                               });
                             } else {
+                              connection.commit(function (err5) {
+                                if (err5) {
+                                  connection.rollback(function () {
+                                    console.log(err5);
+                                  });
+                                } else {
+                                  console.log('Transaction Complete.');
+                                  connection.end();
+                                }
+                              });
                               response.json({
                                 package_number: result3[0].pn,
                                 current_storage_room:
@@ -85,6 +95,7 @@ router.post('/case/:id', (request, response) => {
                                 shelf: newPackage.shelf,
                                 id: result.insertId,
                               });
+
                             }
                           });
                         }
@@ -97,7 +108,7 @@ router.post('/case/:id', (request, response) => {
           }
         });
       }
-      connection.release();
+
     });
   }
 });
@@ -194,6 +205,125 @@ router.delete('/:id', (request, response) => {
   });
 });
 
+// Checks in a package
+router.post('/check-in', (request, response) => {
+  const checkIn = {
+    shelf: request.body.shelf,
+    package_number: request.body.package_number,
+    comment: request.body.comment,
+    storage_room: request.body.storage_room,
+  };
+  if (!checkIn.shelf || !checkIn.storage_room || !checkIn.package_number) {
+    response.status(400).send('Bad request');
+  } else {
+    pool.getConnection(function (err, connection) {
+      if (err) {
+        console.log(err);
+        response.status(500).send('Could not connect to server');
+      } else {
+        connection.beginTransaction(function (err0) {
+          if (err0) {
+            console.log(err0);
+            response.status(500).send('Could not start transaction');
+          } else {
+            // Updates shelf of package
+            let sql = 'UPDATE Package SET shelf = ? WHERE package_number = ?';
+            connection.query(sql, [checkIn.shelf, checkIn.package_number], function (
+              err1,
+              result,
+            ) {
+              if (err1) {
+                connection.rollback(function () {
+                  console.log(err1);
+                  response.status(400).send('Bad query');
+                });
+              } else if (result.affectedRows) {
+                // Updates storage room in container
+                sql = 'UPDATE Container SET current_storage_room = ? WHERE id = (SELECT id FROM Package WHERE package_number = ?) ';
+                connection.query(sql, [checkIn.storage_room, checkIn.package_number], function (err2, result1) {
+                  if (err2) {
+                    connection.rollback(function () {
+                      console.log(err2);
+                      response.status(400).send('Bad query');
+                    });
+                  } else if (result1.affectedRows) {
+                    // Selects all articles in the package that is getting checked in
+                    sql = 'SELECT article FROM StorageMap WHERE container = (SELECT id FROM Package WHERE package_number = ?)';
+
+                    connection.query(
+                      sql,
+                      [
+                        checkIn.package_number,
+                      ],
+                      function (err3, result2) {
+                        if (err3) {
+                          connection.rollback(function () {
+                            console.log(err3);
+                            response.status(400).send('Bad query');
+                          });
+                        } else {
+                          // Creates Storage events for the articles in the package
+                          for (a in result2) {
+                            // User hardcoded to "1" right now
+                            sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, ?,(SELECT shelf_name FROM Shelf WHERE id = ?), (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
+
+                            connection.query(
+                              sql,
+                              [
+                                checkIn.comment,
+                                checkIn.package_number,
+                                checkIn.shelf,
+                                checkIn.storage_room,
+                                result2[a].article,
+                                checkIn.storage_room,
+                              ],
+                              function (err4, result3) {
+                                if (err4) {
+                                  connection.rollback(function () {
+                                    console.log(err3);
+                                    response.status(400).send('Bad query');
+                                  });
+                                } else {
+                                  console.log(result2[a].article + "created");
+
+                                }
+                              },
+                            );
+                          }
+                          connection.commit(function (err5) {
+                            if (err5) {
+                              connection.rollback(function () {
+                                console.log(err5);
+                              });
+                            } else {
+                              console.log('Transaction Complete.');
+                              connection.end();
+                            }
+                          });
+                          response.json({ resultat: "Ok" });
+                        }
+
+
+                      });
+
+                  } else {
+                    response.send("Package does not exist");
+                  }
+                });
+              } else {
+                response.send("Package does not exist");
+              }
+            });
+          }
+        });
+
+
+      }
+
+    });
+  }
+});
+
 
 // Checks out a package
 router.post('/check-out', (request, response) => {
@@ -278,7 +408,7 @@ router.post('/check-out', (request, response) => {
                           connection.end();
                         }
                       });
-                      response.json({ resultat: "Ok"});
+                      response.json({ resultat: "Ok" });
                     }
 
 
