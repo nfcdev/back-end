@@ -257,6 +257,8 @@ router.post('/???', (req, res) => {
     article: req.body.article,
   };
 
+  let sql = 'INSERT INTO StorageEvent (timestamp) VALUES (Select UNIX_TIMESTAMP)';
+
 });
 
 module.exports = router;
