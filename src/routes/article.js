@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 // Example: Establishing a connection and query to db
-const pool = require('../../connect');
+const pool = require('../util/connect');
 
 // Process an article with specific storage-room id
 router.post('/process', (req, res) => {
@@ -21,11 +21,11 @@ router.post('/process', (req, res) => {
         console.log(err);
         return res.status(500).send('Could not connect to server');
       }
-      
+
       let sql = 'SELECT CASE WHEN EXISTS ((select * from StorageMap where article = (select id from Article where material_number = ?) and container = (select id from Container where current_storage_room = ?))';
       sql += ' THEN (Delete from Container where current_storage_room = ?)';
       sql = 'select * from StorageMap where article = (select id from Article where material_number = ?) and container = (select id from Container where current_storage_room = ?';
-      
+
       // sql += ' and Select * from StorageMap';
 
       // eslint-disable-next-line consistent-return
@@ -56,8 +56,26 @@ router.post('/???', (req, res) => {
     article: req.body.article,
   };
 
-  let sql = 'INSERT INTO StorageEvent (timestamp) VALUES (Select UNIX_TIMESTAMP)';
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).send('Could not connect to server');
+    }
 
+    let sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article)';
+    sql += 'VALUES (Select UNIX_TIMESTAMP)';
+
+    connection.query(sql, (err, result) => {
+      connection.release();
+      if (err) {
+        console.log(err);
+        return res.status(400).send('Bad query');
+      }
+      console.log('Article has been processed!');
+      console.log(sql);
+      res.send(result);
+    });
+  });
 });
 
 module.exports = router;
