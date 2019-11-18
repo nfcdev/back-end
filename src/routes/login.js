@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 
 router.get(
   '/',
-  function(req, res, next) {
+  function (req, res, next) {
     console.log('-----------------------------');
     console.log('/Start login handler');
     next();
@@ -15,7 +15,7 @@ router.get(
   passport.authenticate('samlStrategy')
 );
 
-router.get('/token', authenticatedRequest, function(req, res) {
+router.get('/token', authenticatedRequest, function (req, res) {
   if (!req.isAuthenticated()) return res.send(401);
   var payload = {
     uid: req.user.uid,
@@ -37,7 +37,7 @@ router.get('/token', authenticatedRequest, function(req, res) {
 
 router.post(
   '/callback',
-  function(req, res, next) {
+  function (req, res, next) {
     console.log('-----------------------------');
     console.log('/Start login callback ');
     next();
@@ -45,7 +45,7 @@ router.post(
   passport.authenticate('samlStrategy', {
     failureRedirect: `${config.frontend.host}:${config.frontend.port}`
   }),
-  function(req, res) {
+  function (req, res) {
     console.log('-----------------------------');
     console.log('login call back dumps');
     console.log(req.user);

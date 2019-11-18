@@ -13,7 +13,7 @@ router.get('/', (request, response) => {
   const { package_number } = request.query;
   const { status } = request.query;
 
-  sql_query =    "select Article.material_number, Case.reference_number, StorageRoom.name as 'storage_room', Shelf.shelf_name as 'shelf',";
+  sql_query = "select Article.material_number, Case.reference_number, StorageRoom.name as 'storage_room', Shelf.shelf_name as 'shelf',";
   sql_query
     += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = Article.id))';
   sql_query

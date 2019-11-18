@@ -91,7 +91,7 @@ router.delete('/:id', (request, response) => {
       console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
-      const sql =        'DELETE sh, co FROM Shelf sh JOIN Container co ON sh.id = co.id WHERE sh.id = ?';
+      const sql = 'DELETE sh, co FROM Shelf sh JOIN Container co ON sh.id = co.id WHERE sh.id = ?';
       connection.query(sql, [id], (err, res) => {
         connection.release();
         if (err) {
