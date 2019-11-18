@@ -144,13 +144,12 @@ router.post('/check-out', (request, response) => {
                       // Creates Storage event for the article
                       for (a in result2) {
                         // User is hardcoded to "1" right now
-                        sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, "lab",(SELECT shelf_name FROM Shelf WHERE id = (SELECT shelf FROM Package WHERE package_number = ?)), (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
+                        sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, "lab", "345", (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
 
                         connection.query(
                           sql,
                           [
                             checkOut.comment,
-                            checkOut.package_number,
                             checkOut.storage_room,
                             result2[a].article,
                             checkOut.storage_room,
@@ -180,6 +179,7 @@ router.post('/check-out', (request, response) => {
                       });
                       response.json({ resultat: "Ok" });
                     }
+                    
 
 
                   });
