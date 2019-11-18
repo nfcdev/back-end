@@ -1,3 +1,4 @@
+/* eslint-disable prefer-arrow-callback */
 const express = require('express');
 
 const router = express.Router();
@@ -45,10 +46,21 @@ router.post('/storageroom/:id', (request, response) => {
                         response.status(400).send('Bad query');
                       });
                     } else {
+                      connection.commit(function (err3) {
+                        if (err3) {
+                          connection.rollback(function () {
+                            console.log(err3);
+                          });
+                        } else {
+                          console.log('Transaction Complete.');
+                          connection.end();
+                        }
+                      });
                       response.json({
                         shelf_name: newShelf.shelf_name,
                         id: result.insertId,
                       });
+
                     }
                   },
                 );
@@ -57,7 +69,7 @@ router.post('/storageroom/:id', (request, response) => {
           }
         });
       }
-      connection.release();
+     
     });
   }
 });
