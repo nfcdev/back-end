@@ -161,9 +161,29 @@ router.post('/check-out', (request, response) => {
                                 response.status(400).send('Bad query');
                               });
                             } else {
-                              console.log(result2[a].article + "created");
+                              console.log(result2[a].article + " created");
 
+                              sql = 'SELECT * FROM StorageEvent WHERE id = ?';
+                              connection.query(
+                                sql,
+                                [
+                                  result3.insertID,
+                                ],
+                                function (err5, result4) {
+                                  if (err5) {
+                                    connection.rollback(function () {
+                                      console.log(err5);
+                                      response.status(400).send('Bad query');
+                                    });
+                                  }
+                                  console.log(result3.insertID);
+                                  response.send(result4);
+                                });
+
+                            
                             }
+                            //response.send(result3.insertId);
+
                           },
                         );
                       }
@@ -177,7 +197,7 @@ router.post('/check-out', (request, response) => {
                           connection.end();
                         }
                       });
-                      response.json({ resultat: "Ok" });
+                      //response.json({ resultat: "Ok" });
                     }
                     
 
