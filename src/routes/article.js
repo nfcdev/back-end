@@ -123,7 +123,7 @@ router.post('/check-out', (request, response) => {
               if (err2) {
                 connection.rollback(function () {
                   console.log(err2);
-                  response.status(400).send('Article is not stored in this storage room!');
+                  response.status(400).send('Bad query!');
                 });
               } else if (result1[0].current_storage_room == checkOut.storage_room) {
                 // Selects article that is getting checked out
@@ -144,7 +144,7 @@ router.post('/check-out', (request, response) => {
                       // Creates Storage event for the article
                       for (a in result2) {
                         // User is hardcoded to "1" right now
-                        sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, "lab", "345", (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
+                        sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, " - ", " - ", (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
 
                         connection.query(
                           sql,
