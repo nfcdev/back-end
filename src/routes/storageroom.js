@@ -90,10 +90,16 @@ router.put("/:id", (request, response) => {
             response.status(400).send("Bad query");
           } else {
             console.log("2 data updated");
-            response.send(`name and branch updated`);
+            response.json({ id: id, name: updatedStorageRoom.name, branch: updatedStorageRoom.branch });
           }
         });
       } else if (updatedStorageRoom.name) {
+          // Gets and saves the branchnumber to use later in the json response since the user has not entered a branchnumber in the request.
+        let branchNumber;
+        connection.query(`SELECT StorageRoom.branch FROM StorageRoom WHERE StorageRoom.id = ${id}`, function (err, result) {
+          branchNumber = JSON.parse(JSON.stringify(result[0]["branch"]));
+        });
+
         let sql = "UPDATE StorageRoom SET name = ? WHERE id = ?";
         connection.query(sql, [updatedStorageRoom.name, id], function (err) {
           connection.release();
@@ -102,10 +108,15 @@ router.put("/:id", (request, response) => {
             response.status(400).send("Bad query");
           } else {
             console.log("1 data updated");
-            response.send(`name updated`);
+            response.json({ id: id, name: updatedStorageRoom.name, branch: branchNumber });
           }
         });
       } else if (updatedStorageRoom.branch) {
+        let roomName;
+        // Gets and saves the storageroom name to use later in the json response since the user has not entered a name in the request.
+        connection.query(`SELECT StorageRoom.name FROM StorageRoom WHERE StorageRoom.id = ${id}`, function (err, result) {
+          roomName = JSON.parse(JSON.stringify(result[0]["name"]));
+        });
         let sql = "UPDATE StorageRoom SET branch = ? WHERE id = ?";
         connection.query(sql, [updatedStorageRoom.branch, id], function (err) {
           connection.release();
@@ -114,7 +125,7 @@ router.put("/:id", (request, response) => {
             response.status(400).send("Bad query");
           } else {
             console.log("1 data updated");
-            response.send(`branch updated`);
+            response.json({ id: id, name: updatedStorageRoom.name, name: roomName, branch: updatedStorageRoom.branch });
           }
         });
       } else {
@@ -145,7 +156,7 @@ router.post("/", (request, response) => {
             return response.status(400).send("Bad query");
           } else {
             console.log("New room added");
-            response.send(result);
+            response.json({ id: result.insertId, name: newStorageRoom.name, branch: newStorageRoom.branch });
           }
         });
       }

@@ -13,7 +13,11 @@ router.get('/', (request, response) => {
   const { package_number } = request.query;
   const { status } = request.query;
 
+<<<<<<< HEAD
   sql_query = "select Article.material_number, Case.reference_number, StorageRoom.name as 'storage_room', Shelf.shelf_name as 'shelf',";
+=======
+  sql_query =    "select Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room', Shelf.shelf_name as 'shelf',";
+>>>>>>> e89e681e9d806dec7874b8cadfceea2c30ecbb46
   sql_query
     += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = Article.id))';
   sql_query
@@ -21,10 +25,11 @@ router.get('/', (request, response) => {
   sql_query
     += " se2.action as 'status',se1.timestamp as 'timestamp', se2.timestamp as 'last modified', Article.description, Article.id";
   sql_query
-    += ' FROM Article, `Case`, StorageRoom, Shelf, StorageEvent as se1, StorageEvent as se2';
+    += ' FROM Article, `Case`, StorageRoom, Branch, Shelf, StorageEvent as se1, StorageEvent as se2';
   sql_query += ' WHERE Article.case = Case.id';
   sql_query
     += ' and (StorageRoom.id = (select current_storage_room from Container where id = (select container from StorageMap where article = Article.id)))';
+  sql_query += ' and Branch.id = StorageRoom.branch';
   sql_query
     += ' and (Shelf.id = (select container from StorageMap where article = Article.id) OR Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = Article.id)))';
   sql_query
