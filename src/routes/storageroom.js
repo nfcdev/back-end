@@ -74,8 +74,7 @@ router.delete("/:id", (request, response) => {
 router.put("/:id", (request, response) => {
   const id = request.params.id;
   const updatedStorageRoom = request.body;
-  /*let branchNumber = "";
-  let roomName = "";*/
+
   pool.getConnection(function (err, connection) {
     if (err) {
       console.log(err);
@@ -157,7 +156,7 @@ router.post("/", (request, response) => {
             return response.status(400).send("Bad query");
           } else {
             console.log("New room added");
-            response.send(result);
+            response.json({ id: result.insertId, name: newStorageRoom.name, branch: newStorageRoom.branch });
           }
         });
       }
