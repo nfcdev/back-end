@@ -4,7 +4,7 @@ const pool = require("../util/connect");
 
 //gets all storagerooms
 router.get("/", (request, response) => {
-  pool.getConnection(function(err, connection) {
+  pool.getConnection(function (err, connection) {
     if (err) {
       console.log(err);
       response.status(500).send("Could not connect to server");
@@ -27,7 +27,7 @@ router.get("/", (request, response) => {
 //gets all storagerooms belonging to a specifik branch
 router.get("/branch/:branch_id", (request, response) => {
   const id = request.params.branch_id;
-  pool.getConnection(function(err, connection) {
+  pool.getConnection(function (err, connection) {
     if (err) {
       console.log(err);
       response.status(500).send("Could not connect to server");
@@ -49,13 +49,13 @@ router.get("/branch/:branch_id", (request, response) => {
 //deletes a storageroom
 router.delete("/:id", (request, response) => {
   const id = request.params.id;
-  pool.getConnection(function(err, connection) {
+  pool.getConnection(function (err, connection) {
     if (err) {
       console.log(err);
       response.status(500).send("Could not connect to server");
     } else {
       let sql = "DELETE FROM StorageRoom WHERE id = ?";
-      connection.query(sql, [id], function(err, res) {
+      connection.query(sql, [id], function (err, res) {
         connection.release();
         if (err) {
           console.log(err);
@@ -75,7 +75,7 @@ router.put("/:id", (request, response) => {
   const id = request.params.id;
   const updatedStorageRoom = request.body;
 
-  pool.getConnection(function(err, connection) {
+  pool.getConnection(function (err, connection) {
     if (err) {
       console.log(err);
       response.status(500).send("Could not connect to server");
@@ -83,7 +83,7 @@ router.put("/:id", (request, response) => {
       //If the name is invalid, nothing updates
       if (updatedStorageRoom.name && updatedStorageRoom.branch) {
         let sql = "UPDATE StorageRoom SET branch = ?, name = ? WHERE id = ?";
-        connection.query(sql, [updatedStorageRoom.branch, updatedStorageRoom.name, id], function(err) {
+        connection.query(sql, [updatedStorageRoom.branch, updatedStorageRoom.name, id], function (err) {
           connection.release();
           if (err) {
             console.log(err);
@@ -95,7 +95,7 @@ router.put("/:id", (request, response) => {
         });
       } else if (updatedStorageRoom.name) {
         let sql = "UPDATE StorageRoom SET name = ? WHERE id = ?";
-        connection.query(sql, [updatedStorageRoom.name, id], function(err) {
+        connection.query(sql, [updatedStorageRoom.name, id], function (err) {
           connection.release();
           if (err) {
             console.log(err);
@@ -107,7 +107,7 @@ router.put("/:id", (request, response) => {
         });
       } else if (updatedStorageRoom.branch) {
         let sql = "UPDATE StorageRoom SET branch = ? WHERE id = ?";
-        connection.query(sql, [updatedStorageRoom.branch, id], function(err) {
+        connection.query(sql, [updatedStorageRoom.branch, id], function (err) {
           connection.release();
           if (err) {
             console.log(err);
@@ -132,20 +132,20 @@ router.post("/", (request, response) => {
   if (!newStorageRoom.branch || !newStorageRoom.name) {
     return response.status(400).send("Bad request");
   } else {
-    pool.getConnection(function(err, connection) {
+    pool.getConnection(function (err, connection) {
       if (err) {
         console.log(err);
         return response.status(500).send("Could not connect to server");
       } else {
         let sql = "INSERT INTO StorageRoom(name, branch) VALUES (?, ?)";
-        connection.query(sql, [newStorageRoom.name, newStorageRoom.branch], function(err, result) {
+        connection.query(sql, [newStorageRoom.name, newStorageRoom.branch], function (err, result) {
           connection.release();
           if (err) {
             console.log(err);
             return response.status(400).send("Bad query");
           } else {
             console.log("New room added");
-            response.send(result);
+            response.json({ id: result.insertId, name: newStorageRoom.name, branch: newStorageRoom.branch });
           }
         });
       }
