@@ -96,10 +96,103 @@ router.post('/process', (req, res) => {
   }
 });
 
+// Checks out article
+router.post('/check-out', (request, response) => {
+  const checkOut = {
+    material_number: request.body.material_number,
+    comment: request.body.comment,
+    storage_room: request.body.storage_room,
+  };
+  if (!checkOut.storage_room || !checkOut.material_number) {
+    response.status(400).send('Bad request');
+  } else {
+    pool.getConnection(function (err, connection) {
+      if (err) {
+        console.log(err);
+        response.status(500).send('Could not connect to server');
+      } else {
+        connection.beginTransaction(function (err0) {
+          if (err0) {
+            console.log(err0);
+            response.status(500).send('Could not start transaction');
+          } else {
+
+            // Gets storageroom to compare with given storageroom from user
+            let sql = 'SELECT current_storage_room FROM Container WHERE id = (SELECT container FROM StorageMap WHERE article = (SELECT id from Article WHERE material_number = ?)) ';
+            connection.query(sql, [checkOut.material_number], function (err2, result1) {
+              if (err2) {
+                connection.rollback(function () {
+                  console.log(err2);
+                  response.status(400).send('Article is not stored in this storage room!');
+                });
+              } else if (result1[0].current_storage_room == checkOut.storage_room) {
+                // Selects article that is getting checked out
+                sql = 'SELECT article FROM StorageMap WHERE article = (SELECT id FROM Article WHERE material_number = ?)';
+
+                connection.query(
+                  sql,
+                  [
+                    checkOut.material_number,
+                  ],
+                  function (err3, result2) {
+                    if (err3) {
+                      connection.rollback(function () {
+                        console.log(err3);
+                        response.status(400).send('Bad query');
+                      });
+                    } else {
+                      // Creates Storage event for the article
+                      for (a in result2) {
+                        // User is hardcoded to "1" right now
+                        sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, "lab",(SELECT shelf_name FROM Shelf WHERE id = (SELECT shelf FROM Package WHERE package_number = ?)), (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
+
+                        connection.query(
+                          sql,
+                          [
+                            checkOut.comment,
+                            checkOut.package_number,
+                            checkOut.storage_room,
+                            result2[a].article,
+                            checkOut.storage_room,
+                          ],
+                          function (err4, result3) {
+                            if (err4) {
+                              connection.rollback(function () {
+                                console.log(err3);
+                                response.status(400).send('Bad query');
+                              });
+                            } else {
+                              console.log(result2[a].article + "created");
+
+                            }
+                          },
+                        );
+                      }
+                      connection.commit(function (err5) {
+                        if (err5) {
+                          connection.rollback(function () {
+                            console.log(err5);
+                          });
+                        } else {
+                          console.log('Transaction Complete.');
+                          connection.end();
+                        }
+                      });
+                      response.json({ resultat: "Ok" });
+                    }
+
+
+                  });
+
+              } else {
+                response.status(400).send('Bad query');
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+});
+
 module.exports = router;
-
-
-
-
-
-
