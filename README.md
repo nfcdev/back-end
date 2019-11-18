@@ -271,6 +271,7 @@ The endpoint returns JSON data structured like this:
         "package": null,
         "shelf": "Hylla 8",
         "storage_room": "DNA materialrum 2",
+        "branch": "DNA",
         "article": 58
     },
     {
@@ -282,6 +283,7 @@ The endpoint returns JSON data structured like this:
         "package": null,
         "shelf": "B3",
         "storage_room": "DNA materialrum 1",
+        "branch": "DNA",
         "article": 43
     },
     ...
@@ -312,6 +314,7 @@ The endpoint returns JSON data structured like this:
         "package": "",
         "shelf": "A15",
         "storage_room": "Vapen materialrum 1",
+        "branch": "Vapen",
         "article": 17
     },
     ...
@@ -341,6 +344,7 @@ The endpoint returns JSON data structured like this:
         "package": "",
         "shelf": "A15",
         "storage_room": "Vapen materialrum 1",
+        "branch": "Vapen",
         "article": 17
     },
     ...
@@ -426,6 +430,7 @@ If the check in was successful, the response will be the storage event that was 
     "package": null,
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
+    "branch": "DNA",
     "article": 58
 }
 ```
@@ -463,6 +468,7 @@ If the check out was successful, the response will be the storage event that was
     "package": null,
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
+    "branch": "DNA",
     "article": 58
 }
 ```
@@ -500,6 +506,7 @@ If the action was successful, the response will be the storage event that was cr
     "package": null,
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
+    "branch": "DNA",
     "article": 58
 }
 ```
@@ -538,6 +545,7 @@ If the action was successful, the response will be the storage event that was cr
     "package": null,
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
+    "branch": "DNA",
     "article": 58
 }
 ```
@@ -591,6 +599,7 @@ If the registration was successful, the response will be the storage event that 
     "package": null,
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
+    "branch": "DNA",
     "article": 58
 }
 ```
