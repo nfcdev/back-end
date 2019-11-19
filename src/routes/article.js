@@ -28,7 +28,7 @@ router.post('/', (req, res) => {
         console.log(err);
         return res.status(500).send('Could not connect to server');
       }
-      const sql =        'INSERT INTO Article(material_number, description, `case`) VALUES (?, ?, ?)';
+      const sql = 'INSERT INTO Article(material_number, description, `case`) VALUES (?, ?, ?)';
       const article = [
         newArticle.material_number,
         newArticle.description,
@@ -54,7 +54,7 @@ router.post('/', (req, res) => {
 router.get('/', (req, res) => {
   // eslint-disable-next-line func-names
   pool.getConnection((err, connection) => {
-    let sql_query =      "select Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
+    let sql_query = "select Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
     sql_query
       += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = Article.id))';
     sql_query
@@ -91,7 +91,7 @@ router.get('/:id', (req, res) => {
   pool.getConnection((err, connection) => {
     if (err) console.log(err);
 
-    let sql_query =      "select Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
+    let sql_query = "select Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
     sql_query
       += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = Article.id))';
     sql_query
@@ -132,7 +132,7 @@ router.get('/case/:id', (req, res) => {
       console.log(err);
       return res.status(500).send('Could not connect to server');
     }
-    let sql_query =      "select distinct Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
+    let sql_query = "select distinct Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
     sql_query
       += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = Article.id))';
     sql_query
@@ -175,7 +175,7 @@ router.get('/storageroom/:id', (req, res) => {
       console.log(err);
       return res.status(500).send('Could not connect to server');
     }
-    let sql_query =      "select distinct Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
+    let sql_query = "select distinct Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
     sql_query
       += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = Article.id))';
     sql_query
@@ -218,7 +218,7 @@ router.get('/package/:id', (req, res) => {
       console.log(err);
       return res.status(500).send('Could not connect to server');
     }
-    let sql_query =      "select distinct Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
+    let sql_query = "select distinct Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
     sql_query
       += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = Article.id))';
     sql_query
@@ -261,7 +261,7 @@ router.get('/branch/:branch_id', (request, response) => {
       console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
-      const sql =        'SELECT * FROM Article  WHERE id IN (SELECT article FROM StorageMap WHERE container IN (SELECT id FROM Container WHERE current_storage_room IN (SELECT id FROM StorageRoom WHERE branch = ?)))';
+      const sql = 'SELECT * FROM Article  WHERE id IN (SELECT article FROM StorageMap WHERE container IN (SELECT id FROM Container WHERE current_storage_room IN (SELECT id FROM StorageRoom WHERE branch = ?)))';
       connection.query(sql, [branchid], (err, result) => {
         connection.release();
         if (err) {
@@ -275,5 +275,46 @@ router.get('/branch/:branch_id', (request, response) => {
     }
   });
 });
+
+router.post('/register', (req, res) => {
+  const artCheckIn = {
+    material_number: req.body.material_number,
+    description: req.body.description,
+    comment: req.body.comment,
+    storageRoom: req.body.storageRoom,
+    shelf: req.body.shelf,
+    package: req.body.package
+  };
+  if (
+    !artCheckIn.material_number 
+    || !artCheckIn.storageRoom 
+    || (!artCheckIn.shelf && !artCheckIn.package) 
+    || (artCheckIn.shelf && artCheckIn.package)
+  ) {
+    res.status(400).send('Bad request');
+  } else {
+    // eslint-disable-next-line consistent-return
+    pool.getConnection((err, connection) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).send('Could not connect to server');
+      }
+      const sql = 'INSERT INTO Article(material_number, description) VALUES (?, ?)';
+      console.log(sql);
+      console.log(article);
+      // eslint-disable-next-line consistent-return
+      connection.query(sql, artCheckIn.material_number, artCheckIn.description, (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          return res.status(400).send('Bad query');
+        }
+        console.log('New article added');
+        res.send(result);
+      });
+    });
+  }
+});
+
 
 module.exports = router;
