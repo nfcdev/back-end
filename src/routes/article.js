@@ -290,7 +290,7 @@ router.post('/check-in', (request, response) => {
   };
 
   // checks so that storage_room, material_number and either package or shelf is provided. Package and shelf are tried with the logic of a xor gate.
-  if (!checkIn.storage_room || !checkIn.material_number || (!(checkIn.package && checkIn.shelf) && (checkIn.package || checkIn.shelf))) {
+  if (!checkIn.storage_room || !checkIn.material_number || !(!(checkIn.package && checkIn.shelf) && (checkIn.package || checkIn.shelf))) {
     response.status(400).send('Bad request');
   } else {
     pool.getConnection(function (err, connection) {
@@ -303,7 +303,7 @@ router.post('/check-in', (request, response) => {
             console.log(err0);
             response.status(500).send('Could not start transaction');
           } else if (checkIn.package) {
-
+            // Checks in the article in a package
             // Gets name of shelf, storageroom and branch, and id of storageroom.
             let sql = 'SELECT sh.shelf_name, st.name AS StorageRoomName, co.current_storage_room, br.name AS BranchName FROM Shelf sh INNER JOIN Container co ON sh.id IN (SELECT shelf FROM Package WHERE id = co.id) INNER JOIN StorageRoom st ON co.current_storage_room = st.id INNER JOIN Branch br ON st.branch = br.id WHERE co.id = ? ';
             connection.query(sql, [checkIn.package], function (err1, result1) {
@@ -315,12 +315,13 @@ router.post('/check-in', (request, response) => {
                 // checks so that the storageroom where the package is is the same as the one where the check-in is done
               } else if (result1[0].current_storage_room == checkIn.storage_room) {
                 // Inserts the correct container into the storagemap
-                sql = 'UPDATE StorageMap SET container = ?';
+                sql = 'UPDATE StorageMap SET container = ? WHERE article = (SELECT id FROM Article WHERE material_number = ?)';
 
                 connection.query(
                   sql,
                   [
                     checkIn.package,
+                    checkIn.material_number,
                   ],
                   function (err2, result2) {
                     if (err2) {
@@ -329,10 +330,10 @@ router.post('/check-in', (request, response) => {
                         response.status(400).send('Bad query');
                       });
                     } else {
-                      // Creates Storage events for the articles in the package
+                      // Createa storageevent for the article
 
 
-                      sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?';
+                      sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?)';
 
                       connection.query(
                         sql,
@@ -351,27 +352,144 @@ router.post('/check-in', (request, response) => {
                               response.status(400).send('Bad query');
                             });
                           } else {
-                            console.log(result2[a].article + "created");
+
+                            // Gets the created storage event and returns it to the user
+                            sql = 'SELECT * FROM StorageEvent ORDER BY id DESC LIMIT 0, 1';
+                            connection.query(sql, (err5, result4) => {
+
+                              if (err5) {
+                                connection.rollback(function () {
+                                  console.log(err5);
+                                  response.status(400).send('Bad query');
+                                });
+                              } else {
+
+                                connection.commit(function (err4) {
+                                  if (err4) {
+                                    connection.rollback(function () {
+                                      console.log(err4);
+                                    });
+                                  } else {
+                                    console.log('Transaction Complete.');
+                                    connection.end();
+                                    response.send(result4);
+                                  }
+                                });
+
+                              }
+                            });
 
                           }
                         },
                       );
 
-                      response.json({ resultat: "Ok" });
+
                     }
 
 
                   });
 
               } else {
-                response.send("Package does not exist");
+                response.send("Bad query");
               }
             });
+            // End of if checkIn.package statament
+          } else if (checkIn.shelf) {
+            // Checks in the article to a Shelf, without a package
+            // Gets information for checking that the check-in is made in the right storageroom, also gets information to put in the storageevent
+            let sql = 'SELECT sh.shelf_name, st.name AS StorageRoomName, co.current_storage_room, br.name AS BranchName FROM Shelf sh INNER JOIN Container co ON sh.id = co.id INNER JOIN StorageRoom st ON co.current_storage_room = st.id INNER JOIN Branch br ON st.branch = br.id WHERE co.id = ? ';
+            connection.query(sql, [checkIn.shelf], function (err1, result1) {
+              if (err1) {
+                connection.rollback(function () {
+                  console.log(err1);
+                  response.status(400).send('Bad query');
+                });
+                // checks so that the storageroom where the shelf is is the same as the one where the check-in is done
+              } else if (result1[0].current_storage_room == checkIn.storage_room) {
+                // Inserts the correct container into the storagemap
+                sql = 'UPDATE StorageMap SET container = ? WHERE article = (SELECT id FROM Article WHERE material_number = ?)';
 
+                connection.query(
+                  sql,
+                  [
+                    checkIn.shelf,
+                    checkIn.material_number,
+                  ],
+                  function (err2, result2) {
+                    if (err2) {
+                      connection.rollback(function () {
+                        console.log(err2);
+                        response.status(400).send('Bad query');
+                      });
+                    } else {
+                      // Create a storageevent for the article
+
+
+                      sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, NULL,?, ?,(SELECT id FROM Article WHERE material_number = ?),?)';
+
+                      connection.query(
+                        sql,
+                        [
+                          checkIn.comment,
+
+                          result1[0].shelf_name,
+                          result1[0].StorageRoomName,
+                          checkIn.material_number,
+                          result1[0].BranchName,
+                        ],
+                        function (err3, result3) {
+                          if (err3) {
+                            connection.rollback(function () {
+                              console.log(err3);
+                              response.status(400).send('Bad query');
+                            });
+                          } else {
+
+                            // Gets the created storage event and sends it to the user
+                            sql = 'SELECT * FROM StorageEvent ORDER BY id DESC LIMIT 0, 1';
+                            connection.query(sql, (err5, result4) => {
+
+                              if (err5) {
+                                connection.rollback(function () {
+                                  console.log(err5);
+                                  response.status(400).send('Bad query');
+                                });
+                              } else {
+
+                                connection.commit(function (err4) {
+                                  if (err4) {
+                                    connection.rollback(function () {
+                                      console.log(err4);
+                                    });
+                                  } else {
+                                    console.log('Transaction Complete.');
+                                    connection.end();
+                                    response.send(result4);
+                                  }
+                                });
+
+                              }
+                            });
+
+                          }
+                        },
+                      );
+
+
+                    }
+
+
+                  });
+
+              } else {
+                response.send("Bad query");
+              }
+            });
+            // End on if checkIn.shelf statement
           }
         });
       }
-      connection.release();
+
     });
   }
 });
@@ -419,5 +537,6 @@ router.get('/hej/:id', (request, response) => {
     }
   });
 });
+
 
 module.exports = router;
