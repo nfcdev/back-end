@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const passport = require('../util/authentication').passport;
+const employeeVerification = require('../util/external-verification');
 const _ = require("lodash");
 const config = require('../../config');
 const jwt = require('jsonwebtoken');
@@ -18,11 +19,20 @@ router.post("/", function (req, res) {
 
     var name = req.body.name;
     var password = req.body.password;
+  } else {
+    res.status(401).json({ message: "missing information" });
+    return;
   }
   console.log("name: " + name);
   console.log("password: " + password);
 
   console.log("users", users);
+  /**
+   * This function is used to check if the user exist in the employee database.
+   * For now it is stubbed but will later be implemented.
+   */
+  employeeVerification({ name: name, "password": password });
+  
   // usually this would be a database call:
   var user = users[_.findIndex(users, { name: name })];
   console.log("user", user);
@@ -30,7 +40,7 @@ router.post("/", function (req, res) {
 
 
   if (!user) {
-    res.status(401).json({ message: "no such user found" });
+    res.status(401).json({ message: "no user found" });
     return;
   }
 
@@ -38,7 +48,7 @@ router.post("/", function (req, res) {
 
   if (user.password === req.body.password) {
     // from now on we'll identify the user by the id and the id is the only personalized value that goes into our token
-    var payload = { id: user.id, shortcode:name };
+    var payload = { id: user.id, shortcode: name };
     var signOptions = {
       issuer: 'C4Solutions',
       subject: 'NFC Storage Tracker',
@@ -54,7 +64,7 @@ router.post("/", function (req, res) {
 
 
 // The following route is just for testing
-router.get("/secret", passport.authenticate('jwtStrategy', { session: false }), function(req, res){
+router.get("/secret", passport.authenticate('jwtStrategy', { session: false }), function (req, res) {
   console.log("----GET TO /login/secret----");
   res.json("Success! You can not see this without a token");
 });
