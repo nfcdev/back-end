@@ -31,8 +31,17 @@ router.post("/", function (req, res) {
    * This function is used to check if the user exist in the employee database.
    * For now it is stubbed but will later be implemented.
    */
-  employeeVerification({ name: name, "password": password });
-  
+  var responseCode = employeeVerification({ name: name, "password": password });
+  if(responseCode != 1){
+    res.status(401).json({ message: "Error occurred when verifying employee. Code was: " + responseCode });
+    return;
+  }
+
+  /**
+   * Below wit is verified if the user exist in the material tracking system.
+   * If so the role is checked.
+   * If not, the user is added with basic user privilege 
+   */
   // usually this would be a database call:
   var user = users[_.findIndex(users, { name: name })];
   console.log("user", user);
