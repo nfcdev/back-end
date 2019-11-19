@@ -6,11 +6,11 @@
  * status code 1 (=ok) is returned.
  */
 
-const verify = function (user) {
-    console.log("\n\n---External verification (STUBBED)---");
+const verifyEmployee = function (user) {
+    console.log("\n\n---Internal verification---");
     console.log("user object", user);
-    console.log("-------------");
+    console.log("-------------\n\n");
     return 1;
 }
 
-module.exports = verify;
+module.exports = verifyEmployee;

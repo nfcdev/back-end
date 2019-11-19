@@ -38,7 +38,7 @@ router.post("/", function (req, res) {
   }
 
   /**
-   * Below wit is verified if the user exist in the material tracking system.
+   * Below it is verified if the user exist in the material tracking system.
    * If so the role is checked.
    * If not, the user is added with basic user privilege 
    */
@@ -67,7 +67,7 @@ router.post("/", function (req, res) {
     var token = jwt.sign(payload, jwtOptions.secretOrKey, signOptions);
     res.json({ message: "ok", token: token });
   } else {
-    res.status(401).json({ message: "passwords did not match" });
+    res.status(401).json({ message: "password did not match" });
   }
 });
 
