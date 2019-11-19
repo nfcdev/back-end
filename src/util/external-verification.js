@@ -7,7 +7,7 @@
  */
 
 const verifyEmployee = function (user) {
-    console.log("\n\n---Internal verification---");
+    console.log("\n\n---External verification (STUBBED)---");
     console.log("user object", user);
     console.log("-------------\n\n");
     return 1;
