@@ -277,8 +277,6 @@ router.get('/branch/:branch_id', (request, response) => {
   });
 });
 
-
-
 // Checks in an article
 router.post('/check-in', (request, response) => {
   const checkIn = {
@@ -493,50 +491,5 @@ router.post('/check-in', (request, response) => {
     });
   }
 });
-
-router.get('/hej/event', (request, response) => {
-  pool.getConnection(function (err, connection) {
-    if (err) {
-      console.log(err);
-      response.status(500).send('Cannot conect to server');
-    } else {
-      const sql = 'SELECT * FROM StorageEvent';
-      connection.query(sql, (err, result) => {
-        connection.release();
-        if (err) {
-          console.log(err);
-          response.status(400).send('Bad query');
-        } else {
-
-          response.send(result);
-        }
-      });
-    }
-
-  });
-});
-
-router.get('/hej/:id', (request, response) => {
-  const id = request.params.id;
-  pool.getConnection((err, connection) => {
-    if (err) {
-      console.log(err);
-      response.status(500).send('Cannot conect to server');
-    } else {
-      let sql = 'SELECT sh.shelf_name, st.name AS StorageRoomName, co.current_storage_room, br.name AS BranchName FROM Shelf sh INNER JOIN Container co ON sh.id IN (SELECT shelf FROM Package WHERE id = co.id) INNER JOIN StorageRoom st ON co.current_storage_room = st.id INNER JOIN Branch br ON st.branch = br.id WHERE co.id = ? ';
-      connection.query(sql, [id], (err, result) => {
-        connection.release();
-        if (err) {
-          console.log(err);
-          response.status(400).send('Bad query');
-        } else {
-
-          response.send(result);
-        }
-      });
-    }
-  });
-});
-
 
 module.exports = router;
