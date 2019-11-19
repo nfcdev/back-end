@@ -300,3 +300,45 @@ describe('Testing storage room branch', () => {
 //       });
 //   });
 // });
+
+
+// describe('Testing Package/Storageroom/ID Get', () => {
+//   it('Should test printing all packages in a specific storageroom', (done) => {
+//     request(app)
+//       .get('/package/storageroom/1')
+//       .end((err, resp) => {
+//         const shelves = resp.body.length;
+//         expect(err).to.equal(null);
+//         expect(shelves).to.equal();
+//         done();
+//       });
+//   });
+// });
+
+
+// describe('Testing Shelf/Storageroom/ID Get', () => {
+//   it('Should test printing all shelves in a specific storageroom', (done) => {
+//     request(app)
+//       .get('/shelf/storageroom/1')
+//       .end((err, resp) => {
+//         const shelves = resp.body.length;
+//         expect(err).to.equal(null);
+//         expect(shelves).to.equal();
+//         done();
+//       });
+//   });
+// });
+
+
+// describe('Testing Package/Branch/ID Get', () => {
+//   it('Should test printing all packages in a specific branch', (done) => {
+//     request(app)
+//       .get('/package/branch/1')
+//       .end((err, resp) => {
+//         const packages = resp.body.length;
+//         expect(err).to.equal(null);
+//         expect(packages).to.equal();
+//         done();
+//       });
+//   });
+// });
