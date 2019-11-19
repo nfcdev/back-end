@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const passport = require('../util/authentication').passport;
 const employeeVerification = require('../util/external-verification');
+const roleHandler = require('../util/internal-verification')
 const _ = require("lodash");
 const config = require('../../config');
 const jwt = require('jsonwebtoken');
@@ -14,25 +15,22 @@ const users = config.mock_users;
 router.post("/", function (req, res) {
   console.log("----POST TO /login----");
 
-  if (req.body.name && req.body.password) {
-    console.log("In if ==> name and password was sent so server");
+  if (req.body.name) {
+    console.log("In if ==> name was sent so server");
 
     var name = req.body.name;
-    var password = req.body.password;
   } else {
     res.status(401).json({ message: "missing information" });
     return;
   }
   console.log("name: " + name);
-  console.log("password: " + password);
-
-  console.log("users", users);
   /**
    * This function is used to check if the user exist in the employee database.
    * For now it is stubbed but will later be implemented.
+   * TODO: implement promise here!
    */
-  var responseCode = employeeVerification({ name: name, "password": password });
-  if(responseCode != 1){
+  var responseCode = employeeVerification({ name: name });
+  if (responseCode != 1) {
     res.status(401).json({ message: "Error occurred when verifying employee. Code was: " + responseCode });
     return;
   }
@@ -43,21 +41,16 @@ router.post("/", function (req, res) {
    * If not, the user is added with basic user privilege 
    */
   // usually this would be a database call:
-  var user = users[_.findIndex(users, { name: name })];
-  console.log("user", user);
-  console.log("!user", !user);
-
-
-  if (!user) {
-    res.status(401).json({ message: "no user found" });
-    return;
-  }
-
-  console.log("Should only be here if user exist");
-
-  if (user.password === req.body.password) {
-    // from now on we'll identify the user by the id and the id is the only personalized value that goes into our token
-    var payload = { id: user.id, shortcode: name };
+  roleHandler({ name: name }, ((callbackResponse) => {
+    console.log("callbackResponse from roleHandler", callbackResponse);
+    console.log("After roleHandler");
+    if (callbackResponse.code != 1) {
+      res.status(500).json(callbackResponse);
+      return;
+    }
+    console.log("Should only be here if user exist");
+    let userObj = callbackResponse.user;
+    var payload = { id: userObj.id, shortcode: userObj.shortcode, role: userObj.role };
     var signOptions = {
       issuer: 'C4Solutions',
       subject: 'NFC Storage Tracker',
@@ -66,9 +59,8 @@ router.post("/", function (req, res) {
     };
     var token = jwt.sign(payload, jwtOptions.secretOrKey, signOptions);
     res.json({ message: "ok", token: token });
-  } else {
-    res.status(401).json({ message: "password did not match" });
-  }
+
+  }));
 });
 
 
