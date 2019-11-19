@@ -1093,17 +1093,10 @@ Parameter | Required | Description
 --------- | ----------- | -----------
 current_storage_room | yes | The id of the storage room for the new package
 shelf | yes | The the id of the shelf for the new package
-case_id or reference_number | yes | If the id of the case is known, this can be supplied. If not, the reference number is required.
+reference_number | yes | The reference number of the associated case.
 
-Example body of request when case id is supplied:
-```json
-{
-    "current_storage_room": 3,
-    "shelf": 2,
-    "case_id": 2
-}
-```
-Example body of request when reference number is supplied:
+
+Example body of request:
 ```json
 {
     "current_storage_room": 3,
