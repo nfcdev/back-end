@@ -1,3 +1,4 @@
+/* eslint-disable prefer-arrow-callback */
 /* eslint-disable no-const-assign */
 /* eslint-disable camelcase */
 /* eslint-disable no-shadow */
@@ -28,7 +29,7 @@ router.post('/', (req, res) => {
         console.log(err);
         return res.status(500).send('Could not connect to server');
       }
-      const sql =        'INSERT INTO Article(material_number, description, `case`) VALUES (?, ?, ?)';
+      const sql = 'INSERT INTO Article(material_number, description, `case`) VALUES (?, ?, ?)';
       const article = [
         newArticle.material_number,
         newArticle.description,
@@ -54,7 +55,7 @@ router.post('/', (req, res) => {
 router.get('/', (req, res) => {
   // eslint-disable-next-line func-names
   pool.getConnection((err, connection) => {
-    let sql_query =      "select Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
+    let sql_query = "select Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
     sql_query
       += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = Article.id))';
     sql_query
@@ -91,7 +92,7 @@ router.get('/:id', (req, res) => {
   pool.getConnection((err, connection) => {
     if (err) console.log(err);
 
-    let sql_query =      "select Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
+    let sql_query = "select Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
     sql_query
       += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = Article.id))';
     sql_query
@@ -132,7 +133,7 @@ router.get('/case/:id', (req, res) => {
       console.log(err);
       return res.status(500).send('Could not connect to server');
     }
-    let sql_query =      "select distinct Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
+    let sql_query = "select distinct Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
     sql_query
       += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = Article.id))';
     sql_query
@@ -175,7 +176,7 @@ router.get('/storageroom/:id', (req, res) => {
       console.log(err);
       return res.status(500).send('Could not connect to server');
     }
-    let sql_query =      "select distinct Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
+    let sql_query = "select distinct Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
     sql_query
       += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = Article.id))';
     sql_query
@@ -218,7 +219,7 @@ router.get('/package/:id', (req, res) => {
       console.log(err);
       return res.status(500).send('Could not connect to server');
     }
-    let sql_query =      "select distinct Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
+    let sql_query = "select distinct Article.material_number, Case.reference_number, Branch.name as 'branch', StorageRoom.name as 'storage_room',";
     sql_query
       += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = Article.id))';
     sql_query
@@ -261,7 +262,7 @@ router.get('/branch/:branch_id', (request, response) => {
       console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
-      const sql =        'SELECT * FROM Article  WHERE id IN (SELECT article FROM StorageMap WHERE container IN (SELECT id FROM Container WHERE current_storage_room IN (SELECT id FROM StorageRoom WHERE branch = ?)))';
+      const sql = 'SELECT * FROM Article  WHERE id IN (SELECT article FROM StorageMap WHERE container IN (SELECT id FROM Container WHERE current_storage_room IN (SELECT id FROM StorageRoom WHERE branch = ?)))';
       connection.query(sql, [branchid], (err, result) => {
         connection.release();
         if (err) {
@@ -269,6 +270,149 @@ router.get('/branch/:branch_id', (request, response) => {
           response.status(400).send('Bad query');
         } else {
           console.log('Data received');
+          response.send(result);
+        }
+      });
+    }
+  });
+});
+
+
+
+// Checks in an article
+router.post('/check-in', (request, response) => {
+  const checkIn = {
+    shelf: request.body.shelf,
+    package: request.body.package,
+    comment: request.body.comment,
+    storage_room: request.body.storage_room,
+    material_number: request.body.material_number,
+  };
+
+  // checks so that storage_room, material_number and either package or shelf is provided. Package and shelf are tried with the logic of a xor gate.
+  if (!checkIn.storage_room || !checkIn.material_number || (!(checkIn.package && checkIn.shelf) && (checkIn.package || checkIn.shelf))) {
+    response.status(400).send('Bad request');
+  } else {
+    pool.getConnection(function (err, connection) {
+      if (err) {
+        console.log(err);
+        response.status(500).send('Could not connect to server');
+      } else {
+        connection.beginTransaction(function (err0) {
+          if (err0) {
+            console.log(err0);
+            response.status(500).send('Could not start transaction');
+          } else if (checkIn.package) {
+
+            // Gets name of shelf, storageroom and branch, and id of storageroom.
+            let sql = 'SELECT sh.shelf_name, st.name AS StorageRoomName, co.current_storage_room, br.name AS BranchName FROM Shelf sh INNER JOIN Container co ON sh.id IN (SELECT shelf FROM Package WHERE id = co.id) INNER JOIN StorageRoom st ON co.current_storage_room = st.id INNER JOIN Branch br ON st.branch = br.id WHERE co.id = ? ';
+            connection.query(sql, [checkIn.package], function (err1, result1) {
+              if (err1) {
+                connection.rollback(function () {
+                  console.log(err1);
+                  response.status(400).send('Bad query');
+                });
+                // checks so that the storageroom where the package is is the same as the one where the check-in is done
+              } else if (result1[0].current_storage_room == checkIn.storage_room) {
+                // Inserts the correct container into the storagemap
+                sql = 'UPDATE StorageMap SET container = ?';
+
+                connection.query(
+                  sql,
+                  [
+                    checkIn.package,
+                  ],
+                  function (err2, result2) {
+                    if (err2) {
+                      connection.rollback(function () {
+                        console.log(err2);
+                        response.status(400).send('Bad query');
+                      });
+                    } else {
+                      // Creates Storage events for the articles in the package
+
+
+                      sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?';
+
+                      connection.query(
+                        sql,
+                        [
+                          checkIn.comment,
+                          checkIn.package,
+                          result1[0].shelf_name,
+                          result1[0].StorageRoomName,
+                          checkIn.material_number,
+                          result1[0].BranchName,
+                        ],
+                        function (err3, result3) {
+                          if (err3) {
+                            connection.rollback(function () {
+                              console.log(err3);
+                              response.status(400).send('Bad query');
+                            });
+                          } else {
+                            console.log(result2[a].article + "created");
+
+                          }
+                        },
+                      );
+
+                      response.json({ resultat: "Ok" });
+                    }
+
+
+                  });
+
+              } else {
+                response.send("Package does not exist");
+              }
+            });
+
+          }
+        });
+      }
+      connection.release();
+    });
+  }
+});
+
+router.get('/hej/event', (request, response) => {
+  pool.getConnection(function (err, connection) {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Cannot conect to server');
+    } else {
+      const sql = 'SELECT * FROM StorageEvent';
+      connection.query(sql, (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          response.status(400).send('Bad query');
+        } else {
+
+          response.send(result);
+        }
+      });
+    }
+
+  });
+});
+
+router.get('/hej/:id', (request, response) => {
+  const id = request.params.id;
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Cannot conect to server');
+    } else {
+      let sql = 'SELECT sh.shelf_name, st.name AS StorageRoomName, co.current_storage_room, br.name AS BranchName FROM Shelf sh INNER JOIN Container co ON sh.id IN (SELECT shelf FROM Package WHERE id = co.id) INNER JOIN StorageRoom st ON co.current_storage_room = st.id INNER JOIN Branch br ON st.branch = br.id WHERE co.id = ? ';
+      connection.query(sql, [id], (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          response.status(400).send('Bad query');
+        } else {
+
           response.send(result);
         }
       });
