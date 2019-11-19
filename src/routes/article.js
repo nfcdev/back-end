@@ -18,7 +18,6 @@ router.post('/process', (req, res) => {
     // eslint-disable-next-line consistent-return
 
 
-
     let sql1 = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
 
     sql1 += ' SELECT "processed", 55555, 1, ?,';
@@ -145,7 +144,8 @@ router.post('/check-out', (request, response) => {
                       for (a in result2) {
                         // User is hardcoded to "1" right now
                         sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, " - ", " - ", (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
-
+                        //sql = 'SELECT * FROM StorageEvent'
+                        //'CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE ' - ' END';
                         connection.query(
                           sql,
                           [
@@ -154,20 +154,22 @@ router.post('/check-out', (request, response) => {
                             result2[a].article,
                             checkOut.storage_room,
                           ],
-                          function (err4, result3) {
+                            function(err4, result3) {
                             if (err4) {
                               connection.rollback(function () {
-                                console.log(err3);
+                                console.log(err4);
                                 response.status(400).send('Bad query');
                               });
                             } else {
-                              console.log(result2[a].article + " created");
+                              console.log(result3);
+                              newStorageEventId = result3.insertId;
+                              console.log(newStorageEventId);
 
                               sql = 'SELECT * FROM StorageEvent WHERE id = ?';
                               connection.query(
                                 sql,
                                 [
-                                  result3.insertID,
+                                  result3.insertId,
                                 ],
                                 function (err5, result4) {
                                   if (err5) {
@@ -176,13 +178,11 @@ router.post('/check-out', (request, response) => {
                                       response.status(400).send('Bad query');
                                     });
                                   }
-                                  console.log(result3.insertID);
                                   response.send(result4);
                                 });
 
                             
                             }
-                            //response.send(result3.insertId);
 
                           },
                         );
@@ -197,7 +197,6 @@ router.post('/check-out', (request, response) => {
                           connection.end();
                         }
                       });
-                      //response.json({ resultat: "Ok" });
                     }
                     
 
