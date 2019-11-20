@@ -122,7 +122,7 @@ router.post('/check-out', (request, response) => {
               if (err2 || !result1[0] || !result1[0].current_storage_room ) {
                 connection.rollback(function () {
                   console.log(err2);
-                  response.status(400).send('Bad query! Your article may have already been deleted.');
+                  response.status(400).send('Bad query! Your article may have already been discarded.');
                 });
               } else if (result1[0].current_storage_room == checkOut.storage_room) {
                 // Selects article that is getting checked out
