@@ -179,28 +179,22 @@ router.post('/check-out', (request, response) => {
                                   response.send(result4);
                                 });
 
-                              // sql = 'DELETE from StorageMap where article = (select id from Article where material_number = ?)';
-                              // connection.query(
-                              //   sql,
-                              //   [
-                              //     checkOut.material_number,
-                              //   ],
-                              //   function (err6, result5) {
-                              //     if (err6) {
-                              //       connection.rollback(function () {
-                              //         console.log(err6);
-                              //         response.status(400).send('Bad query');
-                              //       });
-                              //     } else {
-                              //       console.log(result5);
-                              //     }
-                              //   })
-
-
-
-
-
-
+                              sql = 'DELETE from StorageMap where article = (select id from Article where material_number = ?)';
+                              connection.query(
+                                sql,
+                                [
+                                  checkOut.material_number,
+                                ],
+                                function (err6, result5) {
+                                  if (err6) {
+                                    connection.rollback(function () {
+                                      console.log(err6);
+                                      response.status(400).send('Bad query');
+                                    });
+                                  } else {
+                                    console.log(result5);
+                                  }
+                                })
                             }
                           },
                         );
