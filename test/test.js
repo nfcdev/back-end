@@ -80,38 +80,20 @@ describe('Test route branches', () => {
 });
 
 
-// describe('Testing PUT funtionality on branch', () => {
-//   it('Should update the name of a branch (id:2)'), (done) => {
-//     const p1 = new Promise((res, rej) => {
-//       request(app)
-//         .put('/branch/2')
-//         .send({
-//           name: 'Test Branch',
-//         })
-//         .end((err, resp) => {
-//           expect(err).to.be.equal(null);
-//           expect(resp.body.name).to.be.equal('Test Branch');
-//           res(res.body);
-//         });
-//     });
-
-//     p1.then(res => {
-//       request(app)
-//         .get('/branch')
-//         .end((err, resp) => {
-//           let updatedBranch;
-//           resp.body.forEach((branch) => {
-//             if (branch.id === res.id) {
-//               updatedBranch = branch;
-//             }
-//           })
-//           expect(updatedBranch).to.be.equal('Test Branch')
-//           done();
-//         })
-//     }).catch(err => {
-//     })
-//   }
-// });
+describe('Testing PUT funtionality on branch', () => {
+  it('Should update the name of a branch (id:2)', (done) => {
+    request(app)
+      .put('/branch/2')
+      .send({
+        name: 'Test Branch',
+      })
+      .end((err, resp) => {
+        expect(err).to.be.equal(null);
+        expect(resp.body.name).to.be.equal('Test Branch');
+        done();
+      });
+  });
+});
 
 describe('Testing branch function post', () => {
   it('Should add a new branch', (done) => {
@@ -123,14 +105,9 @@ describe('Testing branch function post', () => {
       .end((err, resp) => {
         expect(err).to.be.equal(null);
         expect(resp.body.name).to.be.equal('Post Branch');
+        expect(resp.body.id).to.be.equal(6);
+        done();
       });
-    request(app)
-      .get('/branch')
-      .end((err, resp) => {
-        expect(err).to.be.equal(null);
-        expect(resp.body.length).to.be.equal(6);
-      });
-    done();
   });
 });
 
@@ -141,10 +118,7 @@ describe('Testing branch function DELETE', () => {
       .delete('/branch/6')
       .end((err, resp) => {
         expect(err).to.be.equal(null);
-        done();
       });
-  });
-  it('Should now be 5 branches', (done) => {
     request(app)
       .get('/branch')
       .end((err, resp) => {
@@ -193,81 +167,56 @@ describe('Testing storage room get', () => {
 });
 
 
-// describe('Testing storage room post', () => {
-//   it('Making sure a room is added, testing post', (done) => {
-//     let p1 = new Promise(request(app)
-//       .post('/storageroom')
-//       .send({
-//         "name": 'test room',
-//       })
-//       .end((err, resp) => {
-//         const storage = resp.body.name;
-//         expect(err).to.equal(null);
-//         expect(storage).to.equal('test room');
-//       }));
-
-//     p1.then(request(app).get('/storageroom')
-//       .end((err, resp) => {
-//         const storageroom = resp.body.length;
-//         expect(err).to.equal(null);
-//         expect(storageroom).to.equal(7);
-//         done();
-//       }));
-//   });
-// });
+describe('Testing storage room post', () => {
+  it('Making sure a room is added, testing post', (done) => {
+    request(app)
+      .post('/storageroom')
+      .send({
+        name: 'test room',
+        branch: 2
+      })
+      .end((err, resp) => {
+        expect(err).to.equal(null);
+        expect(resp.body.name).to.equal('test room');
+        expect(resp.body.id).to.equal(7);
+        done();
+      });
+  });
+});
 
 
-// describe('Testing storage room put', () => {
-//   it('should update specified storageroom', (done) => {
-//     let p1 = new Promise(request(app)
-//       .put('/storageroom/1')
-//       .send({
-//         "name": 'Testing room',
-//         "branch": 1
-//       })
-//       .end((err, resp) => {
-//         let testingroom = res.body.name;
-//         expect(err).to.equal(null);
-//         expect(testingroom).to.equal('Testing room');
-//       }));
-//     p1.then(request(app).get('/storageroom/1')
-//       .end((err, resp) => {
-//         testingroom = resp.body.name;
-//         expect(testingroom).to.equal('Testing room')
-//         done();
-//       }));
-//   });
-// });
+describe('Testing storage room put', () => {
+  it('should update specified storageroom', (done) => {
+    request(app)
+      .put('/storageroom/1')
+      .send({
+        name: 'Testing room',
+        branch: 1
+      })
+      .end((err, resp) => {
+        expect(err).to.equal(null);
+        expect(resp.body.name).to.equal('Testing room');
+        done();
+      });
+  });
+});
 
 
-// // describe('Testing storage room delete', () => {
-// //   it('Should test removing a storage room', (done) => {
-// //     let p1 = new Promise(request(app)
-// //       .delete('/storageroom/1')
-// //       .end((err, resp) => {
-// //         expect(err).to.equal(null);
-// //       }));
-// //     p1.then(request(app).get('/storageroom/branch/3')
-// //       .end((err, resp) => {
-// //         const rooms = resp.body.length;
-// //         expect(err).to.equal(null);
-// //         expect(rooms).to.equal(1);
-// //         done();
-// //       }));
-// //       .delete ('/storageroom/')
-// //       .send({
-// //         name: 'Vapen materialrum 1'
-// //       })
-// //       .end((err, resp) => {
-// //         expect(err).to.equal(null);
-// //       }));
-// //   p1.then(request(app).get('/storageroom/1')
-// //     .end((err, resp) => {
-// //       expect(err).to.not.equal(null);
-// //       done();
-// //     }));
-// // });
-// // });
+describe('Testing storage room delete', () => {
+  it('Should test removing a storage room', (done) => {
+    request(app)
+      .delete('/storageroom/7')
+      .end((err, resp) => {
+        expect(err).to.equal(null);
+      });
+    request(app).get('/storageroom/branch/2')
+      .end((err, resp) => {
+        expect(err).to.equal(null);
+        expect(resp.body.length).to.equal(1);
+        done();
+      });
+    });
+});
 
 
 
@@ -340,6 +289,17 @@ describe('Testing Package Get', () => {
   });
 });
 
+
+describe('Testing Package/ID Delete', () => {
+  it('Should test deleting a package', (done) => {
+    request(app)
+      .delete('/package/51')
+      .end((err, resp) => {
+        expect(err).to.equal(null);
+        done();
+      });
+  });
+});
 
 // describe('Testing Article/Package/ID Get', () => {
 //   it('Should test printing all articles in a package', (done) => {
