@@ -299,6 +299,7 @@ router.get('/', (req, res) => {
 
 //creates and checks in a new article. Returns storage event
 router.post('/register', (req, res) => {
+
   const artRegister = {
     material_number: req.body.material_number,
     reference_number: req.body.material_number.split("-")[0],
@@ -336,25 +337,36 @@ router.post('/register', (req, res) => {
       ];
       console.log(artRegister.reference_number);
       const sql2 ='SELECT COUNT(1) AS count FROM `Case` WHERE reference_number = ?';
-      let createCase;
 
       connection.query(sql2, artRegister.reference_number, (err, result) => {
-        console.log("loggar result av nya grejen");
         createCase = (result[0].count);
-        console.log(createCase);
-        //connection.release();
+        console.log("loggar result av nya grejen" + createCase);
+    
         if (err) {
           console.log(err);
-          return res.status(400).send('Bad query1');
-        };
+          return res.status(400).send('Bad query0');
+        } else if (createCase ==0) {
+
+          console.log("createCase är true");
+        const sql = 'INSERT INTO `Case` (`reference_number`) VALUES (?)';
+        console.log("LOGGAR REFERENCE NUMBER INNAN SKAPANDET AV NYTT CASE: " + artRegister.reference_number);
+        connection.query(sql, [artRegister.reference_number], (err, result) => {
+          if (err) {
+            console.log(err);
+            return res.status(400).send('Bad query1.1');
+          };
+        });
+        }; 
       });
 
 
       //const sql = 'INSERT INTO Article(`material_number`, `description`, `case`) VALUES (?, ?, (SELECT id FROM `Case` WHERE reference_number = ?))';     
+     /* console.log("loggar result av nya grejen NUMERO DOS" + createCase);
       if (createCase == 0) {
-
+        console.log("createCase är true");
         const sql = 'INSERT INTO `Case` (`reference_number`) VALUES (?)';
-      connection.query(sql, artRegister.reference_number, (err, result) => {
+        console.log("LOGGAR REFERENCE NUMBER INNAN SKAPANDET AV NYTT CASE: " + article.reference_number);
+      connection.query(sql, [article.reference_number], (err, result) => {
         if (err) {
           console.log(err);
           return res.status(400).send('Bad query1.1');
@@ -362,7 +374,7 @@ router.post('/register', (req, res) => {
       });
 
         
-      } 
+      } */
      
     
       //connection.query(sql, artRegister.material_number, artRegister.description, , (err, result) => { 
