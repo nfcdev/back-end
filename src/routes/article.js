@@ -117,9 +117,9 @@ router.post('/check-out', (request, response) => {
           } else {
 
             // Gets storageroom to compare with given storageroom from user
-            let sql = 'SELECT current_storage_room FROM Container WHERE id = (SELECT container FROM StorageMap WHERE article = (SELECT id from Article WHERE material_number = ?)) ';
+            sql = 'SELECT current_storage_room FROM Container WHERE id = (SELECT container FROM StorageMap WHERE article = (SELECT id from Article WHERE material_number = ?)) ';
             connection.query(sql, [checkOut.material_number], function (err2, result1) {
-              if (err2) {
+              if (err2 || !result1[0] || !result1[0].current_storage_room ) {
                 connection.rollback(function () {
                   console.log(err2);
                   response.status(400).send('Bad query!');
@@ -225,6 +225,8 @@ router.post('/check-out', (request, response) => {
                 response.status(400).send('Bad query');
               }
             });
+        
+
           }
         });
       }
