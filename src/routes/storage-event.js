@@ -4,7 +4,6 @@ const router = express.Router();
 const pool = require('../util/connect');
 
 router.get('/', (request, response) => {
-<<<<<<< HEAD
     pool.getConnection(function (err, connection) {
         if (err) {
             console.log(err);
@@ -12,25 +11,9 @@ router.get('/', (request, response) => {
         }
         response.send("data-delivery");
     });
-=======
-  pool.getConnection((err, connection) => {
-    if (err) {
-      console.log(err);
-      response.status(500).send('Cannot connect to server');
-    }
-    response.send('data-delivery');
-  });
->>>>>>> e89e681e9d806dec7874b8cadfceea2c30ecbb46
 });
 
 router.get('/article/:article_id', (request, response) => {
-<<<<<<< HEAD
-    let article_id = request.params.article_id;
-    pool.getConnection(function (err, connection) {
-        if (err) {
-            console.log(err);
-            response.status(500).send('Cannot conect to server');
-=======
   const { article_id } = request.params;
   pool.getConnection((err, connection) => {
     if (err) {
@@ -47,7 +30,6 @@ router.get('/article/:article_id', (request, response) => {
         } else {
           console.log('Data received');
           response.send(result);
->>>>>>> e89e681e9d806dec7874b8cadfceea2c30ecbb46
         }
       });
     }
@@ -55,31 +37,6 @@ router.get('/article/:article_id', (request, response) => {
 });
 
 router.get('/storageroom/:storageroom_id', (request, response) => {
-<<<<<<< HEAD
-    let storageroom_id = request.params.storageroom_id;
-    pool.getConnection(function (err, connection) {
-        if (err) {
-            console.log(err);
-            response.status(500).send('Cannot conect to server');
-        }
-        response.send("data-delivery storageroom_id: " + storageroom_id);
-    });
-});
-
-
-router.post('/create/', (request, response) => {
-
-    const newStorageEvent = {
-        name: request.body.name
-    }
-
-    pool.getConnection(function (err, connection) {
-        if (err) {
-            console.log(err);
-            response.status(500).send('Cannot conect to server');
-        }
-        response.send(newStorageEvent);
-=======
   const { storageroom_id } = request.params;
   pool.getConnection((err, connection) => {
     if (err) {
@@ -96,7 +53,6 @@ router.post('/create/', (request, response) => {
         console.log('Data received');
         response.send(result);
       }
->>>>>>> e89e681e9d806dec7874b8cadfceea2c30ecbb46
     });
   });
 });
