@@ -262,14 +262,49 @@ describe('Testing Shelf/Storageroom/ID Get', () => {
 });
 
 
+// describe('Testing Shelf/ID Put', () => {
+//   it('Should test updating a shelf', (done) => {
+//     request(app)
+//       .put('/shelf/2')
+//       .send({
+//         shelf_name: "Nice shelf"
+//       })
+//       .end((err, resp) => {
+//         expect(err).to.equal(null);
+//         expect(resp.id).to.equal(2);
+//       })
+//   });
+// });
+
+
+describe('Testing Shelf/Storageroom/ID Post', () => {
+  it('Should test creating a new shelf', (done) => {
+    request(app)
+      .post(shelf/storageroom/1)
+      .send({
+        shelf_name: "Cool shelf"
+      })
+      .end((err, resp) => {
+        expect(err).to.be.equal(null);
+      });
+      request(app)
+      .get('/shelf/storageroom/1')
+      .end((err, resp) => {
+        expect(err).to.equal(null);
+        expect(resp.body.length).to.equal(10);
+        done();
+      });
+  });
+});
+
+
 describe('Testing Package/Branch/ID Get', () => {
   it('Should test printing all packages in a specific branch', (done) => {
     request(app)
       .get('/package/branch/1')
       .end((err, resp) => {
-        const packages = resp.body.length;
         expect(err).to.equal(null);
-        expect(packages).to.equal(18);
+        expect(resp.body.length).to.equal(18);
         done();
       });
   });
@@ -290,16 +325,16 @@ describe('Testing Package Get', () => {
 });
 
 
-describe('Testing Package/ID Delete', () => {
-  it('Should test deleting a package', (done) => {
-    request(app)
-      .delete('/package/51')
-      .end((err, resp) => {
-        expect(err).to.equal(null);
-        done();
-      });
-  });
-});
+// describe('Testing Package/ID Delete', () => {
+//   it('Should test deleting a package', (done) => {
+//     request(app)
+//       .delete('/package/51')
+//       .end((err, resp) => {
+//         expect(err).to.equal(null);
+//         done();
+//       });
+//   });
+// });
 
 // describe('Testing Article/Package/ID Get', () => {
 //   it('Should test printing all articles in a package', (done) => {
@@ -318,7 +353,7 @@ describe('Testing Package/ID Delete', () => {
 // describe('Testing Article/Case/ID Get', () => {
 //   it('Should test printing all articles in a case', (done) => {
 //     request(app)
-//       .get('/article/package/55')
+//       .get('/article/case/55')
 //       .end((err, resp) => {
 //         const articles = resp.body.length;
 //         expect(err).to.equal(null);
@@ -332,11 +367,50 @@ describe('Testing Package/ID Delete', () => {
 // describe('Testing Article/Storageroom/ID Get', () => {
 //   it('Should test printing all articles in a storageroom', (done) => {
 //     request(app)
-//       .get('/article/package/5')
+//       .get('/article/storageroom/5')
 //       .end((err, resp) => {
 //         const articles = resp.body.length;
 //         expect(err).to.equal(null);
 //         expect(packages).to.equal(7);
+//         done();
+//       });
+//   });
+// });
+
+
+// describe('Testing Storageevent/Storageroom/ID Get', () => {
+//   it('Should test fetching all storageevents from a storageroom', (done) => {
+//     request(app)
+//       .get('/storageevent/storageroom/5')
+//       .end((err, resp) => {
+//         expect(err).to.equal(null);
+//         expect(resp.body.length).to.equal();
+//         done();
+//       });
+//   });
+// });
+
+
+// describe('Testing Storageevent Get', () => {
+//   it('Should test fetching all storageevents', (done) => {
+//     request(app)
+//       .get('/storageevent')
+//       .end((err, resp) => {
+//         expect(err).to.equal(null);
+//         expect(resp.body.length).to.equal();
+//         done();
+//       });
+//   });
+// });
+
+
+// describe('Testing Storageevent/article/ID Get', () => {
+//   it('Should test fetching all storageevents for a specific article', (done) => {
+//     request(app)
+//       .get('/storageevent/article/5')
+//       .end((err, resp) => {
+//         expect(err).to.equal(null);
+//         expect(resp.body.length).to.equal();
 //         done();
 //       });
 //   });
