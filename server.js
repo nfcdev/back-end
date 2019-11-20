@@ -15,7 +15,7 @@ const config = require('./config');
 const port = normalizePort(process.env.PORT || '3000');
 const app = express();
 
-const whitelist = [`${config.frontend.host}:${config.frontend.port}`, `${config.saml.host}:${config.saml.port}`];
+const whitelist = [`${config.frontend.host}:${config.frontend.port}`];
 const corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1 || !origin) {
