@@ -271,6 +271,7 @@ The endpoint returns JSON data structured like this:
         "package": null,
         "shelf": "Hylla 8",
         "storage_room": "DNA materialrum 2",
+        "branch": "DNA",
         "article": 58
     },
     {
@@ -282,6 +283,7 @@ The endpoint returns JSON data structured like this:
         "package": null,
         "shelf": "B3",
         "storage_room": "DNA materialrum 1",
+        "branch": "DNA",
         "article": 43
     },
     ...
@@ -312,6 +314,7 @@ The endpoint returns JSON data structured like this:
         "package": "",
         "shelf": "A15",
         "storage_room": "Vapen materialrum 1",
+        "branch": "Vapen",
         "article": 17
     },
     ...
@@ -341,6 +344,7 @@ The endpoint returns JSON data structured like this:
         "package": "",
         "shelf": "A15",
         "storage_room": "Vapen materialrum 1",
+        "branch": "Vapen",
         "article": 17
     },
     ...
@@ -426,6 +430,7 @@ If the check in was successful, the response will be the storage event that was 
     "package": null,
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
+    "branch": "DNA",
     "article": 58
 }
 ```
@@ -463,6 +468,7 @@ If the check out was successful, the response will be the storage event that was
     "package": null,
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
+    "branch": "DNA",
     "article": 58
 }
 ```
@@ -500,6 +506,7 @@ If the action was successful, the response will be the storage event that was cr
     "package": null,
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
+    "branch": "DNA",
     "article": 58
 }
 ```
@@ -538,6 +545,7 @@ If the action was successful, the response will be the storage event that was cr
     "package": null,
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
+    "branch": "DNA",
     "article": 58
 }
 ```
@@ -591,6 +599,7 @@ If the registration was successful, the response will be the storage event that 
     "package": null,
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
+    "branch": "DNA",
     "article": 58
 }
 ```
@@ -1072,28 +1081,27 @@ The endpoint returns JSON data structured like this:
 ]
 ```
 
-## Create a package for a given case
-This endpoint creates the next package for a given case. For example, if no packages exists for a certain case (e.g. reference number 12738) this endpoint will create a package with package number 12738-K01. The next time this endpoint is called, 12738-K02 will be created
+## Create a package
+This endpoint creates the next package for a given reference number. For example, if no packages exists for a certain case (e.g. reference number 12738) this endpoint will create a package with package number 12738-K01. The next time this endpoint is called, 12738-K02 will be created. If a case with the given reference number does not exist, a new case will be created.
 
 ##### HTTP Request
-`POST http://localhost:9000/package/case/<ID>`
+`POST http://localhost:9000/package
 
-##### URL Parameters
-Parameter | Description
---------- | -----------
-ID | The ID of the case for which to create a new package
 
 ##### JSON Parameters 
-Parameter |Description
---------- | -----------
-current_storage_room | The id of the storage room for the new package
-shelf | The the id of the shelf for the new package
+Parameter | Required | Description
+--------- | ----------- | -----------
+current_storage_room | yes | The id of the storage room for the new package
+shelf | yes | The the id of the shelf for the new package
+reference_number | yes | The reference number of the associated case.
+
 
 Example body of request:
 ```json
 {
     "current_storage_room": 3,
-    "shelf": 2
+    "shelf": 2,
+    "reference_number": "213876"
 }
 ```
 ##### HTTP Response
