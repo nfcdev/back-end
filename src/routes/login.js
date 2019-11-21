@@ -1,59 +1,73 @@
 const express = require('express');
+
 const router = express.Router();
-const passport = require('../util/authentication').passport;
-const authenticatedRequest = require('../util/authentication').authenticatedRequest;
-const config = require('../../config');
 const jwt = require('jsonwebtoken');
+const { authenticatedRequest, adminAuthorizedRequest } = require('../util/authentication');
+const employeeVerification = require('../util/external-verification');
+const roleHandler = require('../util/internal-verification');
+const config = require('../../config');
 
-router.get(
-  '/',
-  function (req, res, next) {
-    console.log('-----------------------------');
-    console.log('/Start login handler');
-    next();
-  },
-  passport.authenticate('samlStrategy')
-);
+const { jwtOptions } = config;
 
-router.get('/token', authenticatedRequest, function (req, res) {
-  if (!req.isAuthenticated()) return res.send(401);
-  var payload = {
-    uid: req.user.uid,
-    edPersonAffiliation: req.user.eduPersonAffiliation,
-    email: req.user.email
-  };
+// Mock users
+router.post('/', (req, res) => {
+  console.log('----POST TO /login----');
 
-  var signOptions = {
-    issuer: 'C4Solutions',
-    subject: 'NFC Storage Tracker',
-    audience: 'c4solutions.com',
-    expiresIn: '12h',
-    algorithm: 'RS256'
-  };
-  var privateKEY = config.saml.samlPrivateCert;
-  var token = jwt.sign(payload, privateKEY, signOptions);
-  res.send({ token });
+  if (req.body.name) {
+    console.log('In if ==> name was sent so server');
+    var { name } = req.body;
+  } else {
+    res.status(401).json({ message: 'missing information' });
+    return;
+  }
+  console.log(`name: ${name}`);
+  /**
+   * This function is used to check if the user exist in the employee database.
+   * For now it is stubbed but will later be implemented.
+   * TODO: implement promise here!
+   */
+  const responseCode = employeeVerification({ name: name });
+  if (responseCode != 1) {
+    res.status(401).json({ message: `Error occurred when verifying employee. Code was: ${responseCode}` });
+    return;
+  }
+
+  /**
+   * Below it is verified if the user exist in the material tracking system.
+   * If so the role is checked.
+   * If not, the user is added with basic user privilege
+   */
+  roleHandler({ name: name }, ((callbackResponse) => {
+    console.log('callbackResponse from roleHandler', callbackResponse);
+    console.log('After roleHandler');
+    if (callbackResponse.code != 1) {
+      res.status(500).json(callbackResponse);
+      return;
+    }
+    console.log('Should only be here if user exist');
+    const userObj = callbackResponse.user;
+    const payload = { id: userObj.id, shortcode: userObj.shortcode, role: userObj.role };
+    const signOptions = {
+      issuer: 'C4Solutions',
+      subject: 'NED',
+      audience: 'c4solutions.com',
+      // expiresIn: '30000ms',
+    };
+    const token = jwt.sign(payload, jwtOptions.secretOrKey, signOptions);
+    res.json({ message: 'ok', token: token });
+  }));
 });
 
-router.post(
-  '/callback',
-  function (req, res, next) {
-    console.log('-----------------------------');
-    console.log('/Start login callback ');
-    next();
-  },
-  passport.authenticate('samlStrategy', {
-    failureRedirect: `${config.frontend.host}:${config.frontend.port}`
-  }),
-  function (req, res) {
-    console.log('-----------------------------');
-    console.log('login call back dumps');
-    console.log(req.user);
-    console.log('-----------------------------');
-    console.log('Redirecting back to frontend application');
 
-    res.redirect(`${config.frontend.host}:${config.frontend.port}`);
-  }
-);
+// The following route is just for testing
+router.get('/secret', authenticatedRequest, (req, res) => {
+  console.log('----GET TO /login/secret----');
+  res.json({ message: 'Success!', user: req.user });
+});
+
+router.get('/admin', adminAuthorizedRequest, (req, res) => {
+  console.log('----GET TO /login/secret----');
+  res.json({ message: 'Success!', user: req.user });
+});
 
 module.exports = router;
