@@ -278,9 +278,6 @@ router.get('/branch/:branch_id', (request, response) => {
 
 
 ///EGET GET FÖR TESTNING
-
-
-// Return all articles in DB
 router.get('/', (req, res) => {
   // eslint-disable-next-line func-names
   pool.getConnection((err, connection) => {
@@ -320,15 +317,11 @@ router.post('/register', (req, res) => {
     res.status(400).send('Bad request');
   } else {
 
-   
-
     pool.getConnection((err, connection) => {
       if (err) {
         console.log(err);
         return res.status(500).send('Could not connect to server');
       }
-
-     
 
       const article = [
         artRegister.material_number,
@@ -380,7 +373,7 @@ router.post('/register', (req, res) => {
       //connection.query(sql, artRegister.material_number, artRegister.description, , (err, result) => { 
       console.log("loggar artregister.reference_number: " + artRegister.reference_number);
       const sql = 'INSERT INTO Article(`material_number`, `description`, `case`) VALUES (?, ?, (SELECT id FROM `Case` WHERE reference_number = ?))';  
-      connection.query(sql, article, (err, result) => {
+      connection.query(sql, article/*Byt till individuella värden?*/ , (err, result) => {
         console.log(result);
         //connection.release();
         if (err) {
