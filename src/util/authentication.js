@@ -1,58 +1,56 @@
 const passport = require('passport');
-var saml = require('passport-saml');
+const passportJWT = require('passport-jwt');
 const config = require('../../config');
+const roleHandler = require('../util/internal-verification');
 
-// This file was setup according to the guide found here:
-// https://medium.com/disney-streaming/setup-a-single-sign-on-saml-test-environment-with-docker-and-nodejs-c53fc1a984c9
+const { ExtractJwt } = passportJWT;
+const JwtStrategy = passportJWT.Strategy;
 
+// This file was setup according to the guides found here:
+// https://jonathanmh.com/express-passport-json-web-token-jwt-authentication-beginners/
+// https://itnext.io/implementing-json-web-tokens-passport-js-in-a-javascript-application-with-react-b86b1f313436
+// https://medium.com/front-end-weekly/learn-using-jwt-with-passport-authentication-9761539c4314
 
-passport.serializeUser(function(user, done) {
-  /*
-  console.log('-----------------------------');
-  console.log('serialize user');
-  console.log(user);
-  console.log('-----------------------------');
-  */
-  done(null, user);
-});
-passport.deserializeUser(function(user, done) {
-  /*
-  console.log('-----------------------------');
-  console.log('deserialize user');
-  console.log(user);
-  console.log('-----------------------------');
-  */
-  done(null, user);
-});
+const { jwtOptions } = config;
+jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderWithScheme('JWT');
 
+// This strategy is used to verify an authenticated user. Use for protected routes.
+const jwtStrategy = new JwtStrategy(jwtOptions, ((jwt_payload, next) => {
+  roleHandler({ name: jwt_payload.shortcode }, ((callbackResponse) => {
+    if (callbackResponse.code != 1) {
+      console.log('User not found');
+      next(null, false);
+    } else {
+      const userObj = callbackResponse.user;
+      next(null, userObj);
+    }
+  }));
+}));
 
-var samlStrategy = new saml.Strategy(
-  {
-    callbackUrl: config.saml.samlCallbackUrl,
-    entryPoint: config.saml.samlEntryPoint,
-    issuer: config.saml.samlIssuer,
-    identifierFormat: null,
-    decryptionPvk: config.saml.samlDecryptionPvk,
-    privateCert: config.saml.samlPrivateCert,
-    validateInResponseTo: true,
-    disableRequestedAuthnContext: true
-  },
-  function(profile, done) {
-    return done(null, profile);
-  }
-);
+// This strategy is used to authenticate and verify admin authorization. Use for admin protected routes.
+const adminJwtStrategy = new JwtStrategy(jwtOptions, ((jwt_payload, next) => {
+  roleHandler({ name: jwt_payload.shortcode }, ((callbackResponse) => {
+    if (callbackResponse.code != 1) {
+      console.log('User not found');
+      next(null, false);
+    } else {
+      const userObj = callbackResponse.user;
+      if (callbackResponse.user.role === 'admin') {
+        next(null, userObj);
+      } else {
+        console.log('User is missing admin privileges');
+        next(null, false);
+      }
+    }
+  }));
+}));
 
-passport.use('samlStrategy', samlStrategy);
+passport.use('jwtStrategy', jwtStrategy);
+passport.use('adminJwtStrategy', adminJwtStrategy);
+
 
 module.exports = {
   passport,
-  authenticatedRequest: function(req, res, next) {
-    // Don't require authenticated requests in debug mode
-    if (req.isAuthenticated() || config.debug) {
-      //req.isAuthenticated() returns true if user is logged in
-      next();
-    } else {
-      res.send(401, 'Unauthorized');
-    }
-  }
+  authenticatedRequest: passport.authenticate('jwtStrategy', { session: false }),
+  adminAuthorizedRequest: passport.authenticate('adminJwtStrategy', { session: false }),
 };
