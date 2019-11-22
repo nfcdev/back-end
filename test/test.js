@@ -313,8 +313,8 @@ describe('Testing Package/Storageroom/ID Get', () => {
 });
 
 
-describe('Testing Shelf/Storageroom/ID Get', () => {
-  it('Should test printing all shelves in a specific storageroom', (done) => {
+describe('Testing the Shelf functionality', () => {
+  it('Testing Shelf/Storageroom/ID Get', (done) => {
     request(app)
       .get('/shelf/storageroom/1')
       .end((err, resp) => {
@@ -323,6 +323,62 @@ describe('Testing Shelf/Storageroom/ID Get', () => {
         expect(shelves.length).to.equal(9);
         done();
       });
+  });
+
+  it('Testing Shelf/Storageroom/ID Post', (done) => {
+    const p1 = new Promise((res, rej) => {
+    request(app)
+      .post('/shelf/storageroom/1')
+      .send({
+        shelf_name: "Test Shelf"
+      })
+      .end((err, resp) => {
+        expect(err).to.equal(null);
+        expect(resp.body.shelf_name).to.be.equal("Test Shelf");
+        res();
+      });
+    });
+
+    p1.then(() => {
+      request(app)
+        .get('/shelf/storageroom/1')
+        .end((err, resp) => {
+          expect(err).to.be.equal(null);
+          expect(resp.body.length).to.be.equal(10);
+          done();
+        });
+    });
+  });
+
+
+  it('Testing Shelf/Storageroom/ID Put', (done) => {
+    const p1 = new Promise((res, rej) => {
+      request(app)
+        .put('/shelf/1')
+        .send({
+          name: 'Cool Shelf',
+        })
+        .end((err, resp) => {
+          expect(err).to.be.equal(null);
+          expect(resp.body.name).to.be.equal('Cool Shelf');
+          res(resp.body);
+        });
+    });
+
+    p1.then((shelfUpdateResult) => {
+      request(app)
+        .get('/shelf/storageroom/1')
+        .end((err, resp) => {
+          let updatedShelf;
+          resp.body.forEach((shelf) => {
+            if (shelf.id.toString() === shelfUpdateResult.id) {
+              updatedShelf = shelf;
+            }
+          });
+          expect(updatedShelf.name).to.be.equal('Cool Shelf');
+          done();
+        });
+    });
   });
 });
 
