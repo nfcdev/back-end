@@ -349,37 +349,6 @@ describe('Testing the Shelf functionality', () => {
         });
     });
   });
-
-
-  it('Testing Shelf/Storageroom/ID Put', (done) => {
-    const p1 = new Promise((res, rej) => {
-      request(app)
-        .put('/shelf/1')
-        .send({
-          name: 'Cool Shelf',
-        })
-        .end((err, resp) => {
-          expect(err).to.be.equal(null);
-          expect(resp.body.name).to.be.equal('Cool Shelf');
-          res(resp.body);
-        });
-    });
-
-    p1.then((shelfUpdateResult) => {
-      request(app)
-        .get('/shelf/storageroom/1')
-        .end((err, resp) => {
-          let updatedShelf;
-          resp.body.forEach((shelf) => {
-            if (shelf.id.toString() === shelfUpdateResult.id) {
-              updatedShelf = shelf;
-            }
-          });
-          expect(updatedShelf.name).to.be.equal('Cool Shelf');
-          done();
-        });
-    });
-  });
 });
 
 
