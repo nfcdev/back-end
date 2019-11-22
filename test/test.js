@@ -339,3 +339,91 @@ describe('Testing Package/Branch/ID Get', () => {
       });
   });
 });
+
+
+// describe('Testing the article functionality', () => {
+//   it('Testing Article/Case/ID Get, #61', (done) => {
+//     request(app)
+//       .get('article/case/743996')
+//       .end((err,resp) => {
+//         const cases = resp.body;
+//         expect(err).to.equal(null);
+//         expect(cases.length).to.equal(2);
+//         done();
+//       });
+//   });
+
+
+//   it('Testing Article/Package/ID Get, #63', (done) => {
+//     request(app)
+//       .get('article/package/51')
+//       .end((err,resp) => {
+//         const packages = resp.body;
+//         expect(err).to.equal(null);
+//         expect(packages.length).to.equal(2);
+//         done();
+//       });
+//   });
+
+
+//   it('Testing Article/Storageroom/ID Get, #19', (done) => {
+//     request(app)
+//       .get('article/storageroom/1')
+//       .end((err,resp) => {
+//         const rooms = resp.body;
+//         expect(err).to.equal(null);
+//         expect(rooms.length).to.equal(14);
+//         done();
+//       });
+//   });
+
+
+//   it('Testing Article/Branch/ID Get, #31', (done) => {
+//     request(app)
+//       .get('article/branch/1')
+//       .end((err, resp) => {
+//         const branches = resp.body;
+//         expect(err).to.equal(null);
+//         expect(branches.length).to.equal(30);
+//         done();
+//       });
+//   });
+// });
+
+
+// describe('Testing storage event functionality', () => {
+//   it('Testing Storageevent Get, #16',(done) => {
+//     request(app)
+//       .get('/storageevent')
+//       .end((err, resp) => {
+//         const events = resp.body;
+//         expect(err).to.equal(null);
+//         expect(events.length).to.equal(50);
+//         done();
+//       });
+//   });
+
+
+//   it('Testing Storageevent/Storageroom/ID Get, #25',(done) => {
+//     request(app)
+//       .get('/storageevent/storageroom/1')
+//       .end((err, resp) => {
+//         const events = resp.body;
+//         expect(err).to.equal(null);
+//         expect(events.length).to.equal(50);
+//         done();
+//       });
+//   });
+
+
+//   it('Testing Storageevent/Article/ID Get, #26', (done) => {
+//     request(app)
+//       .get('/storageevent/article/99')
+//       .end((err, resp) => {
+//         const events = resp.body;
+//         expect(err).to.equal(null);
+//         expect(events.length).to.equal(5);
+//         done();
+//       });
+//   });
+// });
