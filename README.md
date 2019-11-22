@@ -435,6 +435,57 @@ If the check in was successful, the response will be the storage event that was 
 }
 ```
 
+## Incorporates an article
+This endpoint incorporates an existing article in a storage room with shelf/package. If an article with the specified material number does not exist, the response will return an error code. Incorporating means indefinite storage of an article and behaves just like a check-in, but with the status 'incorporated' instead. 
+
+##### HTTP Request
+`POST http://localhost:9000/article/incorporate`
+
+##### JSON Parameters 
+Parameter | Required | Description
+--------- | ----------- | -----------
+material_number | yes | The name complete material number of the article. I.e. reference-number + article-number.
+comment | no | Optional comment describing the reason behind the incorporation 
+storage_room | yes | The id of the storage room where the incorporation in was made
+shelf | yes, if package not supplied  | The id of the shelf where the incorporated material will be stored
+package | no | The id of the package in which the material is stored in  
+
+Example body of request where shelf was specified:
+```json
+{
+    "material_number": "129274-90",
+    "comment": "Incorporated gun",
+    "storage_room": 3,
+    "shelf": 6,
+}
+```
+
+Example body of request where package instead was specified:
+```json
+{
+    "material_number": "129274-90",
+    "comment": "Incorporated gun",
+    "storage_room": 3,
+    "package": 2,
+}
+```
+##### HTTP Response
+If the incorporation was successful, the response will be the storage event that was created:
+```json
+{
+    "id": 67,
+    "action": "incorporated",
+    "timestamp": 1579679491,
+    "user": "1688042193699",
+    "comment": "Incorporated gun",
+    "package": null,
+    "shelf": "Hylla 8",
+    "storage_room": "DNA materialrum 2",
+    "branch": "DNA",
+    "article": 58
+}
+```
+
 ## Check out article 
 This endpoints checks out an existing article from a storage room. If an article with the specified material number does not exist, the response will return an error code. 
 
