@@ -384,6 +384,40 @@ If successful, the response will be the created article:
 }
 ```
 
+## Update the description of an article
+This endpoint updates the description of an article.
+
+##### HTTP Request
+`PUT http://localhost:9000/article/<ID>`
+
+##### URL Parameters
+Parameter | Description
+--------- | -----------
+ID | The ID of the specific article
+
+##### JSON Parameters 
+Parameter | Required | Description
+--------- | ----------- | -----------
+description | yes | Optional description of the article
+
+Example body of request:
+```json
+{
+    "description": "New description"
+}
+```
+
+##### HTTP Response
+If successful, the response will be the updated article object:
+```json
+{
+    "material_number": "129274-90",
+    "reference_number": "129274",
+    "description": "New description",
+    "id": 4
+}
+```
+
 ## Check in article 
 This endpoint checks in an existing article in a storage room with shelf/package. If an article with the specified material number does not exist, the response will return an error code. 
 
@@ -435,7 +469,7 @@ If the check in was successful, the response will be the storage event that was 
 }
 ```
 
-## Incorporates an article
+## Incorporate an article
 This endpoint incorporates an existing article in a storage room with shelf/package. If an article with the specified material number does not exist, the response will return an error code. Incorporating means indefinite storage of an article and behaves just like a check-in, but with the status 'incorporated' instead. 
 
 ##### HTTP Request
