@@ -1,6 +1,6 @@
 {
   "name": "back-end",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "description": "Back end",
   "main": "server.js",
   "scripts": {
@@ -33,7 +33,9 @@
     "supertest": "^4.0.2",
     "npm": "^6.12.1",
     "passport": "^0.4.0",
-    "passport-saml": "^1.2.0"
+    "passport-saml": "^1.2.0",
+    "lodash": "^4.16.4",
+    "passport-jwt": "^2.1.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
