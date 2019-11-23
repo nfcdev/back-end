@@ -536,7 +536,6 @@ router.post('/register', async (request, response) => {
   // checks so that storage_room, material_number and either package or shelf is provided. Package and shelf are tried with the logic of a xor gate.
   if (!regInfo.storage_room || !regInfo.material_number || !(!(regInfo.package && regInfo.shelf) && (regInfo.package || regInfo.shelf))) {
     response.status(400).send('Bad request');
-
   } else if (regInfo.package) {
     // Checks in the article in a package
     db.beginTransaction()
@@ -607,11 +606,9 @@ router.post('/register', async (request, response) => {
         db.close();
         response.send(400);
       });
-
     // End of if regInfo.package statament
   } else if (regInfo.shelf) {
     // Registers the article to a Shelf, without a package
-
     db.beginTransaction()
       .then(() => {
         // Create case if not exists
@@ -641,7 +638,6 @@ router.post('/register', async (request, response) => {
         selectresults = p1[0];
         // checks so that the storageroom where the shelf is is the same as the one where the check-in is done
         if (selectresults[0].current_storage_room != regInfo.storage_room) {
-
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap         
