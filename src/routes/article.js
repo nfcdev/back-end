@@ -519,6 +519,7 @@ router.post('/check-in', (request, response) => {
   }
 });
 
+// Change the description of an article
 router.put('/:id', async (request, response) => {
   const db = await makeDb();
   const id = request.params.id;
