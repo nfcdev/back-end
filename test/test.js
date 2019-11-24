@@ -83,11 +83,11 @@ describe('Test route branches', () => {
         done();
       });
   });
-});
 
 
-describe('Testing PUT funtionality on branch', () => {
-  it('Should update the name of a branch (id:2)', (done) => {
+
+
+  it('Should update the name of a branch (id:2). PUT function', (done) => {
     const p1 = new Promise((res, rej) => {
       request(app)
         .put('/branch/2')
@@ -119,9 +119,9 @@ describe('Testing PUT funtionality on branch', () => {
 });
 
 
-describe('Testing branch function post', () => {
+describe('Testing branch endpoints', () => {
   let branchID;
-  it('Should add a new branch', (done) => {
+  it('Should add a new branch, POST function', (done) => {
     const p1 = new Promise((res, rej) => {
       request(app)
         .post('/branch')
@@ -167,10 +167,9 @@ describe('Testing branch function post', () => {
   });
 });
 
-// delete
-// API - /storageroom Written Simon
-describe('Testing storage room get', () => {
-  it('Should return all storage room (6 rooms)', (done) => {
+
+describe('Testing storage room ', () => {
+  it('Should return all storage room (6 rooms), function GET', (done) => {
     request(app)
       .get('/storageroom/')
       .end((err, resp) => {
@@ -180,10 +179,10 @@ describe('Testing storage room get', () => {
         done();
       });
   });
-});
 
-describe('Testing storage room post', () => {
-  it('Making sure a room is added, testing post', (done) => {
+
+
+  it('Making sure a room is added, function POST', (done) => {
     const p1 = new Promise((res, rej) => {
       request(app)
         .post('/storageroom')
@@ -211,11 +210,10 @@ describe('Testing storage room post', () => {
         });
     });
   });
-});
 
 
-describe('Testing storage room put', () => {
-  it('should update specified storageroom', (done) => {
+
+  it('should update specified storageroom, function PUT', (done) => {
     const p1 = new Promise((res, rej) => {
       request(app)
         .put('/storageroom/1')
