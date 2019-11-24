@@ -3,6 +3,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-shadow */
 const express = require('express');
+const util = require('util');
 
 const router = express.Router();
 
@@ -277,6 +278,32 @@ router.get('/branch/:branch_id', (request, response) => {
   });
 });
 
+const makeDb = () => new Promise((resolve, reject) => {
+  pool.getConnection((err, connection) => (
+    resolve({
+      query(sql, args) {
+        return util.promisify(connection.query)
+          .call(connection, sql, args);
+      },
+      close() {
+        return util.promisify(connection.release).call(connection);
+      },
+      beginTransaction() {
+        return util.promisify(connection.beginTransaction)
+          .call(connection);
+      },
+      commit() {
+        return util.promisify(connection.commit)
+          .call(connection);
+      },
+      rollback() {
+        return util.promisify(connection.rollback)
+          .call(connection);
+      },
+    })
+  ));
+});
+
 // Checks in an article
 router.post('/check-in', (request, response) => {
   const checkIn = {
@@ -490,6 +517,29 @@ router.post('/check-in', (request, response) => {
 
     });
   }
+});
+
+router.put('/:id', async (request, response) => {
+  const db = await makeDb();
+  const id = request.params.id;
+  const desc = request.body.description;
+
+  db.beginTransaction()
+    .then(() => {
+      db.query('UPDATE Article SET description = ? WHERE id = ?', [desc, id]);
+    })
+    .then(() => db.query('SELECT ar.id, ar.description, ar.material_number, ca.reference_number FROM Article ar INNER JOIN `Case` ca ON ar.`case` = ca.id WHERE ar.id = ?', [id]))
+    .then((modifiedArticle) => Promise.all(modifiedArticle, db.commit()))
+    .then(([modifiedArticle]) => {
+      db.close();
+      response.send(modifiedArticle);
+    })
+    .catch((err) => {
+      console.log(err);
+      db.rollback();
+      db.close();
+      response.send(400);
+    });
 });
 
 module.exports = router;
