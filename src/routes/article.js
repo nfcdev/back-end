@@ -3,6 +3,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-shadow */
 const express = require('express');
+const util = require('util');
 
 const router = express.Router();
 
@@ -277,6 +278,32 @@ router.get('/branch/:branch_id', (request, response) => {
   });
 });
 
+const makeDb = () => new Promise((resolve, reject) => {
+  pool.getConnection((err, connection) => (
+    resolve({
+      query(sql, args) {
+        return util.promisify(connection.query)
+          .call(connection, sql, args);
+      },
+      close() {
+        return util.promisify(connection.release).call(connection);
+      },
+      beginTransaction() {
+        return util.promisify(connection.beginTransaction)
+          .call(connection);
+      },
+      commit() {
+        return util.promisify(connection.commit)
+          .call(connection);
+      },
+      rollback() {
+        return util.promisify(connection.rollback)
+          .call(connection);
+      },
+    })
+  ));
+});
+
 // Checks in an article
 router.post('/check-in', (request, response) => {
   const checkIn = {
@@ -489,6 +516,129 @@ router.post('/check-in', (request, response) => {
       }
 
     });
+  }
+});
+
+// Incorporates an article
+router.post('/incorporate', async (request, response) => {
+  const db = await makeDb();
+  const incorp = {
+    shelf: request.body.shelf,
+    package: request.body.package,
+    comment: request.body.comment,
+    storage_room: request.body.storage_room,
+    material_number: request.body.material_number,
+  };
+  let selectresults;
+
+  // checks so that storage_room, material_number and either package or shelf is provided. Package and shelf are tried with the logic of a xor gate.
+  if (!incorp.storage_room || !incorp.material_number || !(!(incorp.package && incorp.shelf) && (incorp.package || incorp.shelf))) {
+    response.status(400).send('Bad request');
+  } else if (incorp.package) {
+    // Incorporates the article in a package
+    db.beginTransaction()
+      .then(() => {
+        // Gets name of shelf, storageroom and branch, and id of storageroom.
+        const p1 = db.query('SELECT sh.shelf_name, st.name AS StorageRoomName, co.current_storage_room, br.name AS BranchName FROM Shelf sh INNER JOIN Container co ON sh.id IN (SELECT shelf FROM Package WHERE id = co.id) INNER JOIN StorageRoom st ON co.current_storage_room = st.id INNER JOIN Branch br ON st.branch = br.id WHERE co.id = ? ', [incorp.package]);
+        return Promise.all([p1]);
+      })
+      .then((p1) => {
+        selectresults = p1[0];
+        // checks so that the storageroom where the package is is the same as the one where the incorporation is done
+        if (selectresults[0].current_storage_room != checkIn.storage_room) {
+          throw new Error('Wrong storage room');
+        } else {
+          // Inserts the correct container into the storagemap
+          db.query(
+            'UPDATE StorageMap SET container = ? WHERE article = (SELECT id FROM Article WHERE material_number = ?)',
+            [
+              incorp.package,
+              incorp.material_number,
+            ],
+          );
+        }
+      })
+      .then(() => {
+        // Createa storageevent for the article
+        db.query(
+          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("incorporated", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+          [
+            incorp.comment,
+            incorp.package,
+            selectresults[0].shelf_name,
+            selectresults[0].StorageRoomName,
+            incorp.material_number,
+            selectresults[0].BranchName,
+          ],
+        );
+      })
+      // Gets the created storage event and returns it to the user
+      .then(() => db.query('SELECT * FROM StorageEvent ORDER BY id DESC LIMIT 0, 1'))
+      .then((eventResult) => Promise.all(eventResult, db.commit()))
+      .then(([eventResult]) => {
+        db.close();
+        response.send(eventResult);
+      })
+      .catch((err) => {
+        console.log(err);
+        db.rollback();
+        db.close();
+        response.send(400);
+      });
+
+    // End of if incorp.package statament
+  } else if (incorp.shelf) {
+    // Incorporates the article to a Shelf, without a package
+
+    db.beginTransaction()
+      .then(() => {
+        // Gets information for checking that the incorporation is made in the right storageroom, also gets information to put in the storageevent
+        const p1 = db.query('SELECT sh.shelf_name, st.name AS StorageRoomName, co.current_storage_room, br.name AS BranchName FROM Shelf sh INNER JOIN Container co ON sh.id = co.id INNER JOIN StorageRoom st ON co.current_storage_room = st.id INNER JOIN Branch br ON st.branch = br.id WHERE co.id = ? ', [incorp.shelf]);
+        return Promise.all([p1]);
+      })
+      .then((p1) => {
+        selectresults = p1[0];
+        // checks so that the storageroom where the shelf is is the same as the one where the incorporation is done
+        if (selectresults[0].current_storage_room != incorp.storage_room) {
+
+          throw new Error('Wrong storage room');
+        } else {
+          // Inserts the correct container into the storagemap
+          db.query(
+            'UPDATE StorageMap SET container = ? WHERE article = (SELECT id FROM Article WHERE material_number = ?)',
+            [
+              incorp.shelf,
+              incorp.material_number,
+            ],
+          );
+        }
+      })
+      .then(() => {
+        // Createa storageevent for the article
+        db.query(
+          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("incorporated", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, NULL,?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+          [
+            incorp.comment,
+            selectresults[0].shelf_name,
+            selectresults[0].StorageRoomName,
+            incorp.material_number,
+            selectresults[0].BranchName,
+          ],
+        );
+      })
+      // Gets the created storage event and returns it to the user
+      .then(() => db.query('SELECT * FROM StorageEvent ORDER BY id DESC LIMIT 0, 1'))
+      .then((eventResult) => Promise.all(eventResult, db.commit()))
+      .then(([eventResult]) => {
+        db.close();
+        response.send(eventResult);
+      })
+      .catch((err) => {
+        console.log(err);
+        db.rollback();
+        db.close();
+        response.send(400);
+      });
   }
 });
 
