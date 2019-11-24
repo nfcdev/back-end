@@ -545,32 +545,37 @@ router.post('/incorporate', async (request, response) => {
       .then((p1) => {
         selectresults = p1[0];
         // checks so that the storageroom where the package is is the same as the one where the incorporation is done
-        if (selectresults[0].current_storage_room != checkIn.storage_room) {
+        if (selectresults[0].current_storage_room != incorp.storage_room) {
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap
-          db.query(
+          const update = db.query(
             'UPDATE StorageMap SET container = ? WHERE article = (SELECT id FROM Article WHERE material_number = ?)',
             [
               incorp.package,
               incorp.material_number,
             ],
           );
+          return Promise.all([update]);
         }
       })
-      .then(() => {
+      .then((update) => {
         // Createa storageevent for the article
-        db.query(
-          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("incorporated", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
-          [
-            incorp.comment,
-            incorp.package,
-            selectresults[0].shelf_name,
-            selectresults[0].StorageRoomName,
-            incorp.material_number,
-            selectresults[0].BranchName,
-          ],
-        );
+        if (!update[0].affectedRows) {
+          throw new Error('Article does not exist');
+        } else {
+          db.query(
+            'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("incorporated", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+            [
+              incorp.comment,
+              incorp.package,
+              selectresults[0].shelf_name,
+              selectresults[0].StorageRoomName,
+              incorp.material_number,
+              selectresults[0].BranchName,
+            ],
+          );
+        }
       })
       // Gets the created storage event and returns it to the user
       .then(() => db.query('SELECT * FROM StorageEvent ORDER BY id DESC LIMIT 0, 1'))
@@ -604,27 +609,32 @@ router.post('/incorporate', async (request, response) => {
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap
-          db.query(
+          const update = db.query(
             'UPDATE StorageMap SET container = ? WHERE article = (SELECT id FROM Article WHERE material_number = ?)',
             [
               incorp.shelf,
               incorp.material_number,
             ],
           );
+          return Promise.all([update]);
         }
       })
-      .then(() => {
-        // Createa storageevent for the article
-        db.query(
-          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("incorporated", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, NULL,?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
-          [
-            incorp.comment,
-            selectresults[0].shelf_name,
-            selectresults[0].StorageRoomName,
-            incorp.material_number,
-            selectresults[0].BranchName,
-          ],
-        );
+      .then((update) => {
+        if (!update[0].affectedRows) {
+          throw new Error('Article does not exist');
+        } else {
+          // Createa storageevent for the article
+          db.query(
+            'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("incorporated", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, NULL,?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+            [
+              incorp.comment,
+              selectresults[0].shelf_name,
+              selectresults[0].StorageRoomName,
+              incorp.material_number,
+              selectresults[0].BranchName,
+            ],
+          );
+        }
       })
       // Gets the created storage event and returns it to the user
       .then(() => db.query('SELECT * FROM StorageEvent ORDER BY id DESC LIMIT 0, 1'))
