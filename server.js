@@ -6,16 +6,25 @@ const http = require('http');
 const normalizePort = require('normalize-port');
 const bodyParser = require('body-parser');
 const path = require('path');
-const fs = require('fs');
 const cors = require('cors');
 const { passport } = require('./src/util/authentication');
-const config = require('./config');
+const config = require('./config').get(process.env.NODE_ENV);
 
 // Create the server
-const port = normalizePort(process.env.PORT || '3000');
+const port = normalizePort(`${config['backend-port']}` || '9000');
 const app = express();
 
-const whitelist = [`${config.frontend.host}:${config.frontend.port}`];
+console.log('==========');
+console.log(config);
+console.log('==========');
+
+
+const whitelist = [
+  `${config['frontend-url']}:${config['frontend-port']}`,
+  `${config['backend-url']}:${config['backend-port']}`,
+];
+
+
 const corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1 || !origin) {
@@ -56,15 +65,19 @@ app.use(passport.session({}));
 // Import routes
 app.use(require('./src/routes'));
 
-app.use('/public', express.static(path.join(__dirname, './static')));
+app.get('*.*', express.static(path.join(__dirname, './public')));
+
+app.get('*', (req, res) => {
+  res.status(200).sendFile('/', { root: './public' });
+});
 
 // Page not found
-app.get('*', (request, response) => {
-  fs.readFile('static/404.html', (error, content) => {
-    response.writeHead(404, { 'Content-Type': 'text/html' });
-    response.end(content, 'utf-8');
-  });
-});
+// app.get('*', (request, response) => {
+//   fs.readFile('static/404.html', (error, content) => {
+//     response.writeHead(404, { 'Content-Type': 'text/html' });
+//     response.end(content, 'utf-8');
+//   });
+// });
 
 // Start the server
 const server = http.createServer(app);
