@@ -585,6 +585,29 @@ router.post('/register', async (request, response) => {
   }
 });
 
+// Change the description of an article
+router.put('/:id', async (request, response) => {
+  const db = await makeDb();
+  const id = request.params.id;
+  const desc = request.body.description;
+
+  db.beginTransaction()
+    .then(() => {
+      db.query('UPDATE Article SET description = ? WHERE id = ?', [desc, id]);
+    })
+    .then(() => db.query('SELECT ar.id, ar.description, ar.material_number, ca.reference_number FROM Article ar INNER JOIN `Case` ca ON ar.`case` = ca.id WHERE ar.id = ?', [id]))
+    .then((modifiedArticle) => Promise.all(modifiedArticle, db.commit()))
+    .then(([modifiedArticle]) => {
+      db.close();
+      response.send(modifiedArticle);
+    })
+    .catch((err) => {
+      console.log(err);
+      db.rollback();
+      db.close();
+      response.send(400);
+    });
+  });
 // Incorporates an article
 router.post('/incorporate', async (request, response) => {
   const db = await makeDb();
