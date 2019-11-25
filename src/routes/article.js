@@ -159,7 +159,7 @@ router.post('/check-out', (request, response) => {
                       });
                     } else {
                       // Creates Storage event for the article
-                      for (a in result2) {
+                      
                         // User is hardcoded to "1" right now
                         //sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, " - ", " - ", (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
 
@@ -169,7 +169,7 @@ router.post('/check-out', (request, response) => {
                         sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
                         sql += 'SELECT "checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?,';
                         sql += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
-                        sql += " THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE ' - ' END as package,";
+                        sql += " THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,";
                         sql += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
                         sql += ' (Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?)))) AND';
                         sql += ' StorageRoom.id = ? AND';
@@ -235,7 +235,7 @@ router.post('/check-out', (request, response) => {
                             }
                           },
                         );
-                      }
+                      
                       connection.commit(function (err5) {
                         if (err5) {
                           connection.rollback(function () {
@@ -311,7 +311,6 @@ router.post('/discard', (request, response) => {
                       });
                     } else {
                       // Creates Storage event for the article
-                      for (a in result2) {
                         // User is hardcoded to "1" right now
                         //sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, " - ", " - ", (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
 
@@ -321,7 +320,7 @@ router.post('/discard', (request, response) => {
                         sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
                         sql += 'SELECT "discarded", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?,';
                         sql += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
-                        sql += " THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE ' - ' END as package,";
+                        sql += " THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,";
                         sql += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
                         sql += ' (Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?)))) AND';
                         sql += ' StorageRoom.id = ? AND';
@@ -387,7 +386,7 @@ router.post('/discard', (request, response) => {
                             }
                           },
                         );
-                      }
+                      
                       connection.commit(function (err5) {
                         if (err5) {
                           connection.rollback(function () {
