@@ -319,7 +319,6 @@ router.post('/check-in', async (request, response) => {
   // checks so that storage_room, material_number and either package or shelf is provided. Package and shelf are tried with the logic of a xor gate.
   if (!checkIn.storage_room || !checkIn.material_number || !(!(checkIn.package && checkIn.shelf) && (checkIn.package || checkIn.shelf))) {
     response.status(400).send('Bad request');
-
   } else if (checkIn.package) {
     // Checks in the article in a package
     db.beginTransaction()
@@ -378,7 +377,7 @@ router.post('/check-in', async (request, response) => {
 
     db.beginTransaction()
       .then(() => {
-        // Gets information for checking that the check-in is made in the right storageroom, also gets information to put in the storageevent     
+        // Gets information for checking that the check-in is made in the right storageroom, also gets information to put in the storageevent
         const p1 = db.query('SELECT sh.shelf_name, st.name AS StorageRoomName, co.current_storage_room, br.name AS BranchName FROM Shelf sh INNER JOIN Container co ON sh.id = co.id INNER JOIN StorageRoom st ON co.current_storage_room = st.id INNER JOIN Branch br ON st.branch = br.id WHERE co.id = ? ', [checkIn.shelf]);
         return Promise.all([p1]);
       })
@@ -386,16 +385,16 @@ router.post('/check-in', async (request, response) => {
         selectresults = p1[0];
         // checks so that the storageroom where the shelf is is the same as the one where the check-in is done
         if (selectresults[0].current_storage_room != checkIn.storage_room) {
-
           throw new Error('Wrong storage room');
         } else {
-          // Inserts the correct container into the storagemap         
+          // Inserts the correct container into the storagemap
           db.query(
             'UPDATE StorageMap SET container = ? WHERE article = (SELECT id FROM Article WHERE material_number = ?)',
             [
               checkIn.shelf,
               checkIn.material_number,
-            ]);
+            ],
+          );
         }
       })
       .then(() => {
@@ -408,7 +407,167 @@ router.post('/check-in', async (request, response) => {
             selectresults[0].StorageRoomName,
             checkIn.material_number,
             selectresults[0].BranchName,
-          ])
+          ],
+        );
+      })
+      // Gets the created storage event and returns it to the user
+      .then(() => db.query('SELECT * FROM StorageEvent ORDER BY id DESC LIMIT 0, 1'))
+      .then((eventResult) => Promise.all(eventResult, db.commit()))
+      .then(([eventResult]) => {
+        db.close();
+        response.send(eventResult);
+      })
+      .catch((err) => {
+        console.log(err);
+        db.rollback();
+        db.close();
+        response.send(400);
+      });
+  }
+});
+// Registers an article
+router.post('/register', async (request, response) => {
+  const db = await makeDb();
+  const regInfo = {
+    shelf: request.body.shelf,
+    package: request.body.package,
+    comment: request.body.comment,
+    storage_room: request.body.storage_room,
+    material_number: request.body.material_number,
+    description: request.body.description,
+    reference_number: request.body.material_number.split('-')[0],
+  };
+  let selectresults;
+
+  // checks so that storage_room, material_number and either package or shelf is provided. Package and shelf are tried with the logic of a xor gate.
+  if (!regInfo.storage_room || !regInfo.material_number || !(!(regInfo.package && regInfo.shelf) && (regInfo.package || regInfo.shelf))) {
+    response.status(400).send('Bad request');
+  } else if (regInfo.package) {
+    // Checks in the article in a package
+    db.beginTransaction()
+      .then(() => {
+        // Create case if not exists
+        db.query('INSERT INTO `Case` (reference_number) SELECT ? WHERE NOT EXISTS (SELECT * FROM `Case` WHERE reference_number= ?)',
+          [regInfo.reference_number, regInfo.reference_number]);
+      })
+      .then(() => {
+        // Checks if article already exists, then throws error
+        const alreadyExists = db.query('SELECT * FROM Article WHERE material_number = ?', [regInfo.material_number]);
+        return Promise.all([alreadyExists]);
+      })
+      .then((alreadyExists) => {
+        // Creates the article
+        if (alreadyExists[0][0]) {
+          throw new Error(`Article with material_number ${regInfo.material_number} already exists`);
+        } else {
+          db.query('INSERT INTO Article (material_number, description, `case`) VALUES (?, ?, (SELECT id FROM `Case` WHERE reference_number = ?))',
+            [regInfo.material_number, regInfo.description, regInfo.reference_number]);
+        }
+      })
+      .then(() => {
+        // Gets name of shelf, storageroom and branch, and id of storageroom.
+        const p1 = db.query('SELECT sh.shelf_name, st.name AS StorageRoomName, co.current_storage_room, br.name AS BranchName FROM Shelf sh INNER JOIN Container co ON sh.id IN (SELECT shelf FROM Package WHERE id = co.id) INNER JOIN StorageRoom st ON co.current_storage_room = st.id INNER JOIN Branch br ON st.branch = br.id WHERE co.id = ? ', [regInfo.package]);
+        return Promise.all([p1]);
+      })
+      .then((p1) => {
+        selectresults = p1[0];
+        // checks so that the storageroom where the package is is the same as the one where the register is done
+        if (selectresults[0].current_storage_room != regInfo.storage_room) {
+          throw new Error('Wrong storage room');
+        } else {
+          // Creates the storagemap for the article
+          db.query(
+            'INSERT INTO StorageMap (article, container) VALUES ((SELECT id FROM Article WHERE material_number = ?), ?)',
+            [
+              regInfo.material_number,
+              regInfo.package,
+            ],
+          );
+        }
+      })
+      .then(() => {
+        // Createa storageevent for the article
+        db.query(
+          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+          [
+            regInfo.comment,
+            regInfo.package,
+            selectresults[0].shelf_name,
+            selectresults[0].StorageRoomName,
+            regInfo.material_number,
+            selectresults[0].BranchName,
+          ],
+        );
+      })
+      // Gets the created storage event and returns it to the user
+      .then(() => db.query('SELECT * FROM StorageEvent ORDER BY id DESC LIMIT 0, 1'))
+      .then((eventResult) => Promise.all(eventResult, db.commit()))
+      .then(([eventResult]) => {
+        db.close();
+        response.send(eventResult);
+      })
+      .catch((err) => {
+        console.log(err);
+        db.rollback();
+        db.close();
+        response.send(400);
+      });
+    // End of if regInfo.package statament
+  } else if (regInfo.shelf) {
+    // Registers the article to a Shelf, without a package
+    db.beginTransaction()
+      .then(() => {
+        // Create case if not exists
+        db.query('INSERT INTO `Case` (reference_number) SELECT ? WHERE NOT EXISTS (SELECT * FROM `Case` WHERE reference_number= ?)',
+          [regInfo.reference_number, regInfo.reference_number]);
+      })
+      .then(() => {
+        // Checks if article already exists, then throws error
+        const alreadyExists = db.query('SELECT * FROM Article WHERE material_number = ?', [regInfo.material_number]);
+        return Promise.all([alreadyExists]);
+      })
+      .then((alreadyExists) => {
+        if (alreadyExists[0][0]) {
+          throw new Error('Article with given material_number already exists');
+        } else {
+          // Creates the article
+          db.query('INSERT INTO Article (material_number, description, `case`) VALUES (?, ?, (SELECT id FROM `Case` WHERE reference_number = ?))',
+            [regInfo.material_number, regInfo.description, regInfo.reference_number]);
+        }
+      })
+      .then(() => {
+        // Gets information for checking that the check-in is made in the right storageroom, also gets information to put in the storageevent
+        const p1 = db.query('SELECT sh.shelf_name, st.name AS StorageRoomName, co.current_storage_room, br.name AS BranchName FROM Shelf sh INNER JOIN Container co ON sh.id = co.id INNER JOIN StorageRoom st ON co.current_storage_room = st.id INNER JOIN Branch br ON st.branch = br.id WHERE co.id = ? ', [regInfo.shelf]);
+        return Promise.all([p1]);
+      })
+      .then((p1) => {
+        selectresults = p1[0];
+        // checks so that the storageroom where the shelf is is the same as the one where the check-in is done
+        if (selectresults[0].current_storage_room != regInfo.storage_room) {
+          throw new Error('Wrong storage room');
+        } else {
+          // Inserts the correct container into the storagemap
+          db.query(
+            'INSERT INTO StorageMap (article, container) VALUES ((SELECT id FROM Article WHERE material_number = ?), ?)',
+            [
+              regInfo.material_number,
+              regInfo.shelf,
+            ],
+          );
+        }
+      })
+      .then(() => {
+        // Createa storageevent for the article
+        db.query(
+          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, NULL,?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+          [
+            regInfo.comment,
+            selectresults[0].shelf_name,
+            selectresults[0].StorageRoomName,
+            regInfo.material_number,
+            selectresults[0].BranchName,
+          ],
+        );
       })
       // Gets the created storage event and returns it to the user
       .then(() => db.query('SELECT * FROM StorageEvent ORDER BY id DESC LIMIT 0, 1'))
