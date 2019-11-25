@@ -384,6 +384,40 @@ If successful, the response will be the created article:
 }
 ```
 
+## Update the description of an article
+This endpoint updates the description of an article.
+
+##### HTTP Request
+`PUT http://localhost:9000/article/<ID>`
+
+##### URL Parameters
+Parameter | Description
+--------- | -----------
+ID | The ID of the specific article
+
+##### JSON Parameters 
+Parameter | Required | Description
+--------- | ----------- | -----------
+description | yes | Optional description of the article
+
+Example body of request:
+```json
+{
+    "description": "New description"
+}
+```
+
+##### HTTP Response
+If successful, the response will be the updated article object:
+```json
+{
+    "material_number": "129274-90",
+    "reference_number": "129274",
+    "description": "New description",
+    "id": 4
+}
+```
+
 ## Check in article 
 This endpoint checks in an existing article in a storage room with shelf/package. If an article with the specified material number does not exist, the response will return an error code. 
 
@@ -427,6 +461,57 @@ If the check in was successful, the response will be the storage event that was 
     "timestamp": 1579679491,
     "user": "1688042193699",
     "comment": "",
+    "package": null,
+    "shelf": "Hylla 8",
+    "storage_room": "DNA materialrum 2",
+    "branch": "DNA",
+    "article": 58
+}
+```
+
+## Incorporate an article
+This endpoint incorporates an existing article in a storage room with shelf/package. If an article with the specified material number does not exist, the response will return an error code. Incorporating means indefinite storage of an article and behaves just like a check-in, but with the status 'incorporated' instead. 
+
+##### HTTP Request
+`POST http://localhost:9000/article/incorporate`
+
+##### JSON Parameters 
+Parameter | Required | Description
+--------- | ----------- | -----------
+material_number | yes | The name complete material number of the article. I.e. reference-number + article-number.
+comment | no | Optional comment describing the reason behind the incorporation 
+storage_room | yes | The id of the storage room where the incorporation in was made
+shelf | yes, if package not supplied  | The id of the shelf where the incorporated material will be stored
+package | no | The id of the package in which the material is stored in  
+
+Example body of request where shelf was specified:
+```json
+{
+    "material_number": "129274-90",
+    "comment": "Incorporated gun",
+    "storage_room": 3,
+    "shelf": 6,
+}
+```
+
+Example body of request where package instead was specified:
+```json
+{
+    "material_number": "129274-90",
+    "comment": "Incorporated gun",
+    "storage_room": 3,
+    "package": 2,
+}
+```
+##### HTTP Response
+If the incorporation was successful, the response will be the storage event that was created:
+```json
+{
+    "id": 67,
+    "action": "incorporated",
+    "timestamp": 1579679491,
+    "user": "1688042193699",
+    "comment": "Incorporated gun",
     "package": null,
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
@@ -1081,28 +1166,27 @@ The endpoint returns JSON data structured like this:
 ]
 ```
 
-## Create a package for a given case
-This endpoint creates the next package for a given case. For example, if no packages exists for a certain case (e.g. reference number 12738) this endpoint will create a package with package number 12738-K01. The next time this endpoint is called, 12738-K02 will be created
+## Create a package
+This endpoint creates the next package for a given reference number. For example, if no packages exists for a certain case (e.g. reference number 12738) this endpoint will create a package with package number 12738-K01. The next time this endpoint is called, 12738-K02 will be created. If a case with the given reference number does not exist, a new case will be created.
 
 ##### HTTP Request
-`POST http://localhost:9000/package/case/<ID>`
+`POST http://localhost:9000/package
 
-##### URL Parameters
-Parameter | Description
---------- | -----------
-ID | The ID of the case for which to create a new package
 
 ##### JSON Parameters 
-Parameter |Description
---------- | -----------
-current_storage_room | The id of the storage room for the new package
-shelf | The the id of the shelf for the new package
+Parameter | Required | Description
+--------- | ----------- | -----------
+current_storage_room | yes | The id of the storage room for the new package
+shelf | yes | The the id of the shelf for the new package
+reference_number | yes | The reference number of the associated case.
+
 
 Example body of request:
 ```json
 {
     "current_storage_room": 3,
-    "shelf": 2
+    "shelf": 2,
+    "reference_number": "213876"
 }
 ```
 ##### HTTP Response
