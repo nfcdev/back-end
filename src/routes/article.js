@@ -38,7 +38,7 @@ router.post('/process', (req, res) => {
       processArticle.material_number];
 
 
-    let sql2 = 'delete from StorageMap where article = (select id from Article where material_number = ?)';
+    let sql2 = 'UPDATE StorageMap SET container = NULL where article = (select id from Article where material_number = ?)';
 
     let array2 = [processArticle.material_number];
 
@@ -216,7 +216,7 @@ router.post('/check-out', (request, response) => {
                                   response.send(result4);
                                 });
 
-                              sql = 'DELETE from StorageMap where article = (select id from Article where material_number = ?)';
+                              sql = 'UPDATE StorageMap SET container = NULL where article = (select id from Article where material_number = ?)';
                               connection.query(
                                 sql,
                                 [
@@ -367,7 +367,7 @@ router.post('/discard', (request, response) => {
                                   response.send(result4);
                                 });
 
-                              sql = 'DELETE from StorageMap where article = (select id from Article where material_number = ?)';
+                              sql = 'UPDATE StorageMap SET container = NULL where article = (select id from Article where material_number = ?)';
                               connection.query(
                                 sql,
                                 [
