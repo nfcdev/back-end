@@ -166,9 +166,8 @@ router.get('/package/:id', (req, res) => {
 });
 
 // gets all articles belonging to a specific branch
-router.get('/branch/:branch_id', (request, response) => {
+router.get('/branch/:id', (request, response) => {
   const { id } = request.params;
-  // eslint-disable-next-line consistent-return
   pool.getConnection((err, connection) => {
     if (err) {
       console.log(err);
