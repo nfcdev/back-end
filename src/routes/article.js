@@ -52,25 +52,82 @@ router.post('/', (req, res) => {
   }
 });
 
-// Return all articles in DB
+// Return all articles in DB, can be queried
 router.get('/', (req, res) => {
   // eslint-disable-next-line func-names
-  pool.getConnection((err, connection) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send('Could not connect to server');
-    } else {
-      const sql_query = 'SELECT * FROM Article_information';
-      connection.query(sql_query, (err1, result) => {
-        connection.release();
-        if (err1) {
-          console.log(err1);
-          res.status(400).send('Bad query');
-        } else {
-          res.send(result);
-        }
-      });
-    }
+  const { reference_number } = request.query;
+  const { material_number } = request.query;
+  const { location } = request.query;
+  const { shelf } = request.query;
+  const { package_number } = request.query;
+  const { status } = request.query;
+
+  sql_query = 'SELECT * FROM Article_information';
+
+  let has_where_condition = false;
+  const parameters = [];
+
+  if (
+    reference_number
+    || material_number
+    || location
+    || shelf
+    || package_number
+    || status
+  ) {
+    sql_query += ' WHERE';
+  }
+
+  if (reference_number) {
+    sql_query += ' reference_number = ?';
+    has_where_condition = true;
+    parameters.push(reference_number);
+  }
+
+  if (material_number) {
+    if (has_where_condition) sql_query += ' and';
+    sql_query += ' material_number = ?';
+    has_where_condition = true;
+    parameters.push(material_number);
+  }
+
+  if (package_number) {
+    if (has_where_condition) sql_query += ' and';
+    sql_query
+      += ' package = ?';
+    has_where_condition = true;
+    parameters.push(package_number);
+  }
+
+  // Storageroom
+  if (location) {
+    if (has_where_condition) sql_query += ' and';
+    sql_query += ' storage_room = ?';
+    has_where_condition = true;
+    parameters.push(location);
+  }
+
+  // Shelf
+  if (shelf) {
+    if (has_where_condition) sql_query += ' and';
+    sql_query += ' shelf = ?';
+    has_where_condition = true;
+    parameters.push(shelf);
+  }
+
+  if (status) {
+    if (has_where_condition) sql_query += ' and';
+    sql_query += ' status = ?';
+    has_where_condition = true;
+    parameters.push(status);
+  }
+
+  sql_query += ' Order by material_number asc';
+
+
+  pool.query(sql_query, parameters, (err, rows) => {
+    console.log('Data received from Db:\n');
+    response.send(rows);
   });
 });
 
@@ -86,7 +143,7 @@ router.get('/:id', (req, res) => {
       connection.query(sql_query, [id], (err1, result) => {
         connection.release();
         if (err1) {
-          console.log(err1)
+          console.log(err1);
           res.status(400).send('Bad query');
         } else {
           res.send(result);
@@ -520,7 +577,7 @@ router.post('/register', async (request, response) => {
 // Change the description of an article
 router.put('/:id', async (request, response) => {
   const db = await makeDb();
-  const id = request.params.id;
+  const {id} = request.params;
   const desc = request.body.description;
 
   db.beginTransaction()
@@ -626,7 +683,6 @@ router.post('/incorporate', async (request, response) => {
         selectresults = p1[0];
         // checks so that the storageroom where the shelf is is the same as the one where the incorporation is done
         if (selectresults[0].current_storage_room != incorp.storage_room) {
-
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap
