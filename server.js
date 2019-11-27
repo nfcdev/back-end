@@ -20,11 +20,6 @@ const app = express();
 const whitelist = [
   `${frontendURL}:${frontendport}`,
   `${backendURL}:${backendport}`,
-  `http://front-end:${frontendport}`,
-  `http://back-end:${backendport}`,
-  'http://company-4-1-tddc88-2019.edu.liu.se',
-  'http://server:9000',
-  'http://localhost:9000',
 ];
 
 
