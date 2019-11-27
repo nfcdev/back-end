@@ -96,6 +96,29 @@ router.get('/:id', (req, res) => {
   });
 });
 
+// get all articles on a specifik shelf
+router.get('/shelf/:id', (request, response) => {
+  const { id } = request.params;
+  pool.getConnection(function (err, connection) {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Could not connect to server');
+    } else {
+      const sql = 'SELECT * FROM Article_information WHERE (material_number IN (SELECT material_number FROM Article WHERE id IN (SELECT article FROM StorageMap WHERE container IN (SELECT id FROM Shelf WHERE id = ?)))) OR  (material_number IN (SELECT material_number FROM Article WHERE id IN (SELECT article FROM StorageMap WHERE container IN (SELECT id FROM Package WHERE shelf = ?))))';
+      connection.query(sql, [id, id], (err1, result) => {
+        connection.release();
+        if (err1) {
+          console.log(err1);
+          response.status(400).send('Bad query');
+        } else {
+          console.log('Data received');
+          response.send(result);
+        }
+      });
+    }
+  });
+});
+
 // Return all articles for a specific case
 router.get('/case/:id', (req, res) => {
   const { id } = req.params;
