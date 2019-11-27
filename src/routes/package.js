@@ -137,6 +137,28 @@ router.get('/storageroom/:storageroom_id', (request, response) => {
   });
 });
 
+router.get('/shelf/:shelf_id', (request, response) => {
+  const { shelf_id } = request.params;
+  pool.getConnection(function (err, connection) {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Could not connect to server');
+    } else {
+      const sql = 'SELECT * FROM Package WHERE shelf = ?';
+      connection.query(sql, [shelf_id], (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          response.status(400).json({ error: err.message });
+        } else {
+          console.log('Data received');
+          response.send(result);
+        }
+      });
+    }
+  });
+});
+
 // Gets all packagaes belonging to a specifik branch
 router.get('/branch/:branch_id', (request, response) => {
   const { branch_id } = request.params;
