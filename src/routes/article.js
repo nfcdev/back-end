@@ -4,14 +4,14 @@
 /* eslint-disable no-shadow */
 const express = require('express');
 const util = require('util');
-
+const { authenticatedRequest, adminAuthorizedRequest } = require('../util/authentication');
 const router = express.Router();
 
 // Example: Establishing a connection and query to db
 const pool = require('../util/connect');
 
 //  Process an article with specific storage-room id
-router.post('/process', (req, res) => {
+router.post('/process', authenticatedRequest, (req, res) => {
   const processArticle = {
     material_number: req.body.material_number,
     comment: req.body.comment,
@@ -21,7 +21,7 @@ router.post('/process', (req, res) => {
     res.status(400).send('Bad request');
   } else {
     let sql1 = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
-    sql1 += 'SELECT "processed", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?,';
+    sql1 += 'SELECT "processed", UNIX_TIMESTAMP(), ?, ?,';
     sql1 += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
     sql1 += " THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,";
     sql1 += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
@@ -31,6 +31,7 @@ router.post('/process', (req, res) => {
     sql1 += ' Article.material_number = ?';
 
     let array1 = [
+      req.user,
       processArticle.comment,
       processArticle.material_number,
       processArticle.material_number,
@@ -138,7 +139,7 @@ router.post('/process', (req, res) => {
 });
 
 // Checks out article
-router.post('/check-out', (request, response) => {
+router.post('/check-out', authenticatedRequest, (request, response) => {
   const checkOut = {
     material_number: request.body.material_number,
     comment: request.body.comment,
@@ -191,7 +192,7 @@ router.post('/check-out', (request, response) => {
 
 
                         sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
-                        sql += 'SELECT "checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?,';
+                        sql += 'SELECT "checked_out", UNIX_TIMESTAMP(), ?, ?,';
                         sql += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
                         sql += " THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,";
                         sql += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
@@ -206,6 +207,7 @@ router.post('/check-out', (request, response) => {
                         connection.query(
                           sql,
                           [
+                            request.user,
                             checkOut.comment,
                             checkOut.material_number,
                             checkOut.material_number,
@@ -290,7 +292,7 @@ router.post('/check-out', (request, response) => {
 });
 
 // Discards an article
-router.post('/discard', (request, response) => {
+router.post('/discard', authenticatedRequest, (request, response) => {
   const discard = {
     material_number: request.body.material_number,
     comment: request.body.comment,
@@ -342,7 +344,7 @@ router.post('/discard', (request, response) => {
 
 
                         sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
-                        sql += 'SELECT "discarded", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?,';
+                        sql += 'SELECT "discarded", UNIX_TIMESTAMP(), ?, ?,';
                         sql += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
                         sql += " THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,";
                         sql += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
@@ -357,6 +359,7 @@ router.post('/discard', (request, response) => {
                         connection.query(
                           sql,
                           [
+                            request.user,
                             discard.comment,
                             discard.material_number,
                             discard.material_number,
@@ -724,7 +727,7 @@ const makeDb = () => new Promise((resolve, reject) => {
 });
 
 // Checks in an article
-router.post('/check-in', async (request, response) => {
+router.post('/check-in', authenticatedRequest, async (request, response) => {
   const db = await makeDb();
   const checkIn = {
     shelf: request.body.shelf,
@@ -765,8 +768,9 @@ router.post('/check-in', async (request, response) => {
       .then(() => {
         // Createa storageevent for the article
         db.query(
-          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
           [
+            request.user,
             checkIn.comment,
             checkIn.package,
             selectresults[0].shelf_name,
@@ -819,8 +823,9 @@ router.post('/check-in', async (request, response) => {
       .then(() => {
         // Createa storageevent for the article
         db.query(
-          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, NULL,?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, NULL,?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
           [
+            request.user,
             checkIn.comment,
             selectresults[0].shelf_name,
             selectresults[0].StorageRoomName,
@@ -845,7 +850,7 @@ router.post('/check-in', async (request, response) => {
   }
 });
 // Registers an article
-router.post('/register', async (request, response) => {
+router.post('/register', authenticatedRequest, async (request, response) => {
   const db = await makeDb();
   const regInfo = {
     shelf: request.body.shelf,
@@ -907,8 +912,9 @@ router.post('/register', async (request, response) => {
       .then(() => {
         // Createa storageevent for the article
         db.query(
-          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
           [
+            request.user,
             regInfo.comment,
             regInfo.package,
             selectresults[0].shelf_name,
@@ -978,8 +984,9 @@ router.post('/register', async (request, response) => {
       .then(() => {
         // Createa storageevent for the article
         db.query(
-          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, NULL,?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, NULL,?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
           [
+            request.user,
             regInfo.comment,
             selectresults[0].shelf_name,
             selectresults[0].StorageRoomName,
@@ -1025,8 +1032,9 @@ router.put('/:id', async (request, response) => {
       response.status(400).json({ error: err.message });
     });
 });
+
 // Incorporates an article
-router.post('/incorporate', async (request, response) => {
+router.post('/incorporate', authenticatedRequest, async (request, response) => {
   const db = await makeDb();
   const incorp = {
     shelf: request.body.shelf,
@@ -1037,7 +1045,7 @@ router.post('/incorporate', async (request, response) => {
   };
   let selectresults;
 
-  // checks so that storage_room, material_number and either package or shelf is provided. Package and shelf are tried with the logic of a xor gate.
+  // Checks so that storage_room, material_number and either package or shelf is provided. Package and shelf are tried with the logic of a xor gate.
   if (!incorp.storage_room || !incorp.material_number || !(!(incorp.package && incorp.shelf) && (incorp.package || incorp.shelf))) {
     response.status(400).send('Bad request');
   } else if (incorp.package) {
@@ -1071,8 +1079,9 @@ router.post('/incorporate', async (request, response) => {
           throw new Error('Article does not exist');
         } else {
           db.query(
-            'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("incorporated", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+            'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("incorporated", UNIX_TIMESTAMP(), ?, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
             [
+              request.user,
               incorp.comment,
               incorp.package,
               selectresults[0].shelf_name,
@@ -1130,8 +1139,9 @@ router.post('/incorporate', async (request, response) => {
         } else {
           // Createa storageevent for the article
           db.query(
-            'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("incorporated", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, NULL,?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+            'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("incorporated", UNIX_TIMESTAMP(), ?, ?, NULL,?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
             [
+              request.user,
               incorp.comment,
               selectresults[0].shelf_name,
               selectresults[0].StorageRoomName,
