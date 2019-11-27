@@ -17,14 +17,12 @@ const port = normalizePort(`${backendport}` || '9000');
 const app = express();
 
 
-let FRONTEND_URL = `${frontendURL}:${frontendport}`;
+let FRONTEND_URL = `${frontendURL}`;
 const BACKEND_URL = `${backendURL}:${backendport}`;
 
-
-if (process.env.NODE_ENV === 'production') {
-  FRONTEND_URL = FRONTEND_URL.replace(':', '');
+if (process.env.NODE_ENV !== 'production') {
+  FRONTEND_URL += `:${frontendport}`;
 }
-
 console.log('===============================');
 console.log(BACKEND_URL);
 console.log(FRONTEND_URL);
