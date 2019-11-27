@@ -11,6 +11,7 @@ router.use('/branch', require('./branch'));
 router.use('/package', require('./package'));
 router.use('/shelf', require('./shelf'));
 router.use('/storage-event', require('./storage-event'));
+router.use('/user', require('./user'));
 
 
 module.exports = router;
