@@ -23,14 +23,14 @@ router.post('/process', (req, res) => {
     let sql1 = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
     sql1 += 'SELECT "processed", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?,';
     sql1 += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
-    sql1 += " THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,";
+    sql1 += ' THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,';
     sql1 += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
     sql1 += ' (Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?)))) AND';
     sql1 += ' StorageRoom.id = ? AND';
     sql1 += ' Branch.id = (select branch from StorageRoom where id=?) AND';
     sql1 += ' Article.material_number = ?';
 
-    let array1 = [
+    const array1 = [
       processArticle.comment,
       processArticle.material_number,
       processArticle.material_number,
@@ -41,77 +41,62 @@ router.post('/process', (req, res) => {
       processArticle.material_number];
 
 
-    let sql2 = 'UPDATE StorageMap SET container = NULL where article = (select id from Article where material_number = ?)';
+    const sql2 = 'UPDATE StorageMap SET container = NULL where article = (select id from Article where material_number = ?)';
 
-    let array2 = [processArticle.material_number];
-
-
-    let sql3 = 'select * from StorageEvent order by id desc limit 1';
-    //sql3 = "select material_number from Article where id in (select article from StorageMap)";
-
-    let sql4 = 'SELECT current_storage_room FROM Container WHERE id = (SELECT container FROM StorageMap WHERE article = (SELECT id from Article WHERE material_number = ?)) ';
+    const array2 = [processArticle.material_number];
 
 
-            
+    const sql3 = 'select * from StorageEvent order by id desc limit 1';
+    // sql3 = "select material_number from Article where id in (select article from StorageMap)";
+
+    const sql4 = 'SELECT current_storage_room FROM Container WHERE id = (SELECT container FROM StorageMap WHERE article = (SELECT id from Article WHERE material_number = ?)) ';
+
 
     pool.getConnection((err0, connection) => {
       if (err0) {
         console.log(err0);
         return res.status(500).send('Could not connect to server');
       }
-      else {
-        connection.beginTransaction(function (err1) {
-          if (err1) {
-            console.log(err1);
-            res.status(500).send('Could not start transaction');
-          }
-          else {
 
-
-              connection.query(sql4, [processArticle.material_number], function (err3, result1) {
-                if (err3 || !result1[0] || !result1[0].current_storage_room) {
+      connection.beginTransaction(function (err1) {
+        if (err1) {
+          console.log(err1);
+          res.status(500).send('Could not start transaction');
+        } else {
+          connection.query(sql4, [processArticle.material_number], function (err3, result1) {
+            if (err3 || !result1[0] || !result1[0].current_storage_room) {
+              connection.rollback(function () {
+                console.log(err3);
+                res.status(400).send('Bad query! Your article may have already been processed.');
+              });
+            } else if (result1[0].current_storage_room == processArticle.storage_room) {
+              connection.query(sql1, array1, function (err2, result2) { // inserts data into StorageEvent
+                if (err2) {
                   connection.rollback(function () {
-                    console.log(err3);
-                    res.status(400).send('Bad query! Your article may have already been processed.');
+                    console.log(err2);
+                    res.status(400).send('Bad query');
                   });
-                } else if (result1[0].current_storage_room == processArticle.storage_room) {
-
-
-
-
-            connection.query(sql1, array1, function (err2, result2) { // inserts data into StorageEvent
-              if (err2) {
-                connection.rollback(function () {
-                  console.log(err2);
-                  res.status(400).send('Bad query');
-                });
-              }
-              else {
-                if (result2.affectedRows == 1) { // checks whether 1 entry was inserted in storageevent, ie, if the material number exists.
-
-                  connection.query(sql2, array2, function (err4, result4) { //deletes entry in storagemap
+                } else if (result2.affectedRows == 1) { // checks whether 1 entry was inserted in storageevent, ie, if the material number exists.
+                  connection.query(sql2, array2, function (err4, result4) { // deletes entry in storagemap
                     if (err4) {
                       connection.rollback(function () {
                         console.log(err4);
                         res.status(400).send('Bad query');
                       });
-                    }
-                    else {
+                    } else {
                       connection.query(sql3, function (err5, result5) { // displays storageevent entry with highest id
                         if (err5) {
                           connection.rollback(function () {
                             console.log(err5);
                             res.status(400).send('Bad query');
                           });
-                        }
-                        else {
+                        } else {
                           connection.commit(function (err9) {
                             if (err9) {
                               connection.rollback(function () {
                                 console.log(err9);
                               });
-                            }
-                            else {
+                            } else {
                               res.send(result5[0]);
                               console.log('Transaction Complete.');
                             }
@@ -121,18 +106,14 @@ router.post('/process', (req, res) => {
                     }
                   });
                 }
-                
-              }
-            });
-          }
-          else {
-            res.status(400).send('Bad query!');
-          }
+              });
+            } else {
+              res.status(400).send('Bad query!');
+            }
           });
-          }
-        });
-        connection.release();
-      }
+        }
+      });
+      connection.release();
     });
   }
 });
@@ -157,7 +138,6 @@ router.post('/check-out', (request, response) => {
             console.log(err0);
             response.status(500).send('Could not start transaction');
           } else {
-
             // Gets storageroom to compare with given storageroom from user
             sql = 'SELECT current_storage_room FROM Container WHERE id = (SELECT container FROM StorageMap WHERE article = (SELECT id from Article WHERE material_number = ?)) ';
             connection.query(sql, [checkOut.material_number], function (err2, result1) {
@@ -183,83 +163,83 @@ router.post('/check-out', (request, response) => {
                       });
                     } else {
                       // Creates Storage event for the article
-                      
-                        // User is hardcoded to "1" right now
-                        //sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, " - ", " - ", (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
 
-                        //sql = 'SELECT * FROM StorageEvent'
+                      // User is hardcoded to "1" right now
+                      // sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, " - ", " - ", (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
 
-
-                        sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
-                        sql += 'SELECT "checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?,';
-                        sql += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
-                        sql += " THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,";
-                        sql += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
-                        sql += ' (Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?)))) AND';
-                        sql += ' StorageRoom.id = ? AND';
-                        sql += ' Branch.id = (select branch from StorageRoom where id=?) AND';
-                        sql += ' Article.material_number = ?';
+                      // sql = 'SELECT * FROM StorageEvent'
 
 
+                      sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
+                      sql += 'SELECT "checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?,';
+                      sql += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
+                      sql += ' THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,';
+                      sql += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
+                      sql += ' (Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?)))) AND';
+                      sql += ' StorageRoom.id = ? AND';
+                      sql += ' Branch.id = (select branch from StorageRoom where id=?) AND';
+                      sql += ' Article.material_number = ?';
 
 
-                        connection.query(
-                          sql,
-                          [
-                            checkOut.comment,
-                            checkOut.material_number,
-                            checkOut.material_number,
-                            checkOut.material_number,
-                            checkOut.material_number,
-                            checkOut.storage_room,
-                            checkOut.storage_room,
-                            checkOut.material_number,
-                          ],
-                          function (err4, result3) {
-                            if (err4) {
-                              connection.rollback(function () {
-                                console.log(err4);
-                                response.status(400).send('Bad query');
-                              });
-                            } else {
-                              console.log(result3);
+                      connection.query(
+                        sql,
+                        [
+                          checkOut.comment,
+                          checkOut.material_number,
+                          checkOut.material_number,
+                          checkOut.material_number,
+                          checkOut.material_number,
+                          checkOut.storage_room,
+                          checkOut.storage_room,
+                          checkOut.material_number,
+                        ],
+                        function (err4, result3) {
+                          if (err4) {
+                            connection.rollback(function () {
+                              console.log(err4);
+                              response.status(400).send('Bad query');
+                            });
+                          } else {
+                            console.log(result3);
 
-                              sql = 'SELECT * FROM StorageEvent WHERE id = ?';
-                              connection.query(
-                                sql,
-                                [
-                                  result3.insertId,
-                                ],
-                                function (err5, result4) {
-                                  if (err5) {
-                                    connection.rollback(function () {
-                                      console.log(err5);
-                                      response.status(400).send('Bad query');
-                                    });
-                                  }
-                                  response.send(result4[0]);
-                                });
+                            sql = 'SELECT * FROM StorageEvent WHERE id = ?';
+                            connection.query(
+                              sql,
+                              [
+                                result3.insertId,
+                              ],
+                              function (err5, result4) {
+                                if (err5) {
+                                  connection.rollback(function () {
+                                    console.log(err5);
+                                    response.status(400).send('Bad query');
+                                  });
+                                }
+                                response.send(result4[0]);
+                              },
+                            );
 
-                              sql = 'UPDATE StorageMap SET container = NULL where article = (select id from Article where material_number = ?)';
-                              connection.query(
-                                sql,
-                                [
-                                  checkOut.material_number,
-                                ],
-                                function (err6, result5) {
-                                  if (err6) {
-                                    connection.rollback(function () {
-                                      console.log(err6);
-                                      response.status(400).send('Bad query');
-                                    });
-                                  } else {
-                                    console.log(result5);
-                                  }
-                                })
-                            }
-                          },
-                        );
-                      
+                            sql = 'UPDATE StorageMap SET container = NULL where article = (select id from Article where material_number = ?)';
+                            connection.query(
+                              sql,
+                              [
+                                checkOut.material_number,
+                              ],
+                              function (err6, result5) {
+                                if (err6) {
+                                  connection.rollback(function () {
+                                    console.log(err6);
+                                    response.status(400).send('Bad query');
+                                  });
+                                } else {
+                                  console.log(result5);
+                                }
+                              },
+                            );
+                          }
+                        },
+                      );
+
                       connection.commit(function (err5) {
                         if (err5) {
                           connection.rollback(function () {
@@ -271,17 +251,12 @@ router.post('/check-out', (request, response) => {
                         }
                       });
                     }
-
-
-
-                  });
-
+                  },
+                );
               } else {
                 response.status(400).send('Bad query');
               }
             });
-
-
           }
         });
       }
@@ -309,7 +284,6 @@ router.post('/discard', (request, response) => {
             console.log(err0);
             response.status(500).send('Could not start transaction');
           } else {
-
             // Gets storageroom to compare with given storageroom from user
             sql = 'SELECT current_storage_room FROM Container WHERE id = (SELECT container FROM StorageMap WHERE article = (SELECT id from Article WHERE material_number = ?)) ';
             connection.query(sql, [discard.material_number], function (err2, result1) {
@@ -335,82 +309,82 @@ router.post('/discard', (request, response) => {
                       });
                     } else {
                       // Creates Storage event for the article
-                        // User is hardcoded to "1" right now
-                        //sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, " - ", " - ", (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
+                      // User is hardcoded to "1" right now
+                      // sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, " - ", " - ", (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
 
-                        //sql = 'SELECT * FROM StorageEvent'
-
-
-                        sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
-                        sql += 'SELECT "discarded", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?,';
-                        sql += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
-                        sql += " THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,";
-                        sql += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
-                        sql += ' (Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?)))) AND';
-                        sql += ' StorageRoom.id = ? AND';
-                        sql += ' Branch.id = (select branch from StorageRoom where id=?) AND';
-                        sql += ' Article.material_number = ?';
+                      // sql = 'SELECT * FROM StorageEvent'
 
 
+                      sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
+                      sql += 'SELECT "discarded", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?,';
+                      sql += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
+                      sql += ' THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,';
+                      sql += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
+                      sql += ' (Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?)))) AND';
+                      sql += ' StorageRoom.id = ? AND';
+                      sql += ' Branch.id = (select branch from StorageRoom where id=?) AND';
+                      sql += ' Article.material_number = ?';
 
 
-                        connection.query(
-                          sql,
-                          [
-                            discard.comment,
-                            discard.material_number,
-                            discard.material_number,
-                            discard.material_number,
-                            discard.material_number,
-                            discard.storage_room,
-                            discard.storage_room,
-                            discard.material_number,
-                          ],
-                          function (err4, result3) {
-                            if (err4) {
-                              connection.rollback(function () {
-                                console.log(err4);
-                                response.status(400).send('Bad query');
-                              });
-                            } else {
-                              console.log(result3);
+                      connection.query(
+                        sql,
+                        [
+                          discard.comment,
+                          discard.material_number,
+                          discard.material_number,
+                          discard.material_number,
+                          discard.material_number,
+                          discard.storage_room,
+                          discard.storage_room,
+                          discard.material_number,
+                        ],
+                        function (err4, result3) {
+                          if (err4) {
+                            connection.rollback(function () {
+                              console.log(err4);
+                              response.status(400).send('Bad query');
+                            });
+                          } else {
+                            console.log(result3);
 
-                              sql = 'SELECT * FROM StorageEvent WHERE id = ?';
-                              connection.query(
-                                sql,
-                                [
-                                  result3.insertId,
-                                ],
-                                function (err5, result4) {
-                                  if (err5) {
-                                    connection.rollback(function () {
-                                      console.log(err5);
-                                      response.status(400).send('Bad query');
-                                    });
-                                  }
-                                  response.send(result4[0]);
-                                });
+                            sql = 'SELECT * FROM StorageEvent WHERE id = ?';
+                            connection.query(
+                              sql,
+                              [
+                                result3.insertId,
+                              ],
+                              function (err5, result4) {
+                                if (err5) {
+                                  connection.rollback(function () {
+                                    console.log(err5);
+                                    response.status(400).send('Bad query');
+                                  });
+                                }
+                                response.send(result4[0]);
+                              },
+                            );
 
-                              sql = 'UPDATE StorageMap SET container = NULL where article = (select id from Article where material_number = ?)';
-                              connection.query(
-                                sql,
-                                [
-                                  discard.material_number,
-                                ],
-                                function (err6, result5) {
-                                  if (err6) {
-                                    connection.rollback(function () {
-                                      console.log(err6);
-                                      response.status(400).send('Bad query');
-                                    });
-                                  } else {
-                                    console.log(result5);
-                                  }
-                                })
-                            }
-                          },
-                        );
-                      
+                            sql = 'UPDATE StorageMap SET container = NULL where article = (select id from Article where material_number = ?)';
+                            connection.query(
+                              sql,
+                              [
+                                discard.material_number,
+                              ],
+                              function (err6, result5) {
+                                if (err6) {
+                                  connection.rollback(function () {
+                                    console.log(err6);
+                                    response.status(400).send('Bad query');
+                                  });
+                                } else {
+                                  console.log(result5);
+                                }
+                              },
+                            );
+                          }
+                        },
+                      );
+
                       connection.commit(function (err5) {
                         if (err5) {
                           connection.rollback(function () {
@@ -422,17 +396,12 @@ router.post('/discard', (request, response) => {
                         }
                       });
                     }
-
-
-
-                  });
-
+                  },
+                );
               } else {
                 response.status(400).send('Bad query');
               }
             });
-
-
           }
         });
       }
@@ -734,14 +703,18 @@ router.post('/check-in', async (request, response) => {
     material_number: request.body.material_number,
   };
   let selectresults;
-
+  let materialId;
   // checks so that storage_room, material_number and either package or shelf is provided. Package and shelf are tried with the logic of a xor gate.
   if (!checkIn.storage_room || !checkIn.material_number || !(!(checkIn.package && checkIn.shelf) && (checkIn.package || checkIn.shelf))) {
     response.status(400).send('Bad request');
   } else if (checkIn.package) {
     // Checks in the article in a package
     db.beginTransaction()
-      .then(() => {
+      .then(() => db.query('(SELECT id FROM Article WHERE material_number = ?)', checkIn.material_number))
+      .then((idResult) => {
+        materialId = idResult[0].id;
+        console.log('ID IS', materialId);
+
         // Gets name of shelf, storageroom and branch, and id of storageroom.
         const p1 = db.query('SELECT sh.shelf_name, st.name AS StorageRoomName, co.current_storage_room, br.name AS BranchName FROM Shelf sh INNER JOIN Container co ON sh.id IN (SELECT shelf FROM Package WHERE id = co.id) INNER JOIN StorageRoom st ON co.current_storage_room = st.id INNER JOIN Branch br ON st.branch = br.id WHERE co.id = ? ', [checkIn.package]);
         return Promise.all([p1]);
@@ -754,10 +727,10 @@ router.post('/check-in', async (request, response) => {
         } else {
           // Inserts the correct container into the storagemap
           db.query(
-            'UPDATE StorageMap SET container = ? WHERE article = (SELECT id FROM Article WHERE material_number = ?)',
+            'UPDATE StorageMap SET container = ? WHERE article = ?',
             [
               checkIn.package,
-              checkIn.material_number,
+              materialId,
             ],
           );
         }
@@ -765,13 +738,13 @@ router.post('/check-in', async (request, response) => {
       .then(() => {
         // Createa storageevent for the article
         db.query(
-          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), 1, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,?,?)',
           [
             checkIn.comment,
             checkIn.package,
             selectresults[0].shelf_name,
             selectresults[0].StorageRoomName,
-            checkIn.material_number,
+            materialId,
             selectresults[0].BranchName,
           ],
         );
@@ -795,7 +768,9 @@ router.post('/check-in', async (request, response) => {
     // Checks in the article to a Shelf, without a package
 
     db.beginTransaction()
-      .then(() => {
+      .then(() => db.query('(SELECT id FROM Article WHERE material_number = ?)', checkIn.material_number))
+      .then((idResult) => {
+        materialId = idResult[0].id;
         // Gets information for checking that the check-in is made in the right storageroom, also gets information to put in the storageevent
         const p1 = db.query('SELECT sh.shelf_name, st.name AS StorageRoomName, co.current_storage_room, br.name AS BranchName FROM Shelf sh INNER JOIN Container co ON sh.id = co.id INNER JOIN StorageRoom st ON co.current_storage_room = st.id INNER JOIN Branch br ON st.branch = br.id WHERE co.id = ? ', [checkIn.shelf]);
         return Promise.all([p1]);
@@ -808,10 +783,10 @@ router.post('/check-in', async (request, response) => {
         } else {
           // Inserts the correct container into the storagemap
           db.query(
-            'UPDATE StorageMap SET container = ? WHERE article = (SELECT id FROM Article WHERE material_number = ?)',
+            'UPDATE StorageMap SET container = ? WHERE article = ?',
             [
               checkIn.shelf,
-              checkIn.material_number,
+              materialId,
             ],
           );
         }
@@ -819,12 +794,12 @@ router.post('/check-in', async (request, response) => {
       .then(() => {
         // Createa storageevent for the article
         db.query(
-          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, NULL,?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), 1, ?, NULL,?, ?,?,?)',
           [
             checkIn.comment,
             selectresults[0].shelf_name,
             selectresults[0].StorageRoomName,
-            checkIn.material_number,
+            materialId,
             selectresults[0].BranchName,
           ],
         );
