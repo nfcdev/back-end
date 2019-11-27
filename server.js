@@ -8,20 +8,18 @@ const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
 const { passport } = require('./src/util/authentication');
-const config = require('./config').get(process.env.NODE_ENV);
+const {
+  frontendURL, backendURL, backendport, frontendport,
+} = require('./config').get(process.env.NODE_ENV);
 
 // Create the server
-const port = normalizePort(`${config['backend-port']}` || '9000');
+const port = normalizePort(`${backendport}` || '9000');
 const app = express();
-
-console.log('==========');
-console.log(config);
-console.log('==========');
 
 
 const whitelist = [
-  `${config['frontend-url']}:${config['frontend-port']}`,
-  `${config['backend-url']}:${config['backend-port']}`,
+  `${frontendURL}:${frontendport}`,
+  `${backendURL}:${backendport}`,
 ];
 
 
@@ -69,7 +67,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 } else {
   // Dev environment
-  app.use('/public', express.static(path.join(__dirname, './static')));
+  app.use('/static', express.static(path.join(__dirname, './static')));
   app.get('*', (request, response) => {
     fs.readFile('static/404.html', (error, content) => {
       response.writeHead(404, { 'Content-Type': 'text/html' });
