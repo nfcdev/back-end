@@ -357,7 +357,7 @@ router.post('/check-in', async (request, response) => {
         console.log(err);
         db.rollback();
         db.close();
-        response.send(400);
+        response.status(400).json({ error: err.message });
       });
 
     // End of if checkIn.package statament
@@ -410,7 +410,7 @@ router.post('/check-in', async (request, response) => {
         console.log(err);
         db.rollback();
         db.close();
-        response.send(400);
+        response.status(400).json({ error: err.message });
       });
   }
 });
@@ -499,7 +499,7 @@ router.post('/register', async (request, response) => {
         console.log(err);
         db.rollback();
         db.close();
-        response.send(400);
+        response.status(400).json({ error: err.message });
       });
     // End of if regInfo.package statament
   } else if (regInfo.shelf) {
@@ -569,7 +569,7 @@ router.post('/register', async (request, response) => {
         console.log(err);
         db.rollback();
         db.close();
-        response.send(400);
+        response.status(400).json({ error: err.message });
       });
   }
 });
@@ -581,9 +581,7 @@ router.put('/:id', async (request, response) => {
   const desc = request.body.description;
 
   db.beginTransaction()
-    .then(() => {
-      db.query('UPDATE Article SET description = ? WHERE id = ?', [desc, id]);
-    })
+    .then(() => db.query('UPDATE Article SET description = ? WHERE id = ?', [desc, id]))
     .then(() => db.query('SELECT ar.id, ar.description, ar.material_number, ca.reference_number FROM Article ar INNER JOIN `Case` ca ON ar.`case` = ca.id WHERE ar.id = ?', [id]))
     .then((modifiedArticle) => Promise.all(modifiedArticle, db.commit()))
     .then(([modifiedArticle]) => {
@@ -594,7 +592,7 @@ router.put('/:id', async (request, response) => {
       console.log(err);
       db.rollback();
       db.close();
-      response.send(400);
+      response.status(400).json({ error: err.message });
     });
 });
 // Incorporates an article
@@ -666,7 +664,7 @@ router.post('/incorporate', async (request, response) => {
         console.log(err);
         db.rollback();
         db.close();
-        response.send(400);
+        response.status(400).json({ error: err.message });
       });
 
     // End of if incorp.package statament
@@ -724,7 +722,7 @@ router.post('/incorporate', async (request, response) => {
         console.log(err);
         db.rollback();
         db.close();
-        response.send(400);
+        response.status(400).json({ error: err.message });
       });
   }
 });
