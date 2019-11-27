@@ -1045,7 +1045,7 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
   };
   let selectresults;
 
-  // checks so that storage_room, material_number and either package or shelf is provided. Package and shelf are tried with the logic of a xor gate.
+  // Checks so that storage_room, material_number and either package or shelf is provided. Package and shelf are tried with the logic of a xor gate.
   if (!incorp.storage_room || !incorp.material_number || !(!(incorp.package && incorp.shelf) && (incorp.package || incorp.shelf))) {
     response.status(400).send('Bad request');
   } else if (incorp.package) {
