@@ -112,7 +112,7 @@ router.post('/process', (req, res) => {
                               });
                             }
                             else {
-                              res.send(result5);
+                              res.send(result5[0]);
                               console.log('Transaction Complete.');
                             }
                           });
@@ -237,7 +237,7 @@ router.post('/check-out', (request, response) => {
                                       response.status(400).send('Bad query');
                                     });
                                   }
-                                  response.send(result4);
+                                  response.send(result4[0]);
                                 });
 
                               sql = 'UPDATE StorageMap SET container = NULL where article = (select id from Article where material_number = ?)';
@@ -388,7 +388,7 @@ router.post('/discard', (request, response) => {
                                       response.status(400).send('Bad query');
                                     });
                                   }
-                                  response.send(result4);
+                                  response.send(result4[0]);
                                 });
 
                               sql = 'UPDATE StorageMap SET container = NULL where article = (select id from Article where material_number = ?)';
