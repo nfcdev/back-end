@@ -88,7 +88,7 @@ router.post('/', async (request, response) => {
       console.log(err);
       db.rollback();
       db.close();
-      response.send(400);
+      response.status(400).json({ error: err.message });
     });
 });
 
@@ -127,7 +127,7 @@ router.get('/storageroom/:storageroom_id', (request, response) => {
         connection.release();
         if (err) {
           console.log(err);
-          response.status(400).send('Bad query');
+          response.status(400).json({ error: err.message });
         } else {
           console.log('Data received');
           response.send(result);
@@ -150,7 +150,7 @@ router.get('/branch/:branch_id', (request, response) => {
         connection.release();
         if (err) {
           console.log(err);
-          response.status(400).send('Bad query');
+          response.status(400).json({ error: err.message });
         } else {
           console.log('Data received');
           response.send(result);
@@ -172,7 +172,7 @@ router.delete('/:id', (request, response) => {
         connection.release();
         if (err) {
           console.log(err);
-          response.status(400).send('Bad query');
+          response.status(400).json({ error: err.message });
         } else if (res.affectedRows) {
           console.log('Package deleted');
           response.json({ result: 'ok' });
@@ -193,7 +193,7 @@ router.post('/check-in', (request, response) => {
     storage_room: request.body.storage_room,
   };
   if (!checkIn.shelf || !checkIn.storage_room || !checkIn.package_number) {
-    response.status(400).send('Bad request');
+    response.status(400).json({ error: 'Bad request' });
   } else {
     pool.getConnection(function (err, connection) {
       if (err) {
@@ -214,7 +214,7 @@ router.post('/check-in', (request, response) => {
               if (err1) {
                 connection.rollback(function () {
                   console.log(err1);
-                  response.status(400).send('Bad query');
+                  response.status(400).json({ error: err1.message });
                 });
               } else if (result.affectedRows) {
                 // Updates storage room in container
@@ -223,7 +223,7 @@ router.post('/check-in', (request, response) => {
                   if (err2) {
                     connection.rollback(function () {
                       console.log(err2);
-                      response.status(400).send('Bad query');
+                      response.status(400).json({ error: err2.message });
                     });
                   } else if (result1.affectedRows) {
                     // Selects all articles in the package that is getting checked in
@@ -238,7 +238,7 @@ router.post('/check-in', (request, response) => {
                         if (err3) {
                           connection.rollback(function () {
                             console.log(err3);
-                            response.status(400).send('Bad query');
+                            response.status(400).json({ error: err3.message });
                           });
                         } else {
                           // Creates Storage events for the articles in the package
@@ -259,8 +259,8 @@ router.post('/check-in', (request, response) => {
                               function (err4, result3) {
                                 if (err4) {
                                   connection.rollback(function () {
-                                    console.log(err3);
-                                    response.status(400).send('Bad query');
+                                    console.log(err4);
+                                    response.status(400).json({ error: err4.message });
                                   });
                                 } else {
                                   console.log(`${result2[a].article}created`);
@@ -323,7 +323,7 @@ router.post('/check-out', (request, response) => {
               if (err2) {
                 connection.rollback(function () {
                   console.log(err2);
-                  response.status(400).send('Bad query');
+                  response.status(400).json({ error: err2.message });
                 });
               } else if (result1[0].current_storage_room == checkOut.storage_room) {
                 // Makes current_storage_room and shelf null for the package
@@ -338,7 +338,7 @@ router.post('/check-out', (request, response) => {
                     if (err1) {
                       connection.rollback(function () {
                         console.log(err1);
-                        response.status(400).send('Bad query');
+                        response.status(400).json({ error: err1.message });
                       });
                     } else {
                       // Selects all articles in the package that is getting checked out
@@ -353,7 +353,7 @@ router.post('/check-out', (request, response) => {
                           if (err3) {
                             connection.rollback(function () {
                               console.log(err3);
-                              response.status(400).send('Bad query');
+                              response.status(400).json({ error: err3.message });
                             });
                           } else {
                             // Creates Storage events for all the articles in the package
@@ -375,7 +375,7 @@ router.post('/check-out', (request, response) => {
                                   if (err4) {
                                     connection.rollback(function () {
                                       console.log(err3);
-                                      response.status(400).send('Bad query');
+                                      response.status(400).json({ error: err4.message });
                                     });
                                   } else {
                                     console.log(`${result2[a].article}created`);
@@ -401,7 +401,7 @@ router.post('/check-out', (request, response) => {
                   },
                 );
               } else {
-                response.status(400).send('Bad query');
+                response.status(400).json({ error: 'Wrong room' });
               }
             });
           }
