@@ -206,6 +206,30 @@ router.get('/:package_id', (request, response) => {
   });
 });
 
+router.get('/package_number/:package_number', (request, response) => {
+  const { package_number } = request.params;
+  pool.getConnection(function (err, connection) {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Could not connect to server');
+    } else {
+      const sql = 'SELECT * FROM Package WHERE package_number = ?';
+      connection.query(sql, [package_number], (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          response.status(400).json({ error: err.message });
+        } else if (result.length) {
+          console.log('Data received');
+          response.send(result[0]);
+        } else {
+          response.status(400).json({ error: `No package with package_number ${package_number}` });
+        }
+      });
+    }
+  });
+});
+
 router.delete('/:id', (request, response) => {
   const { id } = request.params;
   pool.getConnection(function (err, connection) {
