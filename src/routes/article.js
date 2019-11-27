@@ -7,7 +7,7 @@ const pool = require('../util/connect');
 /* eslint-disable no-shadow */
 
 
-// Process an article with specific storage-room id
+//  Process an article with specific storage-room id
 router.post('/process', (req, res) => {
   const processArticle = {
     material_number: req.body.material_number,
