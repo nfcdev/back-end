@@ -182,6 +182,30 @@ router.get('/branch/:branch_id', (request, response) => {
   });
 });
 
+router.get('/:package_id', (request, response) => {
+  const { package_id } = request.params;
+  pool.getConnection(function (err, connection) {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Could not connect to server');
+    } else {
+      const sql = 'SELECT * FROM Package WHERE id = ?';
+      connection.query(sql, [package_id], (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          response.status(400).json({ error: err.message });
+        } else if (result.length) {
+          console.log('Data received');
+          response.send(result[0]);
+        } else {
+          response.status(400).json({ error: `No package with id ${package_id}` });
+        }
+      });
+    }
+  });
+});
+
 router.delete('/:id', (request, response) => {
   const { id } = request.params;
   pool.getConnection(function (err, connection) {
