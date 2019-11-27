@@ -3,7 +3,7 @@
 const config = {
   production: {
     frontendURL: `${process.env.PROD_URL}`,
-    frontendport: `${process.env.PROD_PORT}`,
+    frontendport: '',
     backendURL: `${process.env.PROD_URL}`,
     backendport: `${process.env.PROD_PORT}`,
     jwtOptions: {
