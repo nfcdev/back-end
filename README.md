@@ -943,6 +943,79 @@ Example response:
     ...
 ]
 ```
+
+## Get all articles on a specifik shelf
+This endpoint returns all articles on a specifik shelf. Returns voth articles directly on the shelf and articles in a package on the shelf
+##### HTTP Request
+`GET http://localhost:9000/article/shelf/<ID>`
+
+##### URL Parameters
+Parameter | Description
+--------- | -----------
+ID | The ID of the specific shelf
+
+##### HTTP Response
+Example response:
+```json
+ [ 
+    {
+        "material_number": "743996-44",
+        "reference_number": "743996",
+        "branch": "Vapen",
+        "storage_room": "Vapen 1",
+        "shelf": "B3",
+        "package": " - ",
+        "status": "check_out",
+        "timestamp": 1552942078,
+        "last_modified": 1552942078,
+        "description": "",
+        "id": 12
+    },
+    {
+        "material_number": "743996-57",
+        "reference_number": "743996",
+        "branch": "Vapen",
+        "storage_room": "Vapen 1",
+        "shelf": "B3",
+        "package": " - ",
+        "status": "check_in",
+        "timestamp": 1549895201,
+        "last_modified": 1549895201,
+        "description": "Gevärspipa",
+        "id": 18
+    },
+    ...
+]
+```
+
+## Get specific article from material_number
+This endpoint returns a specific article given a material_number.
+
+##### HTTP Request
+`GET http://localhost:9000/article/material_number/<MATERIAL_NUMBER>`
+
+##### URL Parameters
+Parameter | Description
+--------- | -----------
+MATERIAL_NUMBER | The material_number of the specific article
+
+##### HTTP Response
+Example response:
+```json
+{
+    "id": "99",
+    "material_number": "505841-57",
+    "reference_number": "505841",
+    "branch": "Vapen",
+    "storage_room": "Vapen 1",
+    "shelf": "B10",
+    "package": " - ",
+    "status": "check_in",
+    "timestamp": 1549895201,
+    "last_modified": 1549895201,
+    "description": "Gevärspipa"
+}
+```
 # Case
 
 ## Get all cases 
@@ -975,6 +1048,25 @@ This endpoint returns information about a specific case
 Parameter | Description
 --------- | -----------
 ID | The ID of the specific case
+
+##### HTTP Response
+The endpoint returns JSON data structured like this:
+```json
+{
+    "id": 7,
+    "reference_number": "013931"
+}
+```
+
+## Get a specific case given reference_number
+This endpoint returns information about a specific case given its reference_number
+##### HTTP Request
+`GET http://localhost:9000/case/reference_number/<REFERENCE_NUMBER>`
+
+##### URL Parameters
+Parameter | Description
+--------- | -----------
+REFERENCE_NUMBER | The reference_number of the specific case
 
 ##### HTTP Response
 The endpoint returns JSON data structured like this:
@@ -1191,6 +1283,28 @@ If successful, the response will be a status message:
 }
 ```
 
+## Get a specifik package given its package_number
+This endpoint returns a specifik package given its package_number
+
+##### HTTP Request
+`GET http://localhost:9000/package/package_number/<PACKAGE_NUMBER>`
+
+##### URL Parameters
+Parameter | Description
+--------- | -----------
+PACKAGE_NUMBER | The package_number of the specific package
+
+The endpoint returns JSON data structured like this:
+```json
+    {
+        "id": 51,
+        "package_number": "515426-K01",
+        "shelf": 41,
+        "case": 23,
+        "current_storage_room": 6
+    }
+ 
+```
 # Shelf
 
 ## Get all shelves for storage room
@@ -1305,8 +1419,135 @@ If successful, the response will be a status message:
 }
 ```
 
+## Get all shelves 
+This endpoint returns all shelves 
+
+##### HTTP Request
+`GET http://localhost:9000/shelf`
 
 
+##### HTTP Response
+The endpoint returns JSON data structured like this:
+```json
+[
+    {
+        "id": 1,
+        "shelf_name": "A1",
+        "current_storage_room": 3
+    },
+    {
+        "id": 2,
+        "shelf_name": "A2",
+        "current_storage_room": 3
+    },
+    ...
+]
+```
 
+## Get all shelves for branch
+This endpoint returns all shelves for all storage rooms in a specifik branch
+
+##### HTTP Request
+`GET http://localhost:9000/shelf/branch/<ID>`
+
+##### URL Parameters
+Parameter | Description
+--------- | -----------
+ID | The ID of the specific branch
+
+##### HTTP Response
+The endpoint returns JSON data structured like this:
+```json
+[
+    {
+        "id": 1,
+        "shelf_name": "A1",
+        "current_storage_room": 3
+    },
+    {
+        "id": 2,
+        "shelf_name": "A2",
+        "current_storage_room": 3
+    },
+    ...
+]
+```
+
+## Get a specifik shelf
+This endpoint returns a specifik shelf given its id
+
+##### HTTP Request
+`GET http://localhost:9000/shelf/<ID>`
+
+##### URL Parameters
+Parameter | Description
+--------- | -----------
+ID | The ID of the specific shelf
+
+##### HTTP Response
+The endpoint returns JSON data structured like this:
+```json
+    {
+        "id": 1,
+        "shelf_name": "A1",
+        "current_storage_room": 3
+    }
+```
+
+# User
+
+## Get all users 
+This endpoint gets all users. Only possible to access for admins.
+
+##### HTTP Request
+`GET http://localhost:9000/user`
+
+##### HTTP Response
+The endpoint returns JSON data structured like this:
+```json
+[
+    {
+        "id": "1",
+        "shortcode": "admon",
+        "role": "admin"
+    },
+    {
+        "id": "2",
+        "shortcode": "useon",
+        "role": "user"
+    },
+    ...
+]
+```
+
+## Update role of a user
+This endpoint updates the role of a user. Only possible to access for admins.
+
+##### HTTP Request
+`PUT http://localhost:9000/user`
+
+##### JSON Parameters 
+Parameter | Required | Description
+--------- | ----------- | -----------
+shortcode | yes | Shortcode of the edited user
+role | yes | The role that is getting assigned
+
+
+Example body of request:
+```json
+{
+    "shortcode": "user1",
+    "role": "admin"
+}
+```
+
+##### HTTP Response
+If successful, the response will be the updated user shortcode and role:
+```json
+{
+    "shortcode": "user1",
+    "role": "admin"
+}
+```
 
 

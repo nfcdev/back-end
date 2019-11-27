@@ -137,6 +137,28 @@ router.get('/storageroom/:storageroom_id', (request, response) => {
   });
 });
 
+router.get('/shelf/:shelf_id', (request, response) => {
+  const { shelf_id } = request.params;
+  pool.getConnection(function (err, connection) {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Could not connect to server');
+    } else {
+      const sql = 'SELECT * FROM Package WHERE shelf = ?';
+      connection.query(sql, [shelf_id], (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          response.status(400).json({ error: err.message });
+        } else {
+          console.log('Data received');
+          response.send(result);
+        }
+      });
+    }
+  });
+});
+
 // Gets all packagaes belonging to a specifik branch
 router.get('/branch/:branch_id', (request, response) => {
   const { branch_id } = request.params;
@@ -154,6 +176,54 @@ router.get('/branch/:branch_id', (request, response) => {
         } else {
           console.log('Data received');
           response.send(result);
+        }
+      });
+    }
+  });
+});
+
+router.get('/:package_id', (request, response) => {
+  const { package_id } = request.params;
+  pool.getConnection(function (err, connection) {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Could not connect to server');
+    } else {
+      const sql = 'SELECT * FROM Package WHERE id = ?';
+      connection.query(sql, [package_id], (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          response.status(400).json({ error: err.message });
+        } else if (result.length) {
+          console.log('Data received');
+          response.send(result[0]);
+        } else {
+          response.status(400).json({ error: `No package with id ${package_id}` });
+        }
+      });
+    }
+  });
+});
+
+router.get('/package_number/:package_number', (request, response) => {
+  const { package_number } = request.params;
+  pool.getConnection(function (err, connection) {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Could not connect to server');
+    } else {
+      const sql = 'SELECT * FROM Package WHERE package_number = ?';
+      connection.query(sql, [package_number], (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          response.status(400).json({ error: err.message });
+        } else if (result.length) {
+          console.log('Data received');
+          response.send(result[0]);
+        } else {
+          response.status(400).json({ error: `No package with package_number ${package_number}` });
         }
       });
     }

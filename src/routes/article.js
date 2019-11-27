@@ -1166,5 +1166,29 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
       });
   }
 });
+// Gets an article given its material_number
+router.get('/material_number/:material_number', (request, response) => {
+  const { material_number } = request.params;
+  pool.getConnection(function (err, connection) {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Could not connect to server');
+    } else {
+      const sql = 'SELECT * FROM Article_information WHERE material_number = ?';
+      connection.query(sql, [material_number], (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          response.status(400).json({ error: err.message });
+        } else if (result.length) {
+          console.log('Data received');
+          response.send(result[0]);
+        } else {
+          response.status(400).json({ error: `No article with material_number ${material_number}` });
+        }
+      });
+    }
+  });
+});
 
 module.exports = router;
