@@ -697,6 +697,15 @@ This endpoint returns all articles.
 ##### HTTP Request
 `GET http://localhost:9000/article`
 
+##### URL Query Parameters
+Parameter | Description
+--------- | -----------
+reference_number | Reference number for the searched article
+material_number | Material number for the searched article
+storage_room | Storage room name for the searched article
+shelf | Shelf name for the searched article
+package_number | Package number for the searched article
+
 ##### HTTP Response
 Example response:
 ```json
@@ -974,41 +983,6 @@ The endpoint returns JSON data structured like this:
     "id": 7,
     "reference_number": "013931"
 }
-```
-
-# Search
-
-## Search for articles
-This endpoint returns a list of articles matching a specified query
-##### HTTP Request
-`GET http://localhost:9000/search?parameter_1=value_1&parameter_2=value2`
-
-##### URL Query Parameters
-Parameter | Description
---------- | -----------
-reference_number | Reference number for the searched article
-material_number | Material number for the searched article
-storage_room | Storage room name for the searched article
-shelf | Shelf name for the searched article
-package_number | Package number for the searched article
-
-The endpoint returns JSON data structured like this:
-```json
-[
-  {
-        "material_number": "743996-44",
-        "reference_number": "743996",
-        "branch": "Vapen",
-        "storage_room": "Vapen 1",
-        "shelf": "B3",
-        "package": " - ",
-        "status": "check_out",
-        "timestamp": 1552942078,
-        "last_modified": 1552942078,
-        "description": "",
-        "id": 12
-    }
-]
 ```
 
 # Package

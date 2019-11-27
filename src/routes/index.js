@@ -3,7 +3,6 @@ const { APISUFFIX } = require('../../config').get(process.env.NODE_ENV);
 
 const router = express.Router();
 
-router.use(`${APISUFFIX}/search`, require('./search'));
 router.use(`${APISUFFIX}/storageroom`, require('./storageroom'));
 router.use(`${APISUFFIX}/case`, require('./case'));
 router.use(`${APISUFFIX}/login`, require('./login'));

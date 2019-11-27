@@ -68,7 +68,7 @@ router.post('/storageroom/:id', (request, response) => {
           }
         });
       }
-     
+
     });
   }
 });
@@ -119,7 +119,7 @@ router.delete('/:id', (request, response) => {
   });
 });
 
-//get all shelves for a specific storage room
+// get all shelves for a specific storage room
 router.get('/storageroom/:storageroom_id', (request, response) => {
   const { storageroom_id } = request.params;
   pool.getConnection(function (err, connection) {
@@ -132,6 +132,75 @@ router.get('/storageroom/:storageroom_id', (request, response) => {
         connection.release();
         if (err) {
           console.log(err);
+          response.status(400).send('Bad query');
+        } else {
+          console.log('Data received');
+          response.send(result);
+        }
+      });
+    }
+  });
+});
+
+// get all shelves
+router.get('/', (request, response) => {
+  pool.getConnection(function (err, connection) {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Could not connect to server');
+    } else {
+      const sql = 'SELECT * FROM Shelf INNER JOIN Container ON Shelf.id = Container.id';
+      connection.query(sql, (err1, result) => {
+        connection.release();
+        if (err1) {
+          console.log(err1);
+          response.status(400).send('Bad query');
+        } else {
+          console.log('Data received');
+          response.send(result);
+        }
+      });
+    }
+  });
+});
+
+// get all shelves for a specific branch
+router.get('/branch/:branchId', (request, response) => {
+  const { branchId } = request.params;
+  pool.getConnection(function (err, connection) {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Could not connect to server');
+    } else {
+      console.log(branchId);
+      const sql = 'SELECT * FROM Shelf INNER JOIN Container ON Shelf.id = Container.id WHERE Shelf.id IN (SELECT id FROM Container WHERE current_storage_room IN (SELECT id FROM StorageRoom WHERE branch = ?))';
+      connection.query(sql, [branchId], (err1, result) => {
+        connection.release();
+        if (err1) {
+          console.log(err1);
+          response.status(400).send('Bad query');
+        } else {
+          console.log('Data received');
+          response.send(result);
+        }
+      });
+    }
+  });
+});
+
+// get shelf with a specifik id
+router.get('/:id', (request, response) => {
+  const { id } = request.params;
+  pool.getConnection(function (err, connection) {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Could not connect to server');
+    } else {
+      const sql = 'SELECT * FROM Shelf INNER JOIN Container ON Shelf.id = Container.id WHERE Shelf.id = ?';
+      connection.query(sql, [id], (err1, result) => {
+        connection.release();
+        if (err1) {
+          console.log(err1);
           response.status(400).send('Bad query');
         } else {
           console.log('Data received');
