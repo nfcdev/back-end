@@ -20,6 +20,8 @@ const app = express();
 const whitelist = [
   `${frontendURL}:${frontendport}`,
   `${backendURL}:${backendport}`,
+  `http://front-end:${frontendport}`,
+  `http://back-end:${backendport}`,
 ];
 
 
