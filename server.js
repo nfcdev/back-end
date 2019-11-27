@@ -20,9 +20,14 @@ const app = express();
 let FRONTEND_URL = `${frontendURL}:${frontendport}`;
 const BACKEND_URL = `${backendURL}:${backendport}`;
 
+
 if (process.env.NODE_ENV === 'production') {
   FRONTEND_URL = FRONTEND_URL.replace(':', '');
 }
+
+console.log('===============================');
+console.log(BACKEND_URL);
+console.log(FRONTEND_URL);
 
 const whitelist = [
   FRONTEND_URL,
