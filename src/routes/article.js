@@ -46,6 +46,11 @@ router.post('/process', (req, res) => {
     let sql3 = 'select * from StorageEvent order by id desc limit 1';
     //sql3 = "select material_number from Article where id in (select article from StorageMap)";
 
+    let sql4 = 'SELECT current_storage_room FROM Container WHERE id = (SELECT container FROM StorageMap WHERE article = (SELECT id from Article WHERE material_number = ?)) ';
+
+
+            
+
     pool.getConnection((err0, connection) => {
       if (err0) {
         console.log(err0);
@@ -58,6 +63,19 @@ router.post('/process', (req, res) => {
             res.status(500).send('Could not start transaction');
           }
           else {
+
+
+              connection.query(sql4, [processArticle.material_number], function (err3, result1) {
+                if (err3 || !result1[0] || !result1[0].current_storage_room) {
+                  connection.rollback(function () {
+                    console.log(err3);
+                    res.status(400).send('Bad query! Your article may have already been processed.');
+                  });
+                } else if (result1[0].current_storage_room == processArticle.storage_room) {
+
+
+
+
             connection.query(sql1, array1, function (err2, result2) { // inserts data into StorageEvent
               if (err2) {
                 connection.rollback(function () {
@@ -100,11 +118,14 @@ router.post('/process', (req, res) => {
                     }
                   });
                 }
-                else {
-                  res.status(400).send('Material number does not exist.');
-                }
+                
               }
             });
+          }
+          else {
+            res.status(400).send('Bad query!');
+          }
+          });
           }
         });
         connection.release();
