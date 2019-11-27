@@ -53,7 +53,7 @@ router.post('/', (req, res) => {
 });
 
 // Return all articles in DB, can be queried
-router.get('/', (req, res) => {
+router.get('/', (request, response) => {
   // eslint-disable-next-line func-names
   const { reference_number } = request.query;
   const { material_number } = request.query;
@@ -577,7 +577,7 @@ router.post('/register', async (request, response) => {
 // Change the description of an article
 router.put('/:id', async (request, response) => {
   const db = await makeDb();
-  const {id} = request.params;
+  const { id } = request.params;
   const desc = request.body.description;
 
   db.beginTransaction()
