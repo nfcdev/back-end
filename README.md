@@ -384,6 +384,40 @@ If successful, the response will be the created article:
 }
 ```
 
+## Update the description of an article
+This endpoint updates the description of an article.
+
+##### HTTP Request
+`PUT http://localhost:9000/article/<ID>`
+
+##### URL Parameters
+Parameter | Description
+--------- | -----------
+ID | The ID of the specific article
+
+##### JSON Parameters 
+Parameter | Required | Description
+--------- | ----------- | -----------
+description | yes | Optional description of the article
+
+Example body of request:
+```json
+{
+    "description": "New description"
+}
+```
+
+##### HTTP Response
+If successful, the response will be the updated article object:
+```json
+{
+    "material_number": "129274-90",
+    "reference_number": "129274",
+    "description": "New description",
+    "id": 4
+}
+```
+
 ## Check in article 
 This endpoint checks in an existing article in a storage room with shelf/package. If an article with the specified material number does not exist, the response will return an error code. 
 
@@ -427,6 +461,57 @@ If the check in was successful, the response will be the storage event that was 
     "timestamp": 1579679491,
     "user": "1688042193699",
     "comment": "",
+    "package": null,
+    "shelf": "Hylla 8",
+    "storage_room": "DNA materialrum 2",
+    "branch": "DNA",
+    "article": 58
+}
+```
+
+## Incorporate an article
+This endpoint incorporates an existing article in a storage room with shelf/package. If an article with the specified material number does not exist, the response will return an error code. Incorporating means indefinite storage of an article and behaves just like a check-in, but with the status 'incorporated' instead. 
+
+##### HTTP Request
+`POST http://localhost:9000/article/incorporate`
+
+##### JSON Parameters 
+Parameter | Required | Description
+--------- | ----------- | -----------
+material_number | yes | The name complete material number of the article. I.e. reference-number + article-number.
+comment | no | Optional comment describing the reason behind the incorporation 
+storage_room | yes | The id of the storage room where the incorporation in was made
+shelf | yes, if package not supplied  | The id of the shelf where the incorporated material will be stored
+package | no | The id of the package in which the material is stored in  
+
+Example body of request where shelf was specified:
+```json
+{
+    "material_number": "129274-90",
+    "comment": "Incorporated gun",
+    "storage_room": 3,
+    "shelf": 6,
+}
+```
+
+Example body of request where package instead was specified:
+```json
+{
+    "material_number": "129274-90",
+    "comment": "Incorporated gun",
+    "storage_room": 3,
+    "package": 2,
+}
+```
+##### HTTP Response
+If the incorporation was successful, the response will be the storage event that was created:
+```json
+{
+    "id": 67,
+    "action": "incorporated",
+    "timestamp": 1579679491,
+    "user": "1688042193699",
+    "comment": "Incorporated gun",
     "package": null,
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
@@ -611,6 +696,15 @@ This endpoint returns all articles.
 
 ##### HTTP Request
 `GET http://localhost:9000/article`
+
+##### URL Query Parameters
+Parameter | Description
+--------- | -----------
+reference_number | Reference number for the searched article
+material_number | Material number for the searched article
+storage_room | Storage room name for the searched article
+shelf | Shelf name for the searched article
+package_number | Package number for the searched article
 
 ##### HTTP Response
 Example response:
@@ -889,41 +983,6 @@ The endpoint returns JSON data structured like this:
     "id": 7,
     "reference_number": "013931"
 }
-```
-
-# Search
-
-## Search for articles
-This endpoint returns a list of articles matching a specified query
-##### HTTP Request
-`GET http://localhost:9000/search?parameter_1=value_1&parameter_2=value2`
-
-##### URL Query Parameters
-Parameter | Description
---------- | -----------
-reference_number | Reference number for the searched article
-material_number | Material number for the searched article
-storage_room | Storage room name for the searched article
-shelf | Shelf name for the searched article
-package_number | Package number for the searched article
-
-The endpoint returns JSON data structured like this:
-```json
-[
-  {
-        "material_number": "743996-44",
-        "reference_number": "743996",
-        "branch": "Vapen",
-        "storage_room": "Vapen 1",
-        "shelf": "B3",
-        "package": " - ",
-        "status": "check_out",
-        "timestamp": 1552942078,
-        "last_modified": 1552942078,
-        "description": "",
-        "id": 12
-    }
-]
 ```
 
 # Package
