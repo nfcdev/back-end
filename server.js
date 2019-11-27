@@ -1,11 +1,11 @@
 /* eslint-disable no-undef */
 const express = require('express');
-const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const http = require('http');
 const normalizePort = require('normalize-port');
 const bodyParser = require('body-parser');
 const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
 const { passport } = require('./src/util/authentication');
 const config = require('./config').get(process.env.NODE_ENV);
@@ -48,9 +48,6 @@ const rawBodyBuffer = (req, res, buf, encoding) => {
   }
 };
 
-// TODO: Change to a better secret
-app.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));
-
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(
@@ -60,24 +57,26 @@ app.use(
 );
 
 app.use(passport.initialize({}));
-app.use(passport.session({}));
 
 // Import routes
 app.use(require('./src/routes'));
 
-app.get('*.*', express.static(path.join(__dirname, './public')));
 
-app.get('*', (req, res) => {
-  res.status(200).sendFile('/', { root: './public' });
-});
-
-// Page not found
-// app.get('*', (request, response) => {
-//   fs.readFile('static/404.html', (error, content) => {
-//     response.writeHead(404, { 'Content-Type': 'text/html' });
-//     response.end(content, 'utf-8');
-//   });
-// });
+if (process.env.NODE_ENV === 'production') {
+  app.get('*.*', express.static(path.join(__dirname, './public')));
+  app.get('*', (req, res) => {
+    res.status(200).sendFile('/', { root: './public' });
+  });
+} else {
+  // Dev environment
+  app.use('/public', express.static(path.join(__dirname, './static')));
+  app.get('*', (request, response) => {
+    fs.readFile('static/404.html', (error, content) => {
+      response.writeHead(404, { 'Content-Type': 'text/html' });
+      response.end(content, 'utf-8');
+    });
+  });
+}
 
 // Start the server
 const server = http.createServer(app);
