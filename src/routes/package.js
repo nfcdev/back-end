@@ -319,7 +319,7 @@ router.post('/check-in', authenticatedRequest, (request, response) => {
                             connection.query(
                               sql,
                               [
-                                request.user,
+                                request.user.id,
                                 checkIn.comment,
                                 checkIn.package_number,
                                 checkIn.shelf,
@@ -435,7 +435,7 @@ router.post('/check-out', authenticatedRequest, (request, response) => {
                               connection.query(
                                 sql,
                                 [
-                                  request.user,
+                                  request.user.id,
                                   checkOut.comment,
                                   checkOut.package_number,
                                   result1[0].shelf,
