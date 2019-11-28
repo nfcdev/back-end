@@ -456,7 +456,7 @@ router.get('/', (request, response) => {
   // eslint-disable-next-line func-names
   const { reference_number } = request.query;
   const { material_number } = request.query;
-  const { location } = request.query;
+  const { storage_room } = request.query;
   const { shelf } = request.query;
   const { package_number } = request.query;
   const { status } = request.query;
@@ -469,7 +469,7 @@ router.get('/', (request, response) => {
   if (
     reference_number
     || material_number
-    || location
+    || storage_room
     || shelf
     || package_number
     || status
@@ -499,11 +499,11 @@ router.get('/', (request, response) => {
   }
 
   // Storageroom
-  if (location) {
+  if (storage_room) {
     if (has_where_condition) sql_query += ' and';
     sql_query += ' storage_room = ?';
     has_where_condition = true;
-    parameters.push(location);
+    parameters.push(storage_room);
   }
 
   // Shelf
