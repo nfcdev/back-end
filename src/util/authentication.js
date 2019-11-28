@@ -1,6 +1,6 @@
 const passport = require('passport');
 const passportJWT = require('passport-jwt');
-const config = require('../../config');
+const config = require('../../config').get(process.env.NODE_ENV);
 const roleHandler = require('../util/internal-verification');
 
 const { ExtractJwt } = passportJWT;

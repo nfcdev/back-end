@@ -1,7 +1,7 @@
 /* eslint-disable prefer-arrow-callback */
 const express = require('express');
 const util = require('util');
-
+const { authenticatedRequest, adminAuthorizedRequest } = require('../util/authentication');
 const router = express.Router();
 const pool = require('../util/connect');
 
@@ -206,6 +206,30 @@ router.get('/:package_id', (request, response) => {
   });
 });
 
+router.get('/package_number/:package_number', (request, response) => {
+  const { package_number } = request.params;
+  pool.getConnection(function (err, connection) {
+    if (err) {
+      console.log(err);
+      response.status(500).send('Could not connect to server');
+    } else {
+      const sql = 'SELECT * FROM Package WHERE package_number = ?';
+      connection.query(sql, [package_number], (err, result) => {
+        connection.release();
+        if (err) {
+          console.log(err);
+          response.status(400).json({ error: err.message });
+        } else if (result.length) {
+          console.log('Data received');
+          response.send(result[0]);
+        } else {
+          response.status(400).json({ error: `No package with package_number ${package_number}` });
+        }
+      });
+    }
+  });
+});
+
 router.delete('/:id', (request, response) => {
   const { id } = request.params;
   pool.getConnection(function (err, connection) {
@@ -231,7 +255,7 @@ router.delete('/:id', (request, response) => {
 });
 
 // Checks in a package
-router.post('/check-in', (request, response) => {
+router.post('/check-in', authenticatedRequest, (request, response) => {
   const checkIn = {
     shelf: request.body.shelf,
     package_number: request.body.package_number,
@@ -290,11 +314,12 @@ router.post('/check-in', (request, response) => {
                           // Creates Storage events for the articles in the package
                           for (a in result2) {
                             // User hardcoded to "1" right now
-                            sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, ?,(SELECT shelf_name FROM Shelf WHERE id = ?), (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
+                            sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, ?,(SELECT shelf_name FROM Shelf WHERE id = ?), (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
 
                             connection.query(
                               sql,
                               [
+                                request.user.id,
                                 checkIn.comment,
                                 checkIn.package_number,
                                 checkIn.shelf,
@@ -344,7 +369,7 @@ router.post('/check-in', (request, response) => {
 });
 
 // Checks out a package
-router.post('/check-out', (request, response) => {
+router.post('/check-out', authenticatedRequest, (request, response) => {
   const checkOut = {
     package_number: request.body.package_number,
     comment: request.body.comment,
@@ -405,11 +430,12 @@ router.post('/check-out', (request, response) => {
                             // Creates Storage events for all the articles in the package
                             for (a in result2) {
                               // User is hardcoded to "1" right now
-                              sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, ?,(SELECT shelf_name FROM Shelf WHERE id = ?), (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
+                              sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", UNIX_TIMESTAMP(), ?, ?, ?,(SELECT shelf_name FROM Shelf WHERE id = ?), (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
 
                               connection.query(
                                 sql,
                                 [
+                                  request.user.id,
                                   checkOut.comment,
                                   checkOut.package_number,
                                   result1[0].shelf,
