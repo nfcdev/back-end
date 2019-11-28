@@ -1,6 +1,5 @@
 /* eslint-disable no-undef */
 const express = require('express');
-const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const http = require('http');
 const normalizePort = require('normalize-port');
@@ -9,13 +8,28 @@ const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
 const { passport } = require('./src/util/authentication');
-const config = require('./config');
+const {
+  frontendURL, backendURL, backendport, frontendport,
+} = require('./config').get(process.env.NODE_ENV);
 
 // Create the server
-const port = normalizePort(process.env.PORT || '3000');
+const port = normalizePort(`${backendport}` || '9000');
 const app = express();
 
-const whitelist = [`${config.frontend.host}:${config.frontend.port}`];
+let FRONTEND_URL = `${frontendURL}`;
+const BACKEND_URL = `${backendURL}:${backendport}`;
+
+if (process.env.NODE_ENV !== 'production') {
+  FRONTEND_URL += `:${frontendport}`;
+}
+
+
+const whitelist = [
+  FRONTEND_URL,
+  BACKEND_URL,
+];
+
+
 const corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1 || !origin) {
@@ -39,9 +53,6 @@ const rawBodyBuffer = (req, res, buf, encoding) => {
   }
 };
 
-// TODO: Change to a better secret
-app.use(session({ secret: 'secret', resave: false, saveUninitialized: true }));
-
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(
@@ -51,20 +62,26 @@ app.use(
 );
 
 app.use(passport.initialize({}));
-app.use(passport.session({}));
 
 // Import routes
 app.use(require('./src/routes'));
 
-app.use('/public', express.static(path.join(__dirname, './static')));
 
-// Page not found
-app.get('*', (request, response) => {
-  fs.readFile('static/404.html', (error, content) => {
-    response.writeHead(404, { 'Content-Type': 'text/html' });
-    response.end(content, 'utf-8');
+if (process.env.NODE_ENV === 'production') {
+  app.get('*.*', express.static(path.join(__dirname, './public')));
+  app.get('*', (req, res) => {
+    res.status(200).sendFile('/', { root: './public' });
   });
-});
+} else {
+  // Dev environment
+  app.use('/static', express.static(path.join(__dirname, './static')));
+  app.get('*', (request, response) => {
+    fs.readFile('static/404.html', (error, content) => {
+      response.writeHead(404, { 'Content-Type': 'text/html' });
+      response.end(content, 'utf-8');
+    });
+  });
+}
 
 // Start the server
 const server = http.createServer(app);

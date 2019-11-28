@@ -1,17 +1,38 @@
 /* eslint-disable no-undef */
-const fs = require('fs');
 
 const config = {
-  host: 'http://localhost',
-  port: 9000,
-  frontend: {
-    host: 'http://localhost',
-    port: 9001,
+  production: {
+    frontendURL: `${process.env.PROD_URL}`,
+    frontendport: '',
+    backendURL: `${process.env.PROD_URL}`,
+    backendport: `${process.env.PROD_PORT}`,
+    jwtOptions: {
+      secretOrKey: `${process.env.JWTSECRET}`,
+    },
+    APISUFFIX: `${process.env.APISUFFIX}`,
   },
-  jwtOptions: {
-    secretOrKey: 'CHANGE THIS TO A REAL PRIVATE KEY IN PRODUCTION',
+  development: {
+    frontendURL: `${process.env.DEV_URL_FRONTEND}`,
+    frontendport: `${process.env.DEV_FRONTEND_PORT}`,
+    backendURL: `${process.env.DEV_URL_BACKEND}`,
+    backendport: `${process.env.DEV_BACKEND_PORT}`,
+    jwtOptions: {
+      secretOrKey: `${process.env.JWTSECRET}`,
+    },
+    APISUFFIX: `${process.env.APISUFFIX}`,
   },
-  debug: process.env.NODE_ENV == 'debug',
+  testing: {
+    frontendURL: 'http://localhost',
+    frontendport: '9001',
+    backendURL: 'http://back-end',
+    backendport: '9000',
+    jwtOptions: {
+      secretOrKey: 'testing',
+    },
+    APISUFFIX: '',
+  },
 };
 
-module.exports = config;
+exports.get = function get(env) {
+  return config[env];
+};
