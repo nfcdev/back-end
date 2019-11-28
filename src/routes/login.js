@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const { authenticatedRequest, adminAuthorizedRequest } = require('../util/authentication');
 const employeeVerification = require('../util/external-verification');
 const roleHandler = require('../util/internal-verification');
-const config = require('../../config');
+const config = require('../../config').get(process.env.NODE_ENV);
 
 const { jwtOptions } = config;
 

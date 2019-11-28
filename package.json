@@ -1,12 +1,13 @@
 {
   "name": "back-end",
-  "version": "0.3.0",
+  "version": "0.6.0",
   "description": "Back end",
   "main": "server.js",
   "scripts": {
-    "test": "cross-env TESTING=1 mocha test/test.js --exit",
-    "start": "nodemon server.js",
-    "build": "node server.js",
+    "test": "cross-env TESTING=1 NODE_ENV=testing mocha test/test.js --exit",
+    "start": "cross-env NODE_ENV=development nodemon -L server.js",
+    "build": "cross-env NODE_ENV=development node server.js",
+    "production": "cross-env NODE_ENV=production node server.js",
     "lint": "eslint src -c .eslintrc.json --ext js,jsx"
   },
   "repository": {
