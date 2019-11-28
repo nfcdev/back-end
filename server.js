@@ -16,18 +16,13 @@ const {
 const port = normalizePort(`${backendport}` || '9000');
 const app = express();
 
-
-console.log('NODE_ENV', process.env.NODE_ENV);
-
 let FRONTEND_URL = `${frontendURL}`;
 const BACKEND_URL = `${backendURL}:${backendport}`;
 
 if (process.env.NODE_ENV !== 'production') {
   FRONTEND_URL += `:${frontendport}`;
 }
-console.log('===============================');
-console.log(BACKEND_URL);
-console.log(FRONTEND_URL);
+
 
 const whitelist = [
   FRONTEND_URL,

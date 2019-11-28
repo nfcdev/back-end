@@ -25,12 +25,7 @@ before((done) => {
         name: 'admun',
       })
       .end((err, resp) => {
-        console.log('error', err);
         TOKEN = resp.body.token;
-        console.log(resp.body);
-        console.log('========================');
-        console.log('TOKEN:', TOKEN);
-        console.log('========================');
         done();
       });
   });
