@@ -24,7 +24,7 @@ router.get('/', adminAuthorizedRequest, (request, response) => {
     });
 });
 
-router.put('/', adminAuthorizedRequest, (request, response) => {
+router.put('/', authenticatedRequest, (request, response) => {
     const updatedUser = request.body;
     pool.getConnection(function (err, connection) {
         if (err) {
@@ -42,6 +42,27 @@ router.put('/', adminAuthorizedRequest, (request, response) => {
                 }
             });
         }
+    });
+});
+
+router.get('/checkedOutMaterial', authenticatedRequest, (request, response) => {
+    current_user = request.user;
+    console.log( request.user );
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            console.log(err);
+            response.status(500).send('Cannot connect to server');
+        }
+        const sql = 'SELECT material_number FROM Article WHERE id = (SELECT article FROM StorageEvent WHERE action = "checked_out" AND user = (SELECT id FROM User WHERE id = ?))';
+        connection.query(sql, current_user.id, (err, result) => {
+            connection.release();
+            if (err) {
+                console.log(err);
+                response.status(400).send('Bad query');
+            }
+            console.log('Data received');
+            response.send(result);
+        });
     });
 });
 
