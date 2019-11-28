@@ -338,6 +338,18 @@ describe('Testing Package/Branch/ID Get', () => {
 
 
 // describe('Testing the article get functionality', () => {
+//   it('Testing Article/ID Get', (done) => {
+//     request(app)
+//       .get('article/1')
+//       .end((err,resp) => {
+//         const article = resp.body;
+//         expect(err).to.equal(null);
+//         expect(article.description).to.equal('gun');
+//         done();
+//       });
+//   });
+
+
 //   it('Testing Article/Case/ID Get, #61', (done) => {
 //     request(app)
 //       .get('article/case/743996')
