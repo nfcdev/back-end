@@ -6,6 +6,11 @@ const {
 } = process.env;
 const HOST = process.env.TESTING ? 'db_test' : 'db';
 
+console.log(MYSQL_DATABASE);
+console.log(MYSQL_USER);
+console.log(MYSQL_PASSWORD);
+console.log(MYSQL_PORT);
+
 const pool = mysql.createPool({
   host: HOST,
   port: MYSQL_PORT,

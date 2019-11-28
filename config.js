@@ -21,6 +21,16 @@ const config = {
     },
     APISUFFIX: `${process.env.APISUFFIX}`,
   },
+  testing: {
+    frontendURL: 'http://localhost',
+    frontendport: '9001',
+    backendURL: 'http://back-end',
+    backendport: '9000',
+    jwtOptions: {
+      secretOrKey: 'testing',
+    },
+    APISUFFIX: '',
+  },
 };
 
 exports.get = function get(env) {

@@ -5,6 +5,7 @@ const { expect } = require('chai');
 const request = require('supertest');
 const mockdata = require('./mockdata');
 const pool = require('../src/util/connect');
+const { APISUFFIX } = require('../config');
 
 
 // TODO:
@@ -24,8 +25,9 @@ before((done) => {
         name: 'admun',
       })
       .end((err, resp) => {
+        console.log('error', err);
         TOKEN = resp.body.token;
-        cookie = resp.headers['set-cookie'];
+        console.log(resp.body);
         console.log('========================');
         console.log('TOKEN:', TOKEN);
         console.log('========================');
@@ -55,7 +57,6 @@ describe('Testing route cases', () => {
         done();
       });
   });
-
 
   it('Should return specific case (id: 5)', (done) => {
     request(app)
@@ -94,6 +95,7 @@ describe('Testing PUT funtionality on branch', () => {
           name: 'Test Branch',
         })
         .end((err, resp) => {
+          console.log('error', err);
           expect(err).to.be.equal(null);
           expect(resp.body.name).to.be.equal('Test Branch');
           res(resp.body);
@@ -171,7 +173,7 @@ describe('Testing branch function post', () => {
 describe('Testing storage room get', () => {
   it('Should return all storage room (6 rooms)', (done) => {
     request(app)
-      .get('/storageroom/')
+      .get('/storageroom')
       .end((err, resp) => {
         const rooms = resp.body.length;
         expect(err).to.equal(null);
@@ -244,30 +246,6 @@ describe('Testing storage room put', () => {
     });
   });
 });
-
-
-// Måste se till att man försöker ta bort ett storage room som inte används av något fält
-
-// describe('Testing storage room delete', () => {
-//   it('Should test removing a storage room', (done) => {
-//     const p1 = new Promise((res, rej) => {
-//       request(app)
-//         .delete('/storageroom/1')
-//         .end((err, resp) => {
-//           expect(err).to.equal(null);
-//         });
-//     });
-//     p1.then(() => {
-//       request(app).get('/storageroom/branch/3')
-//         .end((err, resp) => {
-//           const rooms = resp.body.length;
-//           expect(err).to.equal(null);
-//           expect(rooms).to.equal(1);
-//           done();
-//         });
-//     });
-//   });
-// });
 
 
 describe('Testing storage room branch', () => {
