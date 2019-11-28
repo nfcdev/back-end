@@ -364,7 +364,7 @@ describe('Testing Package/Branch/ID Get', () => {
 });
 
 
-// describe('Testing the article functionality', () => {
+// describe('Testing the article get functionality', () => {
 //   it('Testing Article/Case/ID Get, #61', (done) => {
 //     request(app)
 //       .get('article/case/743996')
@@ -413,6 +413,37 @@ describe('Testing Package/Branch/ID Get', () => {
 //   });
 // });
 
+
+// describe('Testing article post functionality', () => {
+//   let articleID;
+//   it('Testing article check-in post', (done) => {
+//     const p1 = new Promise((res, rej) => {
+//       request(app)
+//       .post('/article/check-in')
+//       .send({
+//         material_number: "129274-90",
+//         comment: "Return gun after lab examination",
+//         storage_room: 3,
+//         shelf: 6,
+//       })
+//       .end((err, resp) => {
+//         expect(err).to.equal(null);
+//         articleID = resp.body.article;
+//         res();
+//       });
+//     });
+
+//     p1.then(() => {
+//       request(app)
+//         .get('/article/${articleID}')
+//         .end((err, resp) => {
+//           expect(err).to.be.equal(null);
+//           console.log(articleID);
+//           done();
+//         });
+//     });
+//   });
+// });
 
 // describe('Testing storage event functionality', () => {
 //   it('Testing Storageevent Get, #16',(done) => {
