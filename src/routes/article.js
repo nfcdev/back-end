@@ -520,13 +520,48 @@ router.get('/', (request, response) => {
     has_where_condition = true;
     parameters.push(status);
   }
-
   sql_query += ' Order by material_number asc';
 
-
   pool.query(sql_query, parameters, (err, rows) => {
-    console.log('Data received from Db:\n');
-    response.send(rows);
+    if (err) {
+      console.log(err);
+      response.status(400).json({ error: err.message });
+    } else {
+      response.send(rows);
+    }
+  });
+});
+
+
+router.get('/search', (request, response) => {
+  // eslint-disable-next-line func-names
+  let keywords = request.query.q;
+  if (!Array.isArray(keywords)) {
+    keywords = [keywords];
+  }
+
+  let sql_query = '';
+  keywords.forEach((keyword, index) => {
+    sql_query += 'SELECT * FROM Article_information WHERE ';
+    sql_query += `(reference_number = "${keyword}") OR `;
+    sql_query += `(material_number = "${keyword}") OR `;
+    sql_query += `(shelf = "${keyword}") OR `;
+    sql_query += `(storage_room = "${keyword}") OR `;
+    sql_query += `(package = "${keyword}") OR `;
+    sql_query += `(status = "${keyword}")`;
+    if (index < keywords.length - 1) {
+      sql_query += ' INTERSECT ';
+    }
+  });
+
+  sql_query += ' Order by material_number asc';
+  pool.query(sql_query, (err, rows) => {
+    if (err) {
+      console.log(err);
+      response.status(400).json({ error: err.message });
+    } else {
+      response.send(rows);
+    }
   });
 });
 
@@ -765,7 +800,6 @@ router.post('/check-in', authenticatedRequest, async (request, response) => {
     // End of if checkIn.package statament
   } else if (checkIn.shelf) {
     // Checks in the article to a Shelf, without a package
-
     db.beginTransaction()
       .then(() => db.query('(SELECT id FROM Article WHERE material_number = ?)', checkIn.material_number))
       .then((idResult) => {
