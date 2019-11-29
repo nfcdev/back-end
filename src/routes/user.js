@@ -45,7 +45,7 @@ router.put('/', authenticatedRequest, (request, response) => {
     });
 });
 
-router.get('/checkedOutMaterial', authenticatedRequest, (request, response) => {
+router.get('/checkedoutMaterial', authenticatedRequest, (request, response) => {
     current_user = request.user;
     console.log( request.user );
     pool.getConnection(function (err, connection) {
