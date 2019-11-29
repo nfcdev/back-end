@@ -548,7 +548,8 @@ router.get('/search', (request, response) => {
     sql_query += `(shelf = "${keyword}") OR `;
     sql_query += `(storage_room = "${keyword}") OR `;
     sql_query += `(package = "${keyword}") OR `;
-    sql_query += `(status = "${keyword}")`;
+    sql_query += `(status = "${keyword}") OR `;
+    sql_query += `(branch = "${keyword}")`;
     if (index < keywords.length - 1) {
       sql_query += ' INTERSECT ';
     }
