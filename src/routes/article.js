@@ -32,7 +32,7 @@ router.post('/process', authenticatedRequest, (req, res) => {
     sql1 += ' Article.material_number = ?';
 
     const array1 = [
-      req.user.id,
+      req.user.shortcode,
       processArticle.comment,
       processArticle.material_number,
       processArticle.material_number,
@@ -183,7 +183,7 @@ router.post('/check-out', authenticatedRequest, (request, response) => {
                       connection.query(
                         sql,
                         [
-                          request.user.id,
+                          request.user.shortcode,
                           checkOut.comment,
                           checkOut.material_number,
                           checkOut.material_number,
@@ -328,7 +328,7 @@ router.post('/discard', authenticatedRequest, (request, response) => {
                       connection.query(
                         sql,
                         [
-                          request.user.id,
+                          request.user.shortcode,
                           discard.comment,
                           discard.material_number,
                           discard.material_number,
@@ -774,7 +774,7 @@ router.post('/check-in', authenticatedRequest, async (request, response) => {
         db.query(
           'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, (SELECT package_number FROM Package WHERE id = ?),?,?,?,?)',
           [
-            request.user.id,
+            request.user.shortcode,
             checkIn.comment,
             checkIn.package,
             selectresults[0].shelf_name,
@@ -830,7 +830,7 @@ router.post('/check-in', authenticatedRequest, async (request, response) => {
         db.query(
           'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, NULL,?, ?,?,?)',
           [
-            request.user.id,
+            request.user.shortcode,
             checkIn.comment,
             selectresults[0].shelf_name,
             selectresults[0].StorageRoomName,
@@ -919,7 +919,7 @@ router.post('/register', authenticatedRequest, async (request, response) => {
         db.query(
           'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
           [
-            request.user.id,
+            request.user.shortcode,
             regInfo.comment,
             regInfo.package,
             selectresults[0].shelf_name,
@@ -991,7 +991,7 @@ router.post('/register', authenticatedRequest, async (request, response) => {
         db.query(
           'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, NULL,?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
           [
-            request.user.id,
+            request.user.shortcode,
             regInfo.comment,
             selectresults[0].shelf_name,
             selectresults[0].StorageRoomName,
@@ -1086,7 +1086,7 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
           db.query(
             'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("incorporated", UNIX_TIMESTAMP(), ?, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
             [
-              request.user.id,
+              request.user.shortcode,
               incorp.comment,
               incorp.package,
               selectresults[0].shelf_name,
@@ -1146,7 +1146,7 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
           db.query(
             'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("incorporated", UNIX_TIMESTAMP(), ?, ?, NULL,?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
             [
-              request.user.id,
+              request.user.shortcode,
               incorp.comment,
               selectresults[0].shelf_name,
               selectresults[0].StorageRoomName,
