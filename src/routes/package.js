@@ -2,6 +2,7 @@
 const express = require('express');
 const util = require('util');
 const { authenticatedRequest, adminAuthorizedRequest } = require('../util/authentication');
+
 const router = express.Router();
 const pool = require('../util/connect');
 
@@ -255,7 +256,8 @@ router.delete('/:id', (request, response) => {
 });
 
 // Checks in a package
-router.post('/check-in', authenticatedRequest, (request, response) => {
+router.post('/check-in', authenticatedRequest, async (request, response) => {
+  const db = await makeDb();
   const checkIn = {
     shelf: request.body.shelf,
     package_number: request.body.package_number,
@@ -265,111 +267,72 @@ router.post('/check-in', authenticatedRequest, (request, response) => {
   if (!checkIn.shelf || !checkIn.storage_room || !checkIn.package_number) {
     response.status(400).json({ error: 'Bad request' });
   } else {
-    pool.getConnection(function (err, connection) {
-      if (err) {
+    db.beginTransaction()
+      .then(() => {
+        // Updates shelf of package
+        const sql = 'UPDATE Package SET shelf = ? WHERE package_number = ?';
+        const update = db.query(sql, [checkIn.shelf, checkIn.package_number]);
+        return Promise.all([update]);
+      })
+      .then((update) => {
+        if (!update[0].affectedRows) {
+          throw new Error('Bad query');
+        }
+        // Updates storage room in container
+        const sql = 'UPDATE Container SET current_storage_room = ? WHERE id = (SELECT id FROM Package WHERE package_number = ?) ';
+        const update2 = db.query(sql, [checkIn.storage_room, checkIn.package_number]);
+        return Promise.all([update2]);
+      })
+      .then((update2) => {
+        if (!update2[0].affectedRows) {
+          throw new Error('Bad query');
+        }
+        // Selects all articles in the package that is getting checked in
+        const sql = 'SELECT article FROM StorageMap WHERE container = (SELECT id FROM Package WHERE package_number = ?)';
+        const selection = db.query(
+          sql,
+          [
+            checkIn.package_number,
+          ],
+        );
+        return Promise.all([selection]);
+      })
+      .then((selection) => {
+        // Creates Storage events for the articles in the package
+        for (a in selection[0]) {
+          const sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, ?,(SELECT shelf_name FROM Shelf WHERE id = ?), (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
+
+          db.query(
+            sql,
+            [
+              request.user.shortcode,
+              checkIn.comment,
+              checkIn.package_number,
+              checkIn.shelf,
+              checkIn.storage_room,
+              selection[0][a].article,
+              checkIn.storage_room,
+            ],
+          );
+        }
+      })
+      .then(() => {
+        db.commit();
+        db.close();
+        response.json({ resultat: 'Ok' });
+      })
+      .catch((err) => {
         console.log(err);
-        response.status(500).send('Could not connect to server');
-      } else {
-        connection.beginTransaction(function (err0) {
-          if (err0) {
-            console.log(err0);
-            response.status(500).send('Could not start transaction');
-          } else {
-            // Updates shelf of package
-            let sql = 'UPDATE Package SET shelf = ? WHERE package_number = ?';
-            connection.query(sql, [checkIn.shelf, checkIn.package_number], function (
-              err1,
-              result,
-            ) {
-              if (err1) {
-                connection.rollback(function () {
-                  console.log(err1);
-                  response.status(400).json({ error: err1.message });
-                });
-              } else if (result.affectedRows) {
-                // Updates storage room in container
-                sql = 'UPDATE Container SET current_storage_room = ? WHERE id = (SELECT id FROM Package WHERE package_number = ?) ';
-                connection.query(sql, [checkIn.storage_room, checkIn.package_number], function (err2, result1) {
-                  if (err2) {
-                    connection.rollback(function () {
-                      console.log(err2);
-                      response.status(400).json({ error: err2.message });
-                    });
-                  } else if (result1.affectedRows) {
-                    // Selects all articles in the package that is getting checked in
-                    sql = 'SELECT article FROM StorageMap WHERE container = (SELECT id FROM Package WHERE package_number = ?)';
-
-                    connection.query(
-                      sql,
-                      [
-                        checkIn.package_number,
-                      ],
-                      function (err3, result2) {
-                        if (err3) {
-                          connection.rollback(function () {
-                            console.log(err3);
-                            response.status(400).json({ error: err3.message });
-                          });
-                        } else {
-                          // Creates Storage events for the articles in the package
-                          for (a in result2) {
-                            // User hardcoded to "1" right now
-                            sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, ?,(SELECT shelf_name FROM Shelf WHERE id = ?), (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
-
-                            connection.query(
-                              sql,
-                              [
-                                request.user.id,
-                                checkIn.comment,
-                                checkIn.package_number,
-                                checkIn.shelf,
-                                checkIn.storage_room,
-                                result2[a].article,
-                                checkIn.storage_room,
-                              ],
-                              function (err4, result3) {
-                                if (err4) {
-                                  connection.rollback(function () {
-                                    console.log(err4);
-                                    response.status(400).json({ error: err4.message });
-                                  });
-                                } else {
-                                  console.log(`${result2[a].article}created`);
-                                }
-                              },
-                            );
-                          }
-                          connection.commit(function (err5) {
-                            if (err5) {
-                              connection.rollback(function () {
-                                console.log(err5);
-                              });
-                            } else {
-                              console.log('Transaction Complete.');
-                              connection.end();
-                            }
-                          });
-                          response.json({ resultat: 'Ok' });
-                        }
-                      },
-                    );
-                  } else {
-                    response.send('Package does not exist');
-                  }
-                });
-              } else {
-                response.send('Package does not exist');
-              }
-            });
-          }
-        });
-      }
-    });
+        db.rollback();
+        db.close();
+        response.status(400).json({ error: err.message });
+      });
   }
 });
 
 // Checks out a package
-router.post('/check-out', authenticatedRequest, (request, response) => {
+router.post('/check-out', authenticatedRequest, async (request, response) => {
+  const db = await makeDb();
   const checkOut = {
     package_number: request.body.package_number,
     comment: request.body.comment,
@@ -378,110 +341,73 @@ router.post('/check-out', authenticatedRequest, (request, response) => {
   if (!checkOut.storage_room || !checkOut.package_number) {
     response.status(400).send('Bad request');
   } else {
-    pool.getConnection(function (err, connection) {
-      if (err) {
-        console.log(err);
-        response.status(500).send('Could not connect to server');
-      } else {
-        connection.beginTransaction(function (err0) {
-          if (err0) {
-            console.log(err0);
-            response.status(500).send('Could not start transaction');
-          } else {
-            // Gets storageroom to compare with given storageroom from user, and gets the shelf for the storage event before it gets set to null
-            let sql = 'SELECT Container.current_storage_room, Package.shelf FROM Package JOIN Container WHERE Container.id = Package.id AND Package.id = (SELECT id FROM Package WHERE package_number = ?) ';
-            connection.query(sql, [checkOut.package_number], function (err2, result1) {
-              if (err2) {
-                connection.rollback(function () {
-                  console.log(err2);
-                  response.status(400).json({ error: err2.message });
-                });
-              } else if (result1[0].current_storage_room == checkOut.storage_room) {
-                // Makes current_storage_room and shelf null for the package
-                sql = 'UPDATE Package, Container SET Package.shelf = NULL, Container.current_storage_room = NULL WHERE Container.id = Package.id AND Package.id = (SELECT id FROM Package WHERE package_number =?) ';
+    db.beginTransaction()
+      .then(() => {
+        // Gets storageroom to compare with given storageroom from user, and gets the shelf for the storage event before it gets set to null
+        const sql = 'SELECT Container.current_storage_room, Package.shelf FROM Package JOIN Container WHERE Container.id = Package.id AND Package.id = (SELECT id FROM Package WHERE package_number = ?) ';
+        const result = db.query(sql, [checkOut.package_number]);
+        return Promise.all([result]);
+      })
+      .then((result) => {
+        if (result[0][0].current_storage_room != checkOut.storage_room) {
+          throw new Error('Wrong storageroom');
+        }
+        // Makes current_storage_room and shelf null for the package
+        const sql = 'UPDATE Package, Container SET Package.shelf = NULL, Container.current_storage_room = NULL WHERE Container.id = Package.id AND Package.id = (SELECT id FROM Package WHERE package_number =?) ';
+        const update = db.query(
+          sql,
+          [
+            checkOut.package_number,
+          ],
+        );
+        return Promise.all([update, result]);
+      })
+      .then((update) => {
+        if (!update[0].affectedRows) {
+          throw new Error('Update failed');
+        }
+        // Selects all articles in the package that is getting checked out
+        const sql = 'SELECT article FROM StorageMap WHERE container = (SELECT id FROM Package WHERE package_number = ?)';
 
-                connection.query(
-                  sql,
-                  [
-                    checkOut.package_number,
-                  ],
-                  function (err1, result) {
-                    if (err1) {
-                      connection.rollback(function () {
-                        console.log(err1);
-                        response.status(400).json({ error: err1.message });
-                      });
-                    } else {
-                      // Selects all articles in the package that is getting checked out
-                      sql = 'SELECT article FROM StorageMap WHERE container = (SELECT id FROM Package WHERE package_number = ?)';
+        const articles = db.query(
+          sql,
+          [
+            checkOut.package_number,
+          ],
+        );
+        return Promise.all([articles, update[1]]);
+      })
+      .then((articles) => {
+        // Creates Storage events for all the articles in the package
+        for (a in articles[0]) {
+          sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", UNIX_TIMESTAMP(), ?, ?, ?,(SELECT shelf_name FROM Shelf WHERE id = ?), (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
 
-                      connection.query(
-                        sql,
-                        [
-                          checkOut.package_number,
-                        ],
-                        function (err3, result2) {
-                          if (err3) {
-                            connection.rollback(function () {
-                              console.log(err3);
-                              response.status(400).json({ error: err3.message });
-                            });
-                          } else {
-                            // Creates Storage events for all the articles in the package
-                            for (a in result2) {
-                              // User is hardcoded to "1" right now
-                              sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", UNIX_TIMESTAMP(), ?, ?, ?,(SELECT shelf_name FROM Shelf WHERE id = ?), (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
-
-                              connection.query(
-                                sql,
-                                [
-                                  request.user.id,
-                                  checkOut.comment,
-                                  checkOut.package_number,
-                                  result1[0].shelf,
-                                  checkOut.storage_room,
-                                  result2[a].article,
-                                  checkOut.storage_room,
-                                ],
-                                function (err4, result3) {
-                                  if (err4) {
-                                    connection.rollback(function () {
-                                      console.log(err3);
-                                      response.status(400).json({ error: err4.message });
-                                    });
-                                  } else {
-                                    console.log(`${result2[a].article}created`);
-                                  }
-                                },
-                              );
-                            }
-                            connection.commit(function (err5) {
-                              if (err5) {
-                                connection.rollback(function () {
-                                  console.log(err5);
-                                });
-                              } else {
-                                console.log('Transaction Complete.');
-                                connection.end();
-                              }
-                            });
-                            response.json({ resultat: 'Ok' });
-                          }
-                        },
-                      );
-                    }
-                  },
-                );
-              } else {
-                response.status(400).json({ error: 'Wrong room' });
-              }
-            });
-          }
-        });
-      }
-    });
+          db.query(
+            sql,
+            [
+              request.user.shortcode,
+              checkOut.comment,
+              checkOut.package_number,
+              articles[1].shelf,
+              checkOut.storage_room,
+              articles[0][a].article,
+              checkOut.storage_room,
+            ],
+          );
+        }
+      })
+      .then(() => {
+        db.commit();
+        db.close();
+        response.json({ resultat: 'Ok' });
+      })
+      .catch((err) => {
+        console.log('error was: ', err);
+        db.rollback();
+        db.close();
+        response.status(400).json({ error: err.message });
+      });
   }
 });
-
 
 module.exports = router;
