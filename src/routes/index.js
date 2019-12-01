@@ -12,6 +12,7 @@ router.use(`${APISUFFIX}/branch`, require('./branch'));
 router.use(`${APISUFFIX}/package`, require('./package'));
 router.use(`${APISUFFIX}/shelf`, require('./shelf'));
 router.use(`${APISUFFIX}/storage-event`, require('./storage-event'));
+router.use(`${APISUFFIX}/user`, require('./user'));
 
 
 module.exports = router;

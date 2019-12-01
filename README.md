@@ -272,7 +272,8 @@ The endpoint returns JSON data structured like this:
         "shelf": "Hylla 8",
         "storage_room": "DNA materialrum 2",
         "branch": "DNA",
-        "article": 58
+        "article": 58,
+        "abnormal_activity_flag": 0
     },
     {
         "id": 2,
@@ -284,7 +285,8 @@ The endpoint returns JSON data structured like this:
         "shelf": "B3",
         "storage_room": "DNA materialrum 1",
         "branch": "DNA",
-        "article": 43
+        "article": 43,
+        "abnormal_activity_flag": 0
     },
     ...
 ]
@@ -315,7 +317,8 @@ The endpoint returns JSON data structured like this:
         "shelf": "A15",
         "storage_room": "Vapen materialrum 1",
         "branch": "Vapen",
-        "article": 17
+        "article": 17,
+        "abnormal_activity_flag": 0
     },
     ...
 ]
@@ -345,7 +348,8 @@ The endpoint returns JSON data structured like this:
         "shelf": "A15",
         "storage_room": "Vapen materialrum 1",
         "branch": "Vapen",
-        "article": 17
+        "article": 17,
+        "abnormal_activity_flag": 0
     },
     ...
 ]
@@ -465,7 +469,8 @@ If the check in was successful, the response will be the storage event that was 
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
     "branch": "DNA",
-    "article": 58
+    "article": 58,
+    "abnormal_activity_flag": 0
 }
 ```
 
@@ -516,7 +521,8 @@ If the incorporation was successful, the response will be the storage event that
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
     "branch": "DNA",
-    "article": 58
+    "article": 58,
+    "abnormal_activity_flag": 0
 }
 ```
 
@@ -554,7 +560,8 @@ If the check out was successful, the response will be the storage event that was
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
     "branch": "DNA",
-    "article": 58
+    "article": 58,
+    "abnormal_activity_flag": 0
 }
 ```
 
@@ -592,7 +599,8 @@ If the action was successful, the response will be the storage event that was cr
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
     "branch": "DNA",
-    "article": 58
+    "article": 58,
+    "abnormal_activity_flag": 0
 }
 ```
 
@@ -631,7 +639,8 @@ If the action was successful, the response will be the storage event that was cr
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
     "branch": "DNA",
-    "article": 58
+    "article": 58,
+    "abnormal_activity_flag": 0
 }
 ```
 
@@ -685,19 +694,22 @@ If the registration was successful, the response will be the storage event that 
     "shelf": "Hylla 8",
     "storage_room": "DNA materialrum 2",
     "branch": "DNA",
-    "article": 58
+    "article": 58,
+    "abnormal_activity_flag": 0
 }
 ```
 
 
 
-## Get all articles
+## Get articles
 This endpoint returns all articles.
 
 ##### HTTP Request
 `GET http://localhost:9000/article`
 
 ##### URL Query Parameters
+The query can be filtered through the following parameters
+
 Parameter | Description
 --------- | -----------
 reference_number | Reference number for the searched article
@@ -720,7 +732,9 @@ Example response:
         "status": "check_out",
         "timestamp": 1552942078,
         "last_modified": 1552942078,
-        "description": ""
+        "description": "",
+        "unaccounted_time": 0,
+        "id": 18
     },
     {
         "material_number": "505841-57",
@@ -732,7 +746,58 @@ Example response:
         "status": "check_in",
         "timestamp": 1549895201,
         "last_modified": 1549895201,
-        "description": "Gevärspipa"
+        "description": "Gevärspipa",
+        "unaccounted_time": 0,
+        "id": 12
+    },
+    ...
+]
+```
+
+
+## Article search
+This endpoint returns all articles which match a number of keywords.
+
+##### HTTP Request
+`GET http://localhost:9000/article/search?q=keyword1&q=keyword2&q=keyword3`
+
+##### URL Query Parameters
+Parameter | Description
+--------- | -----------
+q | Keyword for the search. Kan be used multiple times. Will search through material number, reference number, status, package, shelf, branch and storage room 
+
+
+##### HTTP Response
+Example response:
+```json
+[
+    {
+        "material_number": "743996-44",
+        "reference_number": "743996",
+        "branch": "Vapen",
+        "storage_room": "Vapen 1",
+        "package": " - ",
+        "shelf": "B3",
+        "status": "check_out",
+        "timestamp": 1552942078,
+        "last_modified": 1552942078,
+        "description": "",
+        "unaccounted_time": 0,
+        "id": 12
+    },
+    {
+        "material_number": "505841-57",
+        "reference_number": "505841",
+        "branch": "Vapen",
+        "storage_room": "Vapen 1",
+        "shelf": "B10",
+        "package": " - ",
+        "status": "check_in",
+        "timestamp": 1549895201,
+        "last_modified": 1549895201,
+        "description": "Gevärspipa",
+        "unaccounted_time": 0,
+        "id": 13
     },
     ...
 ]
@@ -762,7 +827,9 @@ Example response:
     "status": "check_in",
     "timestamp": 1549895201,
     "last_modified": 1549895201,
-    "description": "Gevärspipa"
+    "description": "Gevärspipa",
+    "unaccounted_time": 0,
+    "id": 12
 }
 ```
 
@@ -791,6 +858,7 @@ Example response:
         "timestamp": 1552942078,
         "last_modified": 1552942078,
         "description": "",
+        "unaccounted_time": 0,
         "id": 12
     },
     {
@@ -804,7 +872,8 @@ Example response:
         "timestamp": 1549895201,
         "last_modified": 1549895201,
         "description": "Gevärspipa",
-        "id": 18
+        "unaccounted_time": 0,
+        "id": 2
     },
     ...
 ]
@@ -835,7 +904,8 @@ Example response:
         "timestamp": 1552942078,
         "last_modified": 1552942078,
         "description": "",
-        "id": 12
+        "unaccounted_time": 0,
+        "id": 5
     },
     {
         "material_number": "505841-57",
@@ -848,7 +918,8 @@ Example response:
         "timestamp": 1549895201,
         "last_modified": 1549895201,
         "description": "Gevärspipa",
-        "id": 18
+        "unaccounted_time": 0,
+        "id": 12
     },
     ...
 ]
@@ -880,7 +951,8 @@ Example response:
         "timestamp": 1552942078,
         "last_modified": 1552942078,
         "description": "",
-        "id": 12
+        "unaccounted_time": 0,
+        "id": 2
     },
     {
         "material_number": "505841-57",
@@ -893,7 +965,8 @@ Example response:
         "timestamp": 1549895201,
         "last_modified": 1549895201,
         "description": "Gevärspipa",
-        "id": 18
+        "unaccounted_time": 0,
+        "id": 19
     },
     ...
 ]
@@ -925,6 +998,7 @@ Example response:
         "timestamp": 1552942078,
         "last_modified": 1552942078,
         "description": "",
+        "unaccounted_time": 0,
         "id": 12
     },
     {
@@ -938,6 +1012,7 @@ Example response:
         "timestamp": 1549895201,
         "last_modified": 1549895201,
         "description": "Gevärspipa",
+        "unaccounted_time": 0,
         "id": 18
     },
     ...
@@ -969,6 +1044,7 @@ Example response:
         "timestamp": 1552942078,
         "last_modified": 1552942078,
         "description": "",
+        "unaccounted_time": 0,
         "id": 12
     },
     {
@@ -982,6 +1058,7 @@ Example response:
         "timestamp": 1549895201,
         "last_modified": 1549895201,
         "description": "Gevärspipa",
+        "unaccounted_time": 0,
         "id": 18
     },
     ...
@@ -1003,7 +1080,6 @@ MATERIAL_NUMBER | The material_number of the specific article
 Example response:
 ```json
 {
-    "id": "99",
     "material_number": "505841-57",
     "reference_number": "505841",
     "branch": "Vapen",
@@ -1013,7 +1089,9 @@ Example response:
     "status": "check_in",
     "timestamp": 1549895201,
     "last_modified": 1549895201,
-    "description": "Gevärspipa"
+    "description": "Gevärspipa",
+    "unaccounted_time": 0,
+    "id": "99",
 }
 ```
 # Case
