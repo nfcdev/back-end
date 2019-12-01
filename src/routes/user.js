@@ -10,19 +10,26 @@ router.get('/', adminAuthorizedRequest, (request, response) => {
         if (err) {
             console.log(err);
             response.status(500).send('Cannot connect to server');
+        } else {
+            const sql = 'SELECT * FROM User';
+            connection.query(sql, (err, result) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    response.status(400).send('Bad query');
+                } else {
+                    console.log('Data received');
+                    response.send(result);
+                }
+            });
         }
-        const sql = 'SELECT * FROM User';
-        connection.query(sql, (err, result) => {
-            connection.release();
-            if (err) {
-                console.log(err);
-                response.status(400).send('Bad query');
-            }
-            console.log('Data received');
-            response.send(result);
-        });
     });
 });
+// Gets all info about the logged in user
+router.get('/me', authenticatedRequest, (request, response) => {
+    response.send(request.user);
+});
+
 
 router.put('/', adminAuthorizedRequest, (request, response) => {
     const updatedUser = request.body;
@@ -39,6 +46,30 @@ router.put('/', adminAuthorizedRequest, (request, response) => {
                     response.status(400).send('Bad query');
                 } else {
                     response.json({ shortcode: updatedUser.shortcode, role: updatedUser.role });
+                }
+            });
+        }
+    });
+});
+
+
+
+// Gets all materialnumbers for articles that are checked out by the logged in user
+router.get('/material', authenticatedRequest, (request, response) => {
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            console.log(err);
+            response.status(500).send('Cannot connect to server');
+        } else {
+            const sql = '(SELECT material_number FROM Article_information WHERE id IN (SELECT article FROM StorageEvent WHERE user = ?)) INTERSECT (SELECT material_number FROM Article_information WHERE status = "checked_out")';
+            connection.query(sql, [request.user.shortcode], (err, result) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    response.status(400).send('Bad query');
+                } else {
+                    console.log('Data received');
+                    response.send(result);
                 }
             });
         }
