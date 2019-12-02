@@ -4,12 +4,13 @@ const router = express.Router();
 const pool = require('../util/connect');
 
 router.get('/', (request, response) => {
-  pool.getConnection((err, connection) => {
+  const SQL = 'SELECT * FROM StorageEvent';
+  pool.query(SQL, (err, rows) => {
     if (err) {
-      console.log(err);
-      response.status(500).send('Cannot connect to server');
+      response.status(400).json({ error: err.message });
+    } else {
+      response.send(rows);
     }
-    response.send('data-delivery');
   });
 });
 
