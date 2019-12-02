@@ -4,12 +4,13 @@ const router = express.Router();
 const pool = require('../util/connect');
 
 router.get('/', (request, response) => {
-  pool.getConnection((err, connection) => {
+  const SQL = 'SELECT * FROM StorageEvent';
+  pool.query(SQL, (err, rows) => {
     if (err) {
-      console.log(err);
-      response.status(500).send('Cannot connect to server');
+      response.status(400).json({ error: err.message });
+    } else {
+      response.send(rows);
     }
-    response.send('data-delivery');
   });
 });
 
@@ -20,8 +21,7 @@ router.get('/article/:article_id', (request, response) => {
       console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
-      let sql =        'SELECT DISTINCT StorageEvent.id, StorageEvent.action, StorageEvent.timestamp, StorageEvent.user, StorageEvent.comment, StorageEvent.package, StorageEvent.shelf,';
-      sql += `StorageEvent.storage_room, StorageEvent.article FROM StorageEvent INNER JOIN Article ON StorageEvent.article = ${article_id}`;
+      const sql = 'SELECT * FROM StorageEvent WHERE Article = ?';
       connection.query(sql, [article_id], (err, result) => {
         connection.release();
         if (err) {
@@ -43,7 +43,7 @@ router.get('/storageroom/:storageroom_id', (request, response) => {
       console.log(err);
       response.status(500).send('Cannot connect to server');
     }
-    const sql =      'SELECT StorageEvent.id, StorageEvent.action, StorageEvent.timestamp,StorageEvent.user, StorageEvent.comment, StorageEvent.package, StorageEvent.shelf, StorageEvent.storage_room, StorageEvent.article FROM StorageEvent INNER JOIN StorageRoom ON StorageEvent.storage_room = StorageRoom.name WHERE StorageRoom.name IN (SELECT name FROM StorageRoom WHERE StorageRoom.id = ?)';
+    const sql = 'SELECT * FROM StorageEvent WHERE storage_room = (SELECT name FROM StorageRoom WHERE StorageRoom.id = ?)';
     connection.query(sql, [storageroom_id], (err, result) => {
       connection.release();
       if (err) {
