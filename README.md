@@ -11,7 +11,7 @@
 # Introduction
 This document aims to describe the designed functionality of the NFC Storage Tracker API, created for the Swedish National Forensic Centre through the software project course TDDC88. 
 
-Since the host of the application is yet to be decided, the host used for example requests in this document will be `localhost` and port `9000` as these corresponds to the setup of our development environment.
+Since the host of the application is yet to be decided, the host used for example requests in this document will be `localhost` and port `9000/api/v1` as these corresponds to the setup of our development environment.
 
 All messages sent to the API application is required to be in JSON format. 
 
@@ -26,7 +26,7 @@ Unless otherwise specified, all endpoints listed in this document requires authe
 ## Get all branches 
 This endpoint gets all available branches
 ##### HTTP Request
-`GET http://localhost:9000/branch`
+`GET http://localhost:9000/api/v1/branch`
 
 ##### HTTP Response
 The endpoint returns JSON data structured like this:
@@ -47,7 +47,7 @@ The endpoint returns JSON data structured like this:
 ## Create a new branch
 This endpoint creates a new branch
 ##### HTTP Request
-`POST http://localhost:9000/branch`
+`POST http://localhost:9000/api/v1/branch`
 
 Example body to send:
 ```json
@@ -72,7 +72,7 @@ name | The new name of the new branch.
 ## Update a branch
 This endpoint updates a specific branch
 ##### HTTP Request
-`PUT http://localhost:9000/branch/<ID>`
+`PUT http://localhost:9000/api/v1/branch/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -104,7 +104,7 @@ If successful, the response will be the updated branch object:
 ## Delete a branch
 This endpoint deletes a specific branch
 ##### HTTP Request
-`DELETE http://localhost:9000/branch/<ID>`
+`DELETE http://localhost:9000/api/v1/branch/<ID>`
 ##### URL Parameters
 Parameter | Description
 --------- | -----------
@@ -123,7 +123,7 @@ If successful, the response will be a status message:
 ## Update a storage room
 This endpoint updates a specific storage room
 ##### HTTP Request
-`PUT http://localhost:9000/storageroom/<ID>`
+`PUT http://localhost:9000/api/v1/storageroom/<ID>`
 ##### URL Parameters
 Parameter | Description
 --------- | -----------
@@ -157,7 +157,7 @@ If successful, the response will be the updated storage room object:
 ## Create a new storage room
 This endpoint creates a new storage room
 ##### HTTP Request
-`POST http://localhost:9000/storageroom`
+`POST http://localhost:9000/api/v1/storageroom`
 
 ##### JSON Parameters 
 Parameter |Description
@@ -186,7 +186,7 @@ If successful, the response will be the updated storage room object:
 ## Delete a storage room
 This endpoint deletes a specific branch
 ##### HTTP Request
-`DELETE http://localhost:9000/storageroom/<ID>`
+`DELETE http://localhost:9000/api/v1/storageroom/<ID>`
 ##### URL Parameters
 Parameter | Description
 --------- | -----------
@@ -203,7 +203,7 @@ If successful, the response will be a status message:
 ## Get all storage rooms 
 This endpoint gets all available storage rooms
 ##### HTTP Request
-`GET http://localhost:9000/storageroom`
+`GET http://localhost:9000/api/v1/storageroom`
 
 ##### HTTP Response
 The endpoint returns JSON data structured like this:
@@ -226,7 +226,7 @@ The endpoint returns JSON data structured like this:
 ## Get all storage rooms for a specific branch
 This endpoint gets all available storage rooms belonging to a specific branch
 ##### HTTP Request
-`GET http://localhost:9000/storageroom/branch/<ID>`
+`GET http://localhost:9000/api/v1/storageroom/branch/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -256,7 +256,7 @@ The endpoint returns JSON data structured like this:
 This endpoint returns all storage events
 
 ##### HTTP Request
-`GET http://localhost:9000/storageevent`
+`GET http://localhost:9000/api/v1/storageevent`
 
 ##### HTTP Response
 The endpoint returns JSON data structured like this:
@@ -296,7 +296,7 @@ The endpoint returns JSON data structured like this:
 This endpoint returns all storage event involving a specific article
 
 ##### HTTP Request
-`GET http://localhost:9000/storageevent/article/<ID>`
+`GET http://localhost:9000/api/v1/storageevent/article/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -328,7 +328,7 @@ The endpoint returns JSON data structured like this:
 This endpoint returns all storage event involving a specific storage room
 
 ##### HTTP Request
-`GET http://localhost:9000/storageevent/storageroom/<ID>`
+`GET http://localhost:9000/api/v1/storageevent/storageroom/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -360,7 +360,7 @@ The endpoint returns JSON data structured like this:
 ## Create a new article
 This endpoint creates a new article
 ##### HTTP Request
-`POST http://localhost:9000/article`
+`POST http://localhost:9000/api/v1/article`
 
 ##### JSON Parameters 
 Parameter | Required | Description
@@ -392,7 +392,7 @@ If successful, the response will be the created article:
 This endpoint updates the description of an article.
 
 ##### HTTP Request
-`PUT http://localhost:9000/article/<ID>`
+`PUT http://localhost:9000/api/v1/article/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -426,7 +426,7 @@ If successful, the response will be the updated article object:
 This endpoint checks in an existing article in a storage room with shelf/package. If an article with the specified material number does not exist, the response will return an error code. 
 
 ##### HTTP Request
-`POST http://localhost:9000/article/check-in`
+`POST http://localhost:9000/api/v1/article/check-in`
 
 ##### JSON Parameters 
 Parameter | Required | Description
@@ -478,7 +478,7 @@ If the check in was successful, the response will be the storage event that was 
 This endpoint incorporates an existing article in a storage room with shelf/package. If an article with the specified material number does not exist, the response will return an error code. Incorporating means indefinite storage of an article and behaves just like a check-in, but with the status 'incorporated' instead. 
 
 ##### HTTP Request
-`POST http://localhost:9000/article/incorporate`
+`POST http://localhost:9000/api/v1/article/incorporate`
 
 ##### JSON Parameters 
 Parameter | Required | Description
@@ -530,7 +530,7 @@ If the incorporation was successful, the response will be the storage event that
 This endpoints checks out an existing article from a storage room. If an article with the specified material number does not exist, the response will return an error code. 
 
 ##### HTTP Request
-`POST http://localhost:9000/article/check-out`
+`POST http://localhost:9000/api/v1/article/check-out`
 
 ##### JSON Parameters 
 Parameter | Required | Description
@@ -569,7 +569,7 @@ If the check out was successful, the response will be the storage event that was
 This endpoints discards an existing article from a storage room. If an article with the specified material number does not exist, the response will return an error code. Discarding of an article results in the article having no location in the storage map. Essentially the same as a check-out but is meant for material that has been discarded and will not have any further storage events.
 
 ##### HTTP Request
-`POST http://localhost:9000/article/discard`
+`POST http://localhost:9000/api/v1/article/discard`
 
 ##### JSON Parameters 
 Parameter | Required | Description
@@ -609,7 +609,7 @@ If the action was successful, the response will be the storage event that was cr
 This endpoints commits a 'processed' action for an existing article in a storage room. If an article with the specified material number does not exist, the response will return an error code. Processing of an article results in the article having no location in the storage map. Essentially the same as a check-out but is meant for material that has been processed and finished and will not have any further storage events.
 
 ##### HTTP Request
-`POST http://localhost:9000/article/process`
+`POST http://localhost:9000/api/v1/article/process`
 
 ##### JSON Parameters 
 Parameter | Required | Description
@@ -648,7 +648,7 @@ If the action was successful, the response will be the storage event that was cr
 This endpoints registers a new article and creates a first check-in in a storage room with shelf/package. If an article with the specified material number already exists, the response will return an error code. 
 
 ##### HTTP Request
-`POST http://localhost:9000/article/register`
+`POST http://localhost:9000/api/v1/article/register`
 
 ##### JSON Parameters 
 Parameter | Required | Description
@@ -705,7 +705,7 @@ If the registration was successful, the response will be the storage event that 
 This endpoint returns all articles.
 
 ##### HTTP Request
-`GET http://localhost:9000/article`
+`GET http://localhost:9000/api/v1/article`
 
 ##### URL Query Parameters
 The query can be filtered through the following parameters
@@ -759,7 +759,7 @@ Example response:
 This endpoint returns all articles which match a number of keywords.
 
 ##### HTTP Request
-`GET http://localhost:9000/article/search?q=keyword1&q=keyword2&q=keyword3`
+`GET http://localhost:9000/api/v1/article/search?q=keyword1&q=keyword2&q=keyword3`
 
 ##### URL Query Parameters
 Parameter | Description
@@ -807,7 +807,7 @@ Example response:
 This endpoint returns a specific article.
 
 ##### HTTP Request
-`GET http://localhost:9000/article/<ID>`
+`GET http://localhost:9000/api/v1/article/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -836,7 +836,7 @@ Example response:
 ## Get all articles for a specific case
 This endpoint returns all articles belonging to a specific case.
 ##### HTTP Request
-`GET http://localhost:9000/article/case/<ID>`
+`GET http://localhost:9000/api/v1/article/case/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -882,7 +882,7 @@ Example response:
 ## Get all articles stored by a specific branch
 This endpoint returns all articles currently stored by the branch with the specified id.
 ##### HTTP Request
-`GET http://localhost:9000/article/branch/<ID>`
+`GET http://localhost:9000/api/v1/article/branch/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -929,7 +929,7 @@ Example response:
 This endpoint returns all articles currently stored by a specific storage room.
 
 ##### HTTP Request
-`GET http://localhost:9000/article/storageroom/<ID>`
+`GET http://localhost:9000/api/v1/article/storageroom/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -976,7 +976,7 @@ Example response:
 This endpoint returns all articles currently in a specific package.
 
 ##### HTTP Request
-`GET http://localhost:9000/article/package/<ID>`
+`GET http://localhost:9000/api/v1/article/package/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -1022,7 +1022,7 @@ Example response:
 ## Get all articles on a specifik shelf
 This endpoint returns all articles on a specifik shelf. Returns voth articles directly on the shelf and articles in a package on the shelf
 ##### HTTP Request
-`GET http://localhost:9000/article/shelf/<ID>`
+`GET http://localhost:9000/api/v1/article/shelf/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -1069,7 +1069,7 @@ Example response:
 This endpoint returns a specific article given a material_number.
 
 ##### HTTP Request
-`GET http://localhost:9000/article/material_number/<MATERIAL_NUMBER>`
+`GET http://localhost:9000/api/v1/article/material_number/<MATERIAL_NUMBER>`
 
 ##### URL Parameters
 Parameter | Description
@@ -1099,7 +1099,7 @@ Example response:
 ## Get all cases 
 This endpoint gets all cases
 ##### HTTP Request
-`GET http://localhost:9000/case`
+`GET http://localhost:9000/api/v1/case`
 
 ##### HTTP Response
 The endpoint returns JSON data structured like this:
@@ -1120,7 +1120,7 @@ The endpoint returns JSON data structured like this:
 ## Get a specific case 
 This endpoint returns information about a specific case
 ##### HTTP Request
-`GET http://localhost:9000/case/<ID>`
+`GET http://localhost:9000/api/v1/case/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -1139,7 +1139,7 @@ The endpoint returns JSON data structured like this:
 ## Get a specific case given reference_number
 This endpoint returns information about a specific case given its reference_number
 ##### HTTP Request
-`GET http://localhost:9000/case/reference_number/<REFERENCE_NUMBER>`
+`GET http://localhost:9000/api/v1/case/reference_number/<REFERENCE_NUMBER>`
 
 ##### URL Parameters
 Parameter | Description
@@ -1161,7 +1161,7 @@ The endpoint returns JSON data structured like this:
 This endpoint checks in a pacakge in a storage room and shelf. If a package with the specified package number does not exist, the response will return an error code. A check in of a package will result in a check-in event for **all** articles in the specified package and update the location of these articles.
 
 ##### HTTP Request
-`POST http://localhost:9000/package/check-in`
+`POST http://localhost:9000/api/v1/package/check-in`
 
 ##### JSON Parameters 
 Parameter | Required | Description
@@ -1193,7 +1193,7 @@ If the check in was successful, the response will be a status message:
 This endpoint checks out a pacakge in from storage room. If a package with the specified package number does not exist, the response will return an error code. A check out of a package will result in a check-out event for **all** articles in the specified package update the location of these articles.
 
 ##### HTTP Request
-`POST http://localhost:9000/package/check-out`
+`POST http://localhost:9000/api/v1/package/check-out`
 
 ##### JSON Parameters 
 Parameter | Required | Description
@@ -1222,7 +1222,7 @@ If the check in was successful, the response will be a status message:
 ## Get all packages
 This endpoint returns all packages
 ##### HTTP Request
-`GET http://localhost:9000/package`
+`GET http://localhost:9000/api/v1/package`
 
 ##### HTTP Response
 The endpoint returns JSON data structured like this:
@@ -1250,7 +1250,7 @@ The endpoint returns JSON data structured like this:
 This endpoint returns all packages in a specific storage room
 
 ##### HTTP Request
-`GET http://localhost:9000/package/storageroom/<ID>`
+`GET http://localhost:9000/api/v1/package/storageroom/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -1281,7 +1281,7 @@ The endpoint returns JSON data structured like this:
 This endpoint returns all packages in storage rooms belonging to a specific branch
 
 ##### HTTP Request
-`GET http://localhost:9000/package/branch/<ID>`
+`GET http://localhost:9000/api/v1/package/branch/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -1314,7 +1314,7 @@ The endpoint returns JSON data structured like this:
 This endpoint creates the next package for a given reference number. For example, if no packages exists for a certain case (e.g. reference number 12738) this endpoint will create a package with package number 12738-K01. The next time this endpoint is called, 12738-K02 will be created. If a case with the given reference number does not exist, a new case will be created.
 
 ##### HTTP Request
-`POST http://localhost:9000/package
+`POST http://localhost:9000/api/v1/package
 
 
 ##### JSON Parameters 
@@ -1347,7 +1347,7 @@ If successful, the response will be the created package object:
 ## Delete a package
 This endpoint deletes a specific package
 ##### HTTP Request
-`DELETE http://localhost:9000/package/<ID>`
+`DELETE http://localhost:9000/api/v1/package/<ID>`
 ##### URL Parameters
 Parameter | Description
 --------- | -----------
@@ -1365,7 +1365,7 @@ If successful, the response will be a status message:
 This endpoint returns a specifik package given its package_number
 
 ##### HTTP Request
-`GET http://localhost:9000/package/package_number/<PACKAGE_NUMBER>`
+`GET http://localhost:9000/api/v1/package/package_number/<PACKAGE_NUMBER>`
 
 ##### URL Parameters
 Parameter | Description
@@ -1389,7 +1389,7 @@ The endpoint returns JSON data structured like this:
 This endpoint returns all shelves for a specific storage room
 
 ##### HTTP Request
-`GET http://localhost:9000/shelf/storageroom/<ID>`
+`GET http://localhost:9000/api/v1/shelf/storageroom/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -1418,7 +1418,7 @@ The endpoint returns JSON data structured like this:
 This endpoint updates a specific shelf
 
 ##### HTTP Request
-`PUT http://localhost:9000/shelf/<ID>`
+`PUT http://localhost:9000/api/v1/shelf/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -1450,7 +1450,7 @@ If successful, the response will be the created shelf object:
 This endpoint creates a new shelf for a specific storage room
 
 ##### HTTP Request
-`POST http://localhost:9000/shelf/storageroom/<ID>`
+`POST http://localhost:9000/api/v1/shelf/storageroom/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -1482,7 +1482,7 @@ If successful, the response will be the created shelf object:
 This endpoint deletes a shelf
 
 ##### HTTP Request
-`DELETE http://localhost:9000/shelf/<ID>`
+`DELETE http://localhost:9000/api/v1/shelf/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -1501,7 +1501,7 @@ If successful, the response will be a status message:
 This endpoint returns all shelves 
 
 ##### HTTP Request
-`GET http://localhost:9000/shelf`
+`GET http://localhost:9000/api/v1/shelf`
 
 
 ##### HTTP Response
@@ -1526,7 +1526,7 @@ The endpoint returns JSON data structured like this:
 This endpoint returns all shelves for all storage rooms in a specifik branch
 
 ##### HTTP Request
-`GET http://localhost:9000/shelf/branch/<ID>`
+`GET http://localhost:9000/api/v1/shelf/branch/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -1555,7 +1555,7 @@ The endpoint returns JSON data structured like this:
 This endpoint returns a specifik shelf given its id
 
 ##### HTTP Request
-`GET http://localhost:9000/shelf/<ID>`
+`GET http://localhost:9000/api/v1/shelf/<ID>`
 
 ##### URL Parameters
 Parameter | Description
@@ -1578,7 +1578,7 @@ The endpoint returns JSON data structured like this:
 This endpoint gets the currently logged in user
 
 ##### HTTP Request
-`GET http://localhost:9000/user/me`
+`GET http://localhost:9000/api/v1/user/me`
 
 ##### HTTP Response
 The endpoint returns JSON data structured like this:
@@ -1595,7 +1595,7 @@ The endpoint returns JSON data structured like this:
 This endpoint gets the currently logged in user's checked out material
 
 ##### HTTP Request
-`GET http://localhost:9000/user/material`
+`GET http://localhost:9000/api/v1/user/material`
 
 ##### HTTP Response
 The endpoint returns JSON data structured like this:
@@ -1614,7 +1614,7 @@ The endpoint returns JSON data structured like this:
 This endpoint gets all users. Only possible to access for admins.
 
 ##### HTTP Request
-`GET http://localhost:9000/user`
+`GET http://localhost:9000/api/v1/user`
 
 ##### HTTP Response
 The endpoint returns JSON data structured like this:
@@ -1640,7 +1640,7 @@ The endpoint returns JSON data structured like this:
 This endpoint updates the role of a user. Only possible to access for admins.
 
 ##### HTTP Request
-`PUT http://localhost:9000/user`
+`PUT http://localhost:9000/api/v1/user`
 
 ##### JSON Parameters 
 Parameter | Required | Description
