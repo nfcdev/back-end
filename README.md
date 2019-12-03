@@ -1574,6 +1574,42 @@ The endpoint returns JSON data structured like this:
 
 # User
 
+## Get current user 
+This endpoint gets the currently logged in user
+
+##### HTTP Request
+`GET http://localhost:9000/user/me`
+
+##### HTTP Response
+The endpoint returns JSON data structured like this:
+```json
+{
+    "id": "1",
+    "shortcode": "useon",
+    "role": "user",
+    "unaccounted_time": 0
+}
+```
+
+## Get current user's checked out material
+This endpoint gets the currently logged in user's checked out material
+
+##### HTTP Request
+`GET http://localhost:9000/user/material`
+
+##### HTTP Response
+The endpoint returns JSON data structured like this:
+```json
+[
+    {
+        "material_number": "058801-36",
+    },
+    {
+        "material_number": "312313-02",
+    }
+]
+```
+
 ## Get all users 
 This endpoint gets all users. Only possible to access for admins.
 
@@ -1587,12 +1623,14 @@ The endpoint returns JSON data structured like this:
     {
         "id": "1",
         "shortcode": "admon",
-        "role": "admin"
+        "role": "admin",
+        "unaccounted_time": 0
     },
     {
         "id": "2",
         "shortcode": "useon",
-        "role": "user"
+        "role": "user",
+        "unaccounted_time": 0
     },
     ...
 ]
@@ -1615,7 +1653,8 @@ Example body of request:
 ```json
 {
     "shortcode": "user1",
-    "role": "admin"
+    "role": "admin",
+    "unaccounted_time": 0
 }
 ```
 

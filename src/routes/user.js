@@ -61,7 +61,7 @@ router.get('/material', authenticatedRequest, (request, response) => {
             console.log(err);
             response.status(500).send('Cannot connect to server');
         } else {
-            const sql = '(SELECT material_number FROM Article_information WHERE id IN (SELECT article FROM StorageEvent WHERE user = ?)) INTERSECT (SELECT material_number FROM Article_information WHERE status = "checked_out")';
+            const sql = '(SELECT material_number FROM Article_information WHERE id IN (SELECT article FROM StorageEvent WHERE user = ? AND timestamp IN(SELECT MAX(timestamp) FROM StorageEvent GROUP BY article))) INTERSECT (SELECT material_number FROM Article_information WHERE status = "checked_out") ';
             connection.query(sql, [request.user.shortcode], (err, result) => {
                 connection.release();
                 if (err) {
