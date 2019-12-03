@@ -71,7 +71,7 @@ router.post('/process', authenticatedRequest, (req, res) => {
                 console.log(err3);
                 res.status(400).send('Bad query! Your article may have already been processed.');
               });
-            } else if (result1[0].current_storage_room == processArticle.storage_room) {
+            } else if (result1[0].current_storage_room == processArticle.storage_room || req.user.role == 'admin') {
               connection.query(sql1, array1, function (err2, result2) { // inserts data into StorageEvent
                 if (err2) {
                   connection.rollback(function () {
@@ -148,7 +148,7 @@ router.post('/check-out', authenticatedRequest, (request, response) => {
                   console.log(err2);
                   response.status(400).send('Bad query! Your article may have already been checked out.');
                 });
-              } else if (result1[0].current_storage_room == checkOut.storage_room) {
+              } else if (result1[0].current_storage_room == checkOut.storage_room || request.user.role == 'admin') {
                 // Selects article that is getting checked out
                 sql = 'SELECT article FROM StorageMap WHERE article = (SELECT id FROM Article WHERE material_number = ?)';
 
@@ -292,7 +292,7 @@ router.post('/discard', authenticatedRequest, (request, response) => {
                   console.log(err2);
                   response.status(400).send('Bad query! Your article may have already been discarded.');
                 });
-              } else if (result1[0].current_storage_room == discard.storage_room) {
+              } else if (result1[0].current_storage_room == discard.storage_room || request.user.role == 'admin') {
                 // Selects article that is getting checked out
                 sql = 'SELECT article FROM StorageMap WHERE article = (SELECT id FROM Article WHERE material_number = ?)';
 
@@ -760,7 +760,7 @@ router.post('/check-in', authenticatedRequest, async (request, response) => {
       .then((p1) => {
         selectresults = p1[0];
         // checks so that the storageroom where the package is is the same as the one where the check-in is done
-        if (selectresults[0].current_storage_room != checkIn.storage_room) {
+        if (selectresults[0].current_storage_room != checkIn.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap
@@ -776,15 +776,15 @@ router.post('/check-in', authenticatedRequest, async (request, response) => {
       .then(() => {
         // Createa storageevent for the article
         db.query(
-          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, (SELECT package_number FROM Package WHERE id = ?),?,?,?,?)',
+          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, (SELECT package_number FROM Package WHERE id = ?),?,(SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))',
           [
             request.user.shortcode,
             checkIn.comment,
             checkIn.package,
             selectresults[0].shelf_name,
-            selectresults[0].StorageRoomName,
+            checkIn.storage_room,
             materialId,
-            selectresults[0].BranchName,
+            checkIn.storage_room,
           ],
         );
       })
@@ -816,7 +816,7 @@ router.post('/check-in', authenticatedRequest, async (request, response) => {
       .then((p1) => {
         selectresults = p1[0];
         // checks so that the storageroom where the shelf is is the same as the one where the check-in is done
-        if (selectresults[0].current_storage_room != checkIn.storage_room) {
+        if (selectresults[0].current_storage_room != checkIn.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap
@@ -832,14 +832,14 @@ router.post('/check-in', authenticatedRequest, async (request, response) => {
       .then(() => {
         // Createa storageevent for the article
         db.query(
-          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, NULL,?, ?,?,?)',
+          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, NULL,?, (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))',
           [
             request.user.shortcode,
             checkIn.comment,
             selectresults[0].shelf_name,
-            selectresults[0].StorageRoomName,
+            checkIn.storage_room,
             materialId,
-            selectresults[0].BranchName,
+            checkIn.storage_room,
           ],
         );
       })
@@ -905,7 +905,7 @@ router.post('/register', authenticatedRequest, async (request, response) => {
       .then((p1) => {
         selectresults = p1[0];
         // checks so that the storageroom where the package is is the same as the one where the register is done
-        if (selectresults[0].current_storage_room != regInfo.storage_room) {
+        if (selectresults[0].current_storage_room != regInfo.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storage room');
         } else {
           // Creates the storagemap for the article
@@ -921,15 +921,15 @@ router.post('/register', authenticatedRequest, async (request, response) => {
       .then(() => {
         // Createa storageevent for the article
         db.query(
-          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, (SELECT package_number FROM Package WHERE id = ?),?, (SELECT name FROM StorageRoom WHERE id = ?),(SELECT id FROM Article WHERE material_number = ?),(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))',
           [
             request.user.shortcode,
             regInfo.comment,
             regInfo.package,
             selectresults[0].shelf_name,
-            selectresults[0].StorageRoomName,
+            regInfo.storage_room,
             regInfo.material_number,
-            selectresults[0].BranchName,
+            regInfo.storage_room,
           ],
         );
       })
@@ -977,7 +977,7 @@ router.post('/register', authenticatedRequest, async (request, response) => {
       .then((p1) => {
         selectresults = p1[0];
         // checks so that the storageroom where the shelf is is the same as the one where the check-in is done
-        if (selectresults[0].current_storage_room != regInfo.storage_room) {
+        if (selectresults[0].current_storage_room != regInfo.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap
@@ -993,14 +993,14 @@ router.post('/register', authenticatedRequest, async (request, response) => {
       .then(() => {
         // Createa storageevent for the article
         db.query(
-          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, NULL,?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+          'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_in", UNIX_TIMESTAMP(), ?, ?, NULL,?, (SELECT name FROM StorageRoom WHERE id = ?),(SELECT id FROM Article WHERE material_number = ?),(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))',
           [
             request.user.shortcode,
             regInfo.comment,
             selectresults[0].shelf_name,
-            selectresults[0].StorageRoomName,
+            regInfo.storage_room,
             regInfo.material_number,
-            selectresults[0].BranchName,
+            regInfo.storage_room,
           ],
         );
       })
@@ -1068,7 +1068,7 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
       .then((p1) => {
         selectresults = p1[0];
         // checks so that the storageroom where the package is is the same as the one where the incorporation is done
-        if (selectresults[0].current_storage_room != incorp.storage_room) {
+        if (selectresults[0].current_storage_room != incorp.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap
@@ -1088,15 +1088,15 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
           throw new Error('Article does not exist');
         } else {
           db.query(
-            'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("incorporated", UNIX_TIMESTAMP(), ?, ?, (SELECT package_number FROM Package WHERE id = ?),?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+            'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("incorporated", UNIX_TIMESTAMP(), ?, ?, (SELECT package_number FROM Package WHERE id = ?),?, (SELECT name FROM StorageRoom WHERE id = ?),(SELECT id FROM Article WHERE material_number = ?),(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))',
             [
               request.user.shortcode,
               incorp.comment,
               incorp.package,
               selectresults[0].shelf_name,
-              selectresults[0].StorageRoomName,
+              incorp.storage_room,
               incorp.material_number,
-              selectresults[0].BranchName,
+              incorp.storage_room,
             ],
           );
         }
@@ -1128,7 +1128,7 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
       .then((p1) => {
         selectresults = p1[0];
         // checks so that the storageroom where the shelf is is the same as the one where the incorporation is done
-        if (selectresults[0].current_storage_room != incorp.storage_room) {
+        if (selectresults[0].current_storage_room != incorp.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap
@@ -1148,14 +1148,14 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
         } else {
           // Createa storageevent for the article
           db.query(
-            'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("incorporated", UNIX_TIMESTAMP(), ?, ?, NULL,?, ?,(SELECT id FROM Article WHERE material_number = ?),?)',
+            'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("incorporated", UNIX_TIMESTAMP(), ?, ?, NULL,?, (SELECT name FROM StorageRoom WHERE id = ?),(SELECT id FROM Article WHERE material_number = ?),(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))',
             [
               request.user.shortcode,
               incorp.comment,
               selectresults[0].shelf_name,
-              selectresults[0].StorageRoomName,
+              incorp.storage_room,
               incorp.material_number,
-              selectresults[0].BranchName,
+              incorp.storage_room,
             ],
           );
         }
