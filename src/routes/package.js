@@ -339,7 +339,7 @@ router.post('/check-out', authenticatedRequest, async (request, response) => {
     comment: request.body.comment,
     storage_room: request.body.storage_room,
   };
-  if (!checkOut.storage_room || !checkOut.package_number) {
+  if ((!checkOut.storage_room || !checkOut.package_number) && request.user.role !== 'admin') {
     response.status(400).send('Bad request');
   } else {
     db.beginTransaction()
@@ -351,7 +351,7 @@ router.post('/check-out', authenticatedRequest, async (request, response) => {
       })
       .then((result) => {
         checkOut.shelf = result[0].shelf;
-        if (result[0].current_storage_room !== checkOut.storage_room) {
+        if (result[0].current_storage_room !== checkOut.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storageroom');
         }
         // Makes current_storage_room and shelf null for the package
