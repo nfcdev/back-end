@@ -11,8 +11,36 @@ const router = express.Router();
 // Example: Establishing a connection and query to db
 const pool = require('../util/connect');
 
-//  Process an article with specific storage-room id
-router.post('/process', authenticatedRequest, (req, res) => {
+
+const makeDb = () => new Promise((resolve, reject) => {
+  pool.getConnection((err, connection) => (
+    resolve({
+      query(sql, args) {
+        return util.promisify(connection.query)
+          .call(connection, sql, args);
+      },
+      close() {
+        return util.promisify(connection.release).call(connection);
+      },
+      beginTransaction() {
+        return util.promisify(connection.beginTransaction)
+          .call(connection);
+      },
+      commit() {
+        return util.promisify(connection.commit)
+          .call(connection);
+      },
+      rollback() {
+        return util.promisify(connection.rollback)
+          .call(connection);
+      },
+    })
+  ));
+});
+
+//  Process an article
+router.post('/process', authenticatedRequest, async (req, res) => {
+  const db = await makeDb();
   const processArticle = {
     material_number: req.body.material_number,
     comment: req.body.comment,
@@ -22,7 +50,7 @@ router.post('/process', authenticatedRequest, (req, res) => {
     res.status(400).send('Bad request');
   } else {
     let sql1 = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
-    sql1 += 'SELECT "processed", UNIX_TIMESTAMP(), ?, ?,';
+    sql1 += ' SELECT "processed", UNIX_TIMESTAMP(), ?, ?,';
     sql1 += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
     sql1 += ' THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,';
     sql1 += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
@@ -49,363 +77,226 @@ router.post('/process', authenticatedRequest, (req, res) => {
 
 
     const sql3 = 'select * from StorageEvent order by id desc limit 1';
-    // sql3 = "select material_number from Article where id in (select article from StorageMap)";
 
     const sql4 = 'SELECT current_storage_room FROM Container WHERE id = (SELECT container FROM StorageMap WHERE article = (SELECT id from Article WHERE material_number = ?)) ';
+    let haveRoom;
+    let haveArticle;
 
-
-    pool.getConnection((err0, connection) => {
-      if (err0) {
-        console.log(err0);
-        return res.status(500).send('Could not connect to server');
-      }
-
-      connection.beginTransaction(function (err1) {
-        if (err1) {
-          console.log(err1);
-          res.status(500).send('Could not start transaction');
+    db.beginTransaction()
+      .then(() => {
+        // Gets the storage-room to compare with the given one
+        haveRoom = db.query(sql4, [processArticle.material_number]);
+        return haveRoom;
+      })
+      .then((haveRoom) => {
+        if (!haveRoom[0] || !haveRoom[0].current_storage_room) {
+          throw new Error('The article might already be checked-out, discarded or processed');
+          // Checks if user are admin, or if the storage-room is correct
+        } else if (haveRoom[0].current_storage_room != processArticle.storage_room && req.user.role != 'admin') {
+          throw new Error('Wrong storage room');
         } else {
-          connection.query(sql4, [processArticle.material_number], function (err3, result1) {
-            if (err3 || !result1[0] || !result1[0].current_storage_room) {
-              connection.rollback(function () {
-                console.log(err3);
-                res.status(400).send('Bad query! Your article may have already been processed.');
-              });
-            } else if (result1[0].current_storage_room == processArticle.storage_room || req.user.role == 'admin') {
-              connection.query(sql1, array1, function (err2, result2) { // inserts data into StorageEvent
-                if (err2) {
-                  connection.rollback(function () {
-                    console.log(err2);
-                    res.status(400).send('Bad query');
-                  });
-                } else if (result2.affectedRows == 1) { // checks whether 1 entry was inserted in storageevent, ie, if the material number exists.
-                  connection.query(sql2, array2, function (err4, result4) { // deletes entry in storagemap
-                    if (err4) {
-                      connection.rollback(function () {
-                        console.log(err4);
-                        res.status(400).send('Bad query');
-                      });
-                    } else {
-                      connection.query(sql3, function (err5, result5) { // displays storageevent entry with highest id
-                        if (err5) {
-                          connection.rollback(function () {
-                            console.log(err5);
-                            res.status(400).send('Bad query');
-                          });
-                        } else {
-                          connection.commit(function (err9) {
-                            if (err9) {
-                              connection.rollback(function () {
-                                console.log(err9);
-                              });
-                            } else {
-                              res.send(result5[0]);
-                              console.log('Transaction Complete.');
-                            }
-                          });
-                        }
-                      });
-                    }
-                  });
-                }
-              });
-            } else {
-              res.status(400).send('Bad query!');
-            }
-          });
+          // Creates storage-event
+          haveArticle = db.query(sql1, array1);
+          return haveArticle;
         }
+      })
+      .then(() => {
+        // Checks if storage-event is created
+        if (haveArticle.affectedRows == 0) {
+          throw new Error('Article does not exist');
+        } else {
+          // deletes entry in storagemap
+          return db.query(sql2, array2);
+        }
+      })
+      // Gets Storage-event with highest id
+      .then(() => db.query(sql3))
+      .then((eventResult) => Promise.all(eventResult, db.commit()))
+      .then(([eventResult]) => {
+        res.send(eventResult);
+        return db.close();
+      })
+      .catch((err) => {
+        console.log(err);
+        db.rollback();
+        db.close();
+        res.status(400).json({ error: err.message });
       });
-      connection.release();
-    });
   }
 });
 
-// Checks out article
-router.post('/check-out', authenticatedRequest, (request, response) => {
-  const checkOut = {
-    material_number: request.body.material_number,
-    comment: request.body.comment,
-    storage_room: request.body.storage_room,
+
+//  Check-out an article
+router.post('/check-out', authenticatedRequest, async (req, res) => {
+  const db = await makeDb();
+  const outArticle = {
+    material_number: req.body.material_number,
+    comment: req.body.comment,
+    storage_room: req.body.storage_room,
   };
-  if (!checkOut.storage_room || !checkOut.material_number) {
-    response.status(400).send('Bad request');
+  if (!outArticle.material_number || !outArticle.storage_room) {
+    res.status(400).send('Bad request');
   } else {
-    pool.getConnection(function (err, connection) {
-      if (err) {
+    let sql1 = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
+    sql1 += ' SELECT "checked_out", UNIX_TIMESTAMP(), ?, ?,';
+    sql1 += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
+    sql1 += ' THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,';
+    sql1 += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
+    sql1 += ' (Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?)))) AND';
+    sql1 += ' StorageRoom.id = ? AND';
+    sql1 += ' Branch.id = (select branch from StorageRoom where id=?) AND';
+    sql1 += ' Article.material_number = ?';
+
+    const array1 = [
+      req.user.shortcode,
+      outArticle.comment,
+      outArticle.material_number,
+      outArticle.material_number,
+      outArticle.material_number,
+      outArticle.material_number,
+      outArticle.storage_room,
+      outArticle.storage_room,
+      outArticle.material_number];
+
+
+    const sql2 = 'UPDATE StorageMap SET container = NULL where article = (select id from Article where material_number = ?)';
+
+    const array2 = [outArticle.material_number];
+
+
+    const sql3 = 'select * from StorageEvent order by id desc limit 1';
+
+    const sql4 = 'SELECT current_storage_room FROM Container WHERE id = (SELECT container FROM StorageMap WHERE article = (SELECT id from Article WHERE material_number = ?)) ';
+    let haveRoom;
+    let haveArticle;
+
+    db.beginTransaction()
+      .then(() => {
+        // Gets the storage-room to compare with the given one
+        haveRoom = db.query(sql4, [outArticle.material_number]);
+        return haveRoom;
+      })
+      .then((haveRoom) => {
+        if (!haveRoom[0] || !haveRoom[0].current_storage_room) {
+          throw new Error('The article might already be checked-out, discarded or processed');
+          // Checks if user are admin, or if the storage-room is correct
+        } else if (haveRoom[0].current_storage_room != outArticle.storage_room && req.user.role != 'admin') {
+          throw new Error('Wrong storage room');
+        } else {
+          // Creates storage-event
+          haveArticle = db.query(sql1, array1);
+          return haveArticle;
+        }
+      })
+      .then(() => {
+        // Checks if storage-event is created
+        if (haveArticle.affectedRows == 0) {
+          throw new Error('Article does not exist');
+        } else {
+          // deletes entry in storagemap
+          return db.query(sql2, array2);
+        }
+      })
+      // Gets Storage-event with highest id
+      .then(() => db.query(sql3))
+      .then((eventResult) => Promise.all(eventResult, db.commit()))
+      .then(([eventResult]) => {
+        res.send(eventResult);
+        return db.close();
+      })
+      .catch((err) => {
         console.log(err);
-        response.status(500).send('Could not connect to server');
-      } else {
-        connection.beginTransaction(function (err0) {
-          if (err0) {
-            console.log(err0);
-            response.status(500).send('Could not start transaction');
-          } else {
-            // Gets storageroom to compare with given storageroom from user
-            sql = 'SELECT current_storage_room FROM Container WHERE id = (SELECT container FROM StorageMap WHERE article = (SELECT id from Article WHERE material_number = ?)) ';
-            connection.query(sql, [checkOut.material_number], function (err2, result1) {
-              if (err2 || !result1[0] || !result1[0].current_storage_room) {
-                connection.rollback(function () {
-                  console.log(err2);
-                  response.status(400).send('Bad query! Your article may have already been checked out.');
-                });
-              } else if (result1[0].current_storage_room == checkOut.storage_room || request.user.role == 'admin') {
-                // Selects article that is getting checked out
-                sql = 'SELECT article FROM StorageMap WHERE article = (SELECT id FROM Article WHERE material_number = ?)';
-
-                connection.query(
-                  sql,
-                  [
-                    checkOut.material_number,
-                  ],
-                  function (err3, result2) {
-                    if (err3) {
-                      connection.rollback(function () {
-                        console.log(err3);
-                        response.status(400).send('Bad query');
-                      });
-                    } else {
-                      // Creates Storage event for the article
-
-                      // sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, " - ", " - ", (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
-
-                      // sql = 'SELECT * FROM StorageEvent'
-
-                      sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
-                      sql += 'SELECT "checked_out", UNIX_TIMESTAMP(), ?, ?,';
-                      sql += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
-                      sql += ' THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,';
-                      sql += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
-                      sql += ' (Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?)))) AND';
-                      sql += ' StorageRoom.id = ? AND';
-                      sql += ' Branch.id = (select branch from StorageRoom where id=?) AND';
-                      sql += ' Article.material_number = ?';
-
-                      connection.query(
-                        sql,
-                        [
-                          request.user.shortcode,
-                          checkOut.comment,
-                          checkOut.material_number,
-                          checkOut.material_number,
-                          checkOut.material_number,
-                          checkOut.material_number,
-                          checkOut.storage_room,
-                          checkOut.storage_room,
-                          checkOut.material_number,
-                        ],
-                        function (err4, result3) {
-                          if (err4) {
-                            connection.rollback(function () {
-                              console.log(err4);
-                              response.status(400).send('Bad query');
-                            });
-                          } else {
-                            console.log(result3);
-
-                            sql = 'SELECT * FROM StorageEvent WHERE id = ?';
-                            connection.query(
-                              sql,
-                              [
-                                result3.insertId,
-                              ],
-                              function (err5, result4) {
-                                if (err5) {
-                                  connection.rollback(function () {
-                                    console.log(err5);
-                                    response.status(400).send('Bad query');
-                                  });
-                                }
-                                response.send(result4[0]);
-                              },
-                            );
-
-                            sql = 'UPDATE StorageMap SET container = NULL where article = (select id from Article where material_number = ?)';
-                            connection.query(
-                              sql,
-                              [
-                                checkOut.material_number,
-                              ],
-                              function (err6, result5) {
-                                if (err6) {
-                                  connection.rollback(function () {
-                                    console.log(err6);
-                                    response.status(400).send('Bad query');
-                                  });
-                                } else {
-                                  console.log(result5);
-                                }
-                              },
-                            );
-                          }
-                        },
-                      );
-
-                      connection.commit(function (err5) {
-                        if (err5) {
-                          connection.rollback(function () {
-                            console.log(err5);
-                          });
-                        } else {
-                          console.log('Transaction Complete.');
-                          connection.end();
-                        }
-                      });
-                    }
-                  },
-                );
-              } else {
-                response.status(400).send('Bad query');
-              }
-            });
-          }
-        });
-      }
-    });
+        db.rollback();
+        db.close();
+        res.status(400).json({ error: err.message });
+      });
   }
 });
 
-// Discards an article
-router.post('/discard', authenticatedRequest, (request, response) => {
-  const discard = {
-    material_number: request.body.material_number,
-    comment: request.body.comment,
-    storage_room: request.body.storage_room,
+//  Discard an article
+router.post('/discard', authenticatedRequest, async (req, res) => {
+  const db = await makeDb();
+  const discardedArticle = {
+    material_number: req.body.material_number,
+    comment: req.body.comment,
+    storage_room: req.body.storage_room,
   };
-  if (!discard.storage_room || !discard.material_number) {
-    response.status(400).send('Bad request');
+  if (!discardedArticle.material_number || !discardedArticle.storage_room) {
+    res.status(400).send('Bad request');
   } else {
-    pool.getConnection(function (err, connection) {
-      if (err) {
+    let sql1 = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
+    sql1 += ' SELECT "discarded", UNIX_TIMESTAMP(), ?, ?,';
+    sql1 += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
+    sql1 += ' THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,';
+    sql1 += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
+    sql1 += ' (Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?)))) AND';
+    sql1 += ' StorageRoom.id = ? AND';
+    sql1 += ' Branch.id = (select branch from StorageRoom where id=?) AND';
+    sql1 += ' Article.material_number = ?';
+
+    const array1 = [
+      req.user.shortcode,
+      discardedArticle.comment,
+      discardedArticle.material_number,
+      discardedArticle.material_number,
+      discardedArticle.material_number,
+      discardedArticle.material_number,
+      discardedArticle.storage_room,
+      discardedArticle.storage_room,
+      discardedArticle.material_number];
+
+
+    const sql2 = 'UPDATE StorageMap SET container = NULL where article = (select id from Article where material_number = ?)';
+
+    const array2 = [discardedArticle.material_number];
+
+
+    const sql3 = 'select * from StorageEvent order by id desc limit 1';
+
+    const sql4 = 'SELECT current_storage_room FROM Container WHERE id = (SELECT container FROM StorageMap WHERE article = (SELECT id from Article WHERE material_number = ?)) ';
+    let haveRoom;
+    let haveArticle;
+
+    db.beginTransaction()
+      .then(() => {
+        // Gets the storage-room to compare with the given one
+        haveRoom = db.query(sql4, [discardedArticle.material_number]);
+        return haveRoom;
+      })
+      .then((haveRoom) => {
+        if (!haveRoom[0] || !haveRoom[0].current_storage_room) {
+          throw new Error('The article might already be checked-out, discarded or processed');
+          // Checks if user are admin, or if the storage-room is correct
+        } else if (haveRoom[0].current_storage_room != discardedArticle.storage_room && req.user.role != 'admin') {
+          throw new Error('Wrong storage room');
+        } else {
+          // Creates storage-event
+          haveArticle = db.query(sql1, array1);
+          return haveArticle;
+        }
+      })
+      .then(() => {
+        // Checks if storage-event is created
+        if (haveArticle.affectedRows == 0) {
+          throw new Error('Article does not exist');
+        } else {
+          // deletes entry in storagemap
+          db.query(sql2, array2);
+        }
+      })
+      // Gets Storage-event with highest id
+      .then(() => db.query(sql3))
+      .then((eventResult) => Promise.all(eventResult, db.commit()))
+      .then(([eventResult]) => {
+        res.send(eventResult);
+        return db.close();
+      })
+      .catch((err) => {
         console.log(err);
-        response.status(500).send('Could not connect to server');
-      } else {
-        connection.beginTransaction(function (err0) {
-          if (err0) {
-            console.log(err0);
-            response.status(500).send('Could not start transaction');
-          } else {
-            // Gets storageroom to compare with given storageroom from user
-            sql = 'SELECT current_storage_room FROM Container WHERE id = (SELECT container FROM StorageMap WHERE article = (SELECT id from Article WHERE material_number = ?)) ';
-            connection.query(sql, [discard.material_number], function (err2, result1) {
-              if (err2 || !result1[0] || !result1[0].current_storage_room) {
-                connection.rollback(function () {
-                  console.log(err2);
-                  response.status(400).send('Bad query! Your article may have already been discarded.');
-                });
-              } else if (result1[0].current_storage_room == discard.storage_room || request.user.role == 'admin') {
-                // Selects article that is getting checked out
-                sql = 'SELECT article FROM StorageMap WHERE article = (SELECT id FROM Article WHERE material_number = ?)';
-
-                connection.query(
-                  sql,
-                  [
-                    discard.material_number,
-                  ],
-                  function (err3, result2) {
-                    if (err3) {
-                      connection.rollback(function () {
-                        console.log(err3);
-                        response.status(400).send('Bad query');
-                      });
-                    } else {
-                      // Creates Storage event for the article
-                      // User is hardcoded to "1" right now
-                      // sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, article, branch) VALUES ("checked_out", (SELECT DATE_FORMAT(NOW(), "%y%m%d%H%i")), 1, ?, " - ", " - ", (SELECT name FROM StorageRoom WHERE id = ?),?,(SELECT name FROM Branch WHERE id = (SELECT branch FROM StorageRoom WHERE id = ?)))';
-
-                      // sql = 'SELECT * FROM StorageEvent'
-
-
-                      sql = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
-                      sql += 'SELECT "discarded", UNIX_TIMESTAMP(), ?, ?,';
-                      sql += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
-                      sql += ' THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,';
-                      sql += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
-                      sql += ' (Shelf.id = (select container from StorageMap where article = (select id from Article where material_number = ?)) OR Shelf.id = (select shelf from Package where id = (select container from StorageMap where article = (select id from Article where material_number = ?)))) AND';
-                      sql += ' StorageRoom.id = ? AND';
-                      sql += ' Branch.id = (select branch from StorageRoom where id=?) AND';
-                      sql += ' Article.material_number = ?';
-
-                      connection.query(
-                        sql,
-                        [
-                          request.user.shortcode,
-                          discard.comment,
-                          discard.material_number,
-                          discard.material_number,
-                          discard.material_number,
-                          discard.material_number,
-                          discard.storage_room,
-                          discard.storage_room,
-                          discard.material_number,
-                        ],
-                        function (err4, result3) {
-                          if (err4) {
-                            connection.rollback(function () {
-                              console.log(err4);
-                              response.status(400).send('Bad query');
-                            });
-                          } else {
-                            console.log(result3);
-
-                            sql = 'SELECT * FROM StorageEvent WHERE id = ?';
-                            connection.query(
-                              sql,
-                              [
-                                result3.insertId,
-                              ],
-                              function (err5, result4) {
-                                if (err5) {
-                                  connection.rollback(function () {
-                                    console.log(err5);
-                                    response.status(400).send('Bad query');
-                                  });
-                                }
-                                response.send(result4[0]);
-                              },
-                            );
-
-                            sql = 'UPDATE StorageMap SET container = NULL where article = (select id from Article where material_number = ?)';
-                            connection.query(
-                              sql,
-                              [
-                                discard.material_number,
-                              ],
-                              function (err6, result5) {
-                                if (err6) {
-                                  connection.rollback(function () {
-                                    console.log(err6);
-                                    response.status(400).send('Bad query');
-                                  });
-                                } else {
-                                  console.log(result5);
-                                }
-                              },
-                            );
-                          }
-                        },
-                      );
-
-                      connection.commit(function (err5) {
-                        if (err5) {
-                          connection.rollback(function () {
-                            console.log(err5);
-                          });
-                        } else {
-                          console.log('Transaction Complete.');
-                          connection.end();
-                        }
-                      });
-                    }
-                  },
-                );
-              } else {
-                response.status(400).send('Bad query');
-              }
-            });
-          }
-        });
-      }
-    });
+        db.rollback();
+        db.close();
+        res.status(400).json({ error: err.message });
+      });
   }
 });
 
@@ -706,31 +597,6 @@ router.get('/branch/:id', (request, response) => {
   });
 });
 
-const makeDb = () => new Promise((resolve, reject) => {
-  pool.getConnection((err, connection) => (
-    resolve({
-      query(sql, args) {
-        return util.promisify(connection.query)
-          .call(connection, sql, args);
-      },
-      close() {
-        return util.promisify(connection.release).call(connection);
-      },
-      beginTransaction() {
-        return util.promisify(connection.beginTransaction)
-          .call(connection);
-      },
-      commit() {
-        return util.promisify(connection.commit)
-          .call(connection);
-      },
-      rollback() {
-        return util.promisify(connection.rollback)
-          .call(connection);
-      },
-    })
-  ));
-});
 
 // Checks in an article
 router.post('/check-in', authenticatedRequest, async (request, response) => {
@@ -760,7 +626,7 @@ router.post('/check-in', authenticatedRequest, async (request, response) => {
       .then((p1) => {
         selectresults = p1;
         // checks so that the storageroom where the package is is the same as the one where the check-in is done
-        if (selectresults[0].current_storage_room !== checkIn.storage_room && request.user.role !== 'admin') {
+        if (selectresults[0].current_storage_room != checkIn.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap
@@ -814,7 +680,7 @@ router.post('/check-in', authenticatedRequest, async (request, response) => {
       .then((p1) => {
         selectresults = p1;
         // checks so that the storageroom where the shelf is is the same as the one where the check-in is done
-        if (selectresults[0].current_storage_room !== checkIn.storage_room && request.user.role !== 'admin') {
+        if (selectresults[0].current_storage_room != checkIn.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap
@@ -899,7 +765,7 @@ router.post('/register', authenticatedRequest, async (request, response) => {
       .then((p1) => {
         selectresults = p1;
         // checks so that the storageroom where the package is is the same as the one where the register is done
-        if (selectresults[0].current_storage_room !== regInfo.storage_room && request.user.role !== 'admin') {
+        if (selectresults[0].current_storage_room != regInfo.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storage room');
         } else {
           // Creates the storagemap for the article
@@ -969,7 +835,7 @@ router.post('/register', authenticatedRequest, async (request, response) => {
       .then((p1) => {
         selectresults = p1;
         // checks so that the storageroom where the shelf is is the same as the one where the check-in is done
-        if (selectresults[0].current_storage_room !== regInfo.storage_room && request.user.role !== 'admin') {
+        if (selectresults[0].current_storage_room != regInfo.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap
@@ -1058,7 +924,7 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
       .then((p1) => {
         selectresults = p1;
         // checks so that the storageroom where the package is is the same as the one where the incorporation is done
-        if (selectresults[0].current_storage_room !== incorp.storage_room && request.user.role !== 'admin') {
+        if (selectresults[0].current_storage_room != incorp.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap
@@ -1117,8 +983,9 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
       })
       .then((p1) => {
         selectresults = p1;
+
         // checks so that the storageroom where the shelf is is the same as the one where the incorporation is done
-        if (selectresults[0].current_storage_room !== incorp.storage_room && request.user.role !== 'admin') {
+        if (selectresults[0].current_storage_room != incorp.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap
