@@ -50,7 +50,7 @@ router.post('/process', authenticatedRequest, async (req, res) => {
     res.status(400).send('Bad request');
   } else {
     let sql1 = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
-    sql1 += 'SELECT "processed", UNIX_TIMESTAMP(), ?, ?,';
+    sql1 += ' SELECT "processed", UNIX_TIMESTAMP(), ?, ?,';
     sql1 += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
     sql1 += ' THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,';
     sql1 += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
@@ -87,7 +87,6 @@ router.post('/process', authenticatedRequest, async (req, res) => {
         // Gets the storage-room to compare with the given one
         haveRoom = db.query(sql4, [processArticle.material_number]);
         return haveRoom;
-
       })
       .then((haveRoom) => {
         if (!haveRoom[0] || !haveRoom[0].current_storage_room) {
@@ -100,7 +99,6 @@ router.post('/process', authenticatedRequest, async (req, res) => {
           haveArticle = db.query(sql1, array1);
           return haveArticle;
         }
-
       })
       .then(() => {
         // Checks if storage-event is created
@@ -108,7 +106,7 @@ router.post('/process', authenticatedRequest, async (req, res) => {
           throw new Error('Article does not exist');
         } else {
           // deletes entry in storagemap
-          db.query(sql2, array2);
+          return db.query(sql2, array2);
         }
       })
       // Gets Storage-event with highest id
@@ -140,7 +138,7 @@ router.post('/check-out', authenticatedRequest, async (req, res) => {
     res.status(400).send('Bad request');
   } else {
     let sql1 = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
-    sql1 += 'SELECT "checked_out", UNIX_TIMESTAMP(), ?, ?,';
+    sql1 += ' SELECT "checked_out", UNIX_TIMESTAMP(), ?, ?,';
     sql1 += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
     sql1 += ' THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,';
     sql1 += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
@@ -177,7 +175,6 @@ router.post('/check-out', authenticatedRequest, async (req, res) => {
         // Gets the storage-room to compare with the given one
         haveRoom = db.query(sql4, [outArticle.material_number]);
         return haveRoom;
-
       })
       .then((haveRoom) => {
         if (!haveRoom[0] || !haveRoom[0].current_storage_room) {
@@ -190,7 +187,6 @@ router.post('/check-out', authenticatedRequest, async (req, res) => {
           haveArticle = db.query(sql1, array1);
           return haveArticle;
         }
-
       })
       .then(() => {
         // Checks if storage-event is created
@@ -198,7 +194,7 @@ router.post('/check-out', authenticatedRequest, async (req, res) => {
           throw new Error('Article does not exist');
         } else {
           // deletes entry in storagemap
-          db.query(sql2, array2);
+          return db.query(sql2, array2);
         }
       })
       // Gets Storage-event with highest id
@@ -229,7 +225,7 @@ router.post('/discard', authenticatedRequest, async (req, res) => {
     res.status(400).send('Bad request');
   } else {
     let sql1 = 'INSERT INTO StorageEvent (action, timestamp, user, comment, package, shelf, storage_room, branch, article)';
-    sql1 += 'SELECT "discarded", UNIX_TIMESTAMP(), ?, ?,';
+    sql1 += ' SELECT "discarded", UNIX_TIMESTAMP(), ?, ?,';
     sql1 += ' CASE WHEN EXISTS (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?)))';
     sql1 += ' THEN (select package_number from Package where id  = (select container from StorageMap where article = (select id from Article where material_number = ?))) ELSE NULL END as package,';
     sql1 += ' Shelf.shelf_name, StorageRoom.name as "storageroom", Branch.name, Article.id FROM Shelf, StorageRoom, Branch, Article WHERE';
@@ -266,7 +262,6 @@ router.post('/discard', authenticatedRequest, async (req, res) => {
         // Gets the storage-room to compare with the given one
         haveRoom = db.query(sql4, [discardedArticle.material_number]);
         return haveRoom;
-
       })
       .then((haveRoom) => {
         if (!haveRoom[0] || !haveRoom[0].current_storage_room) {
@@ -279,7 +274,6 @@ router.post('/discard', authenticatedRequest, async (req, res) => {
           haveArticle = db.query(sql1, array1);
           return haveArticle;
         }
-
       })
       .then(() => {
         // Checks if storage-event is created
@@ -771,7 +765,7 @@ router.post('/register', authenticatedRequest, async (request, response) => {
       .then((p1) => {
         selectresults = p1;
         // checks so that the storageroom where the package is is the same as the one where the register is done
-        if (selectresults[0].current_storage_room !== regInfo.storage_room && request.user.role !== 'admin') {
+        if (selectresults[0].current_storage_room != regInfo.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storage room');
         } else {
           // Creates the storagemap for the article
@@ -841,7 +835,7 @@ router.post('/register', authenticatedRequest, async (request, response) => {
       .then((p1) => {
         selectresults = p1;
         // checks so that the storageroom where the shelf is is the same as the one where the check-in is done
-        if (selectresults[0].current_storage_room !== regInfo.storage_room && request.user.role !== 'admin') {
+        if (selectresults[0].current_storage_room != regInfo.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap
@@ -930,7 +924,7 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
       .then((p1) => {
         selectresults = p1;
         // checks so that the storageroom where the package is is the same as the one where the incorporation is done
-        if (selectresults[0].current_storage_room !== incorp.storage_room && request.user.role !== 'admin') {
+        if (selectresults[0].current_storage_room != incorp.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap
@@ -989,8 +983,9 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
       })
       .then((p1) => {
         selectresults = p1;
+
         // checks so that the storageroom where the shelf is is the same as the one where the incorporation is done
-        if (selectresults[0].current_storage_room !== incorp.storage_room && request.user.role !== 'admin') {
+        if (selectresults[0].current_storage_room != incorp.storage_room && request.user.role !== 'admin') {
           throw new Error('Wrong storage room');
         } else {
           // Inserts the correct container into the storagemap
