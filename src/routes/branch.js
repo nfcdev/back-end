@@ -1,8 +1,11 @@
+/* eslint-disable prefer-arrow-callback */
 const express = require('express');
 const router = express.Router();
 const pool = require('../util/connect');
+const { authenticatedRequest, adminAuthorizedRequest } = require('../util/authentication');
 
-router.get('/', (request, response) => {
+// Gets all branches
+router.get('/', authenticatedRequest, (request, response) => {
   pool.getConnection(function (err, connection) {
     if (err) {
       console.log(err);
@@ -20,8 +23,9 @@ router.get('/', (request, response) => {
     });
   });
 });
-//Can't delete branches already in place, foreign key constraint.
-router.delete('/:id', (request, response) => {
+
+// Can't delete branches already in place, foreign key constraint.
+router.delete('/:id', adminAuthorizedRequest, (request, response) => {
   const id = request.params.id;
   pool.getConnection(function (err, connection) {
     if (err) {
@@ -44,23 +48,24 @@ router.delete('/:id', (request, response) => {
     }
   });
 });
-//Creates new branch
-router.post('/', (request, response) => {
+
+// Creates new branch
+router.post('/', adminAuthorizedRequest, (request, response) => {
   const name = request.body.name;
   if (!name) {
-    return response.status(400).send('Bad request');
+    response.status(400).send('Bad request');
   } else {
     pool.getConnection(function (err, connection) {
       if (err) {
         console.log(err);
-        return response.status(500).send('Could not connect to server');
+        response.status(500).send('Could not connect to server');
       } else {
         const sql = 'INSERT INTO Branch(name) VALUES (?)';
         connection.query(sql, [name], function (err, result) {
           connection.release();
           if (err) {
             console.log(err);
-            return response.status(400).send('Bad query');
+            response.status(400).send('Bad query');
           } else {
             console.log('New branch added');
             response.json({ id: result.insertId, name: name });
@@ -71,7 +76,8 @@ router.post('/', (request, response) => {
   }
 });
 
-router.put('/:id', (request, response) => {
+// Changes the name of a branch
+router.put('/:id', adminAuthorizedRequest, (request, response) => {
   const id = request.params.id;
   const updatedBranch = request.body;
   pool.getConnection(function (err, connection) {

@@ -1,50 +1,52 @@
+/* eslint-disable prefer-arrow-callback */
 const express = require("express");
 const router = express.Router();
 const pool = require("../util/connect");
-const authenticatedRequest = require("../util/authentication").authenticatedRequest;
+const { authenticatedRequest, adminAuthorizedRequest } = require('../util/authentication');
 
-//gets all cases
+// gets all cases
 router.get("/", authenticatedRequest, (request, response) => {
   pool.getConnection(function (err, connection) {
     if (err) {
       console.log(err);
-      response.status(500).send("Cannot connect to server");
+      response.status(500).send('Cannot connect to server');
     }
-    let sql = "SELECT * FROM `Case`";
+    let sql = 'SELECT * FROM `Case`';
     connection.query(sql, (err, result) => {
       connection.release();
       if (err) {
         console.log(err);
-        response.status(500).send("Bad query");
+        response.status(500).send('Bad query');
       }
-      console.log("Data received");
+      console.log('Data received');
       response.send(result);
     });
   });
 });
-//gets case of a specific ID
+
+// gets case of a specific ID
 router.get("/:id", authenticatedRequest, (request, response) => {
   let id = request.params.id;
   pool.getConnection(function (err, connection) {
     if (err) {
       console.log(err);
-      response.status(500).send("Cannot connect to server");
+      response.status(500).send('Cannot connect to server');
     }
-    let sql = "SELECT * FROM `Case` WHERE ID = ?";
+    let sql = 'SELECT * FROM `Case` WHERE ID = ?';
     connection.query(sql, [id], (err, result) => {
       connection.release();
       if (err) {
         console.log(err);
-        response.status(500).send("Bad query");
+        response.status(500).send('Bad query');
       }
-      console.log("Data received");
+      console.log('Data received');
       response.send(result);
     });
   });
 });
 
 // Gets a case given its reference_number
-router.get('/reference_number/:reference_number', (request, response) => {
+router.get('/reference_number/:reference_number', authenticatedRequest, (request, response) => {
   const { reference_number } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {

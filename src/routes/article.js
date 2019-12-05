@@ -301,7 +301,7 @@ router.post('/discard', authenticatedRequest, async (req, res) => {
 });
 
 // Register new article
-router.post('/', (req, res) => {
+router.post('/', authenticatedRequest, (req, res) => {
   const newArticle = {
     material_number: req.body.material_number,
     description: req.body.description,
@@ -343,7 +343,7 @@ router.post('/', (req, res) => {
 });
 
 // Return all articles in DB, can be queried
-router.get('/', (request, response) => {
+router.get('/', authenticatedRequest, (request, response) => {
   // eslint-disable-next-line func-names
   const { reference_number } = request.query;
   const { material_number } = request.query;
@@ -424,7 +424,7 @@ router.get('/', (request, response) => {
 });
 
 
-router.get('/search', (request, response) => {
+router.get('/search', authenticatedRequest, (request, response) => {
   // eslint-disable-next-line func-names
   let keywords = request.query.q ? request.query.q : '';
   if (!Array.isArray(keywords) && keywords.length > 0) {
@@ -462,7 +462,7 @@ router.get('/search', (request, response) => {
 });
 
 // Return single article
-router.get('/:id', (req, res) => {
+router.get('/:id', authenticatedRequest, (req, res) => {
   const { id } = req.params;
   pool.getConnection((err, connection) => {
     if (err) {
@@ -484,7 +484,7 @@ router.get('/:id', (req, res) => {
 });
 
 // get all articles on a specifik shelf
-router.get('/shelf/:id', (request, response) => {
+router.get('/shelf/:id', authenticatedRequest, (request, response) => {
   const { id } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
@@ -507,7 +507,7 @@ router.get('/shelf/:id', (request, response) => {
 });
 
 // Return all articles for a specific case
-router.get('/case/:id', (req, res) => {
+router.get('/case/:id', authenticatedRequest, (req, res) => {
   const { id } = req.params;
   // eslint-disable-next-line consistent-return
   pool.getConnection((err, connection) => {
@@ -530,7 +530,7 @@ router.get('/case/:id', (req, res) => {
 });
 
 // Return all articles currently in a specific storage room
-router.get('/storageroom/:id', (req, res) => {
+router.get('/storageroom/:id', authenticatedRequest, (req, res) => {
   const { id } = req.params;
   // eslint-disable-next-line consistent-return
   pool.getConnection((err, connection) => {
@@ -553,7 +553,7 @@ router.get('/storageroom/:id', (req, res) => {
 });
 
 // Return all articles in a specific package
-router.get('/package/:id', (req, res) => {
+router.get('/package/:id', authenticatedRequest, (req, res) => {
   const { id } = req.params;
   // eslint-disable-next-line consistent-return
   pool.getConnection((err, connection) => {
@@ -576,7 +576,7 @@ router.get('/package/:id', (req, res) => {
 });
 
 // gets all articles belonging to a specific branch
-router.get('/branch/:id', (request, response) => {
+router.get('/branch/:id', authenticatedRequest, (request, response) => {
   const { id } = request.params;
   pool.getConnection((err, connection) => {
     if (err) {
@@ -877,7 +877,7 @@ router.post('/register', authenticatedRequest, async (request, response) => {
 });
 
 // Change the description of an article
-router.put('/:id', async (request, response) => {
+router.put('/:id', authenticatedRequest, async (request, response) => {
   const db = await makeDb();
   const { id } = request.params;
   const desc = request.body.description;
@@ -1032,8 +1032,9 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
       });
   }
 });
+
 // Gets an article given its material_number
-router.get('/material_number/:material_number', (request, response) => {
+router.get('/material_number/:material_number', authenticatedRequest, (request, response) => {
   const { material_number } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
