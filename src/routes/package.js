@@ -6,7 +6,7 @@ const { authenticatedRequest, adminAuthorizedRequest } = require('../util/authen
 const router = express.Router();
 const pool = require('../util/connect');
 
-// creates a new package
+
 
 
 const makeDb = () => new Promise((resolve, reject) => {
@@ -34,7 +34,7 @@ const makeDb = () => new Promise((resolve, reject) => {
     })
   ));
 });
-
+// creates a new package
 router.post('/', async (request, response) => {
   const db = await makeDb();
   const newPackage = {
@@ -73,17 +73,11 @@ router.post('/', async (request, response) => {
       caseId,
       (`0${countResult[0].orderstamp}`).slice(-2),
     ]))
-    .then(() => db.query('SELECT package_number AS pn FROM Package WHERE id=?', containerId))
+    .then(() => db.query('SELECT * FROM Package WHERE id=?', containerId))
     .then((newPackageResult) => Promise.all(newPackageResult, db.commit()))
     .then(([newPackageResult]) => {
       db.close();
-      response.json({
-        package_number: newPackageResult.pn,
-        current_storage_room:
-          newPackage.current_storage_room,
-        shelf: newPackage.shelf,
-        id: newPackageResult.insertId,
-      });
+      response.send(newPackageResult);
     })
     .catch((err) => {
       console.log(err);
