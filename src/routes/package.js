@@ -35,7 +35,7 @@ const makeDb = () => new Promise((resolve, reject) => {
   ));
 });
 // creates a new package
-router.post('/', async (request, response) => {
+router.post('/', authenticatedRequest, async (request, response) => {
   const db = await makeDb();
   const newPackage = {
     shelf: request.body.shelf,
@@ -88,7 +88,7 @@ router.post('/', async (request, response) => {
 });
 
 // Gets all packages
-router.get('/', (request, response) => {
+router.get('/', authenticatedRequest, (request, response) => {
   pool.getConnection(function (err, connection) {
     if (err) {
       console.log(err);
@@ -110,7 +110,7 @@ router.get('/', (request, response) => {
 });
 
 // gets all packages belonging to a specifik storageroom
-router.get('/storageroom/:storageroom_id', (request, response) => {
+router.get('/storageroom/:storageroom_id', authenticatedRequest, (request, response) => {
   const { storageroom_id } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
@@ -132,7 +132,7 @@ router.get('/storageroom/:storageroom_id', (request, response) => {
   });
 });
 
-router.get('/shelf/:shelf_id', (request, response) => {
+router.get('/shelf/:shelf_id', authenticatedRequest, (request, response) => {
   const { shelf_id } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
@@ -155,7 +155,7 @@ router.get('/shelf/:shelf_id', (request, response) => {
 });
 
 // Gets all packagaes belonging to a specifik branch
-router.get('/branch/:branch_id', (request, response) => {
+router.get('/branch/:branch_id', authenticatedRequest, (request, response) => {
   const { branch_id } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
@@ -177,7 +177,7 @@ router.get('/branch/:branch_id', (request, response) => {
   });
 });
 
-router.get('/:package_id', (request, response) => {
+router.get('/:package_id', authenticatedRequest, (request, response) => {
   const { package_id } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
@@ -201,7 +201,7 @@ router.get('/:package_id', (request, response) => {
   });
 });
 
-router.get('/package_number/:package_number', (request, response) => {
+router.get('/package_number/:package_number', authenticatedRequest, (request, response) => {
   const { package_number } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
@@ -225,7 +225,7 @@ router.get('/package_number/:package_number', (request, response) => {
   });
 });
 
-router.delete('/:id', (request, response) => {
+router.delete('/:id', authenticatedRequest, (request, response) => {
   const { id } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {

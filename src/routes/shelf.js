@@ -2,10 +2,10 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../util/connect');
+const { authenticatedRequest, adminAuthorizedRequest } = require('../util/authentication');
 
 // creates a new shelf in a storageroom
-
-router.post('/storageroom/:id', (request, response) => {
+router.post('/storageroom/:id', adminAuthorizedRequest, (request, response) => {
   const { id } = request.params;
   const newShelf = {
     shelf_name: request.body.shelf_name,
@@ -59,7 +59,6 @@ router.post('/storageroom/:id', (request, response) => {
                         shelf_name: newShelf.shelf_name,
                         id: result.insertId,
                       });
-
                     }
                   },
                 );
@@ -73,7 +72,8 @@ router.post('/storageroom/:id', (request, response) => {
   }
 });
 
-router.put('/:id', (request, response) => {
+// Changes the name of a shelf
+router.put('/:id', adminAuthorizedRequest, (request, response) => {
   const { id } = request.params;
   const updatedShelf = request.body;
   pool.getConnection((err, connection) => {
@@ -95,7 +95,8 @@ router.put('/:id', (request, response) => {
   });
 });
 
-router.delete('/:id', (request, response) => {
+// Deletes a shelf
+router.delete('/:id', adminAuthorizedRequest, (request, response) => {
   const { id } = request.params;
   pool.getConnection((err, connection) => {
     if (err) {
@@ -120,7 +121,7 @@ router.delete('/:id', (request, response) => {
 });
 
 // get all shelves for a specific storage room
-router.get('/storageroom/:storageroom_id', (request, response) => {
+router.get('/storageroom/:storageroom_id', authenticatedRequest, (request, response) => {
   const { storageroom_id } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
@@ -143,7 +144,7 @@ router.get('/storageroom/:storageroom_id', (request, response) => {
 });
 
 // get all shelves
-router.get('/', (request, response) => {
+router.get('/', authenticatedRequest, (request, response) => {
   pool.getConnection(function (err, connection) {
     if (err) {
       console.log(err);
@@ -165,7 +166,7 @@ router.get('/', (request, response) => {
 });
 
 // get all shelves for a specific branch
-router.get('/branch/:branchId', (request, response) => {
+router.get('/branch/:branchId', authenticatedRequest, (request, response) => {
   const { branchId } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
@@ -189,7 +190,7 @@ router.get('/branch/:branchId', (request, response) => {
 });
 
 // get shelf with a specifik id
-router.get('/:id', (request, response) => {
+router.get('/:id', authenticatedRequest, (request, response) => {
   const { id } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
