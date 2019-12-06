@@ -22,7 +22,7 @@ before((done) => {
     request(app)
       .post('/login')
       .send({
-        name: 'admun',
+        name: 'admon',
       })
       .end((err, resp) => {
         TOKEN = resp.body.token;
