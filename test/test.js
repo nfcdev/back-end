@@ -68,6 +68,7 @@ describe('Test route branches', () => {
   it('Should return all branches(GET) (5 branches)', (done) => {
     request(app)
       .get('/branch')
+      .set('Authorization', `JWT ${TOKEN}`)
       .end((err, resp) => {
         expect(err).to.equal(null);
         expect(resp.status).to.equal(200);
@@ -82,6 +83,7 @@ describe('Testing PUT funtionality on branch', () => {
     const p1 = new Promise((res, rej) => {
       request(app)
         .put('/branch/2')
+        .set('Authorization', `JWT ${TOKEN}`)
         .send({
           name: 'Test Branch',
         })
@@ -96,6 +98,7 @@ describe('Testing PUT funtionality on branch', () => {
     p1.then((branchUpdateResult) => {
       request(app)
         .get('/branch')
+        .set('Authorization', `JWT ${TOKEN}`)
         .end((err, resp) => {
           let updatedBranch;
           resp.body.forEach((branch) => {
@@ -117,6 +120,7 @@ describe('Testing branch function post', () => {
     const p1 = new Promise((res, rej) => {
       request(app)
         .post('/branch')
+        .set('Authorization', `JWT ${TOKEN}`)
         .send({
           name: 'post test branch',
         })
@@ -131,6 +135,7 @@ describe('Testing branch function post', () => {
     p1.then(() => {
       request(app)
         .get('/branch')
+        .set('Authorization', `JWT ${TOKEN}`)
         .end((err, resp) => {
           expect(err).to.be.equal(null);
           expect(resp.body.length).to.be.equal(6);
@@ -142,6 +147,7 @@ describe('Testing branch function post', () => {
   it('Should delete the branch with id: 6 (Post Branch)', (done) => {
     request(app)
       .delete(`/branch/${branchID}`)
+      .set('Authorization', `JWT ${TOKEN}`)
       .end((err, resp) => {
         expect(err).to.be.equal(null);
         done();
@@ -151,6 +157,7 @@ describe('Testing branch function post', () => {
   it('Should now be 5 branches', (done) => {
     request(app)
       .get('/branch')
+      .set('Authorization', `JWT ${TOKEN}`)
       .end((err, resp) => {
         expect(err).to.be.equal(null);
         expect(resp.body.length).to.be.equal(5);
@@ -165,6 +172,7 @@ describe('Testing storage room get', () => {
   it('Should return all storage room (6 rooms)', (done) => {
     request(app)
       .get('/storageroom')
+      .set('Authorization', `JWT ${TOKEN}`)
       .end((err, resp) => {
         const rooms = resp.body.length;
         expect(err).to.equal(null);
@@ -179,6 +187,7 @@ describe('Testing storage room post', () => {
     const p1 = new Promise((res, rej) => {
       request(app)
         .post('/storageroom')
+        .set('Authorization', `JWT ${TOKEN}`)
         .send({
           name: 'test room',
           branch: 2,
@@ -195,6 +204,7 @@ describe('Testing storage room post', () => {
     p1.then(() => {
       request(app)
         .get('/storageroom')
+        .set('Authorization', `JWT ${TOKEN}`)
         .end((err, resp) => {
           const storageroom = resp.body.length;
           expect(err).to.equal(null);
@@ -211,6 +221,7 @@ describe('Testing storage room put', () => {
     const p1 = new Promise((res, rej) => {
       request(app)
         .put('/storageroom/1')
+        .set('Authorization', `JWT ${TOKEN}`)
         .send({
           name: 'Testing room',
           branch: 1,
@@ -225,7 +236,9 @@ describe('Testing storage room put', () => {
     });
 
     p1.then(() => {
-      request(app).get('/storageroom/branch/1')
+      request(app)
+        .get('/storageroom/branch/1')
+        .set('Authorization', `JWT ${TOKEN}`)
         .end((err, resp) => {
           const storagerooms = resp.body;
           const updatedStorageroom = storagerooms.find((room) => room.id === 1);
@@ -243,6 +256,7 @@ describe('Testing storage room branch', () => {
   it('Should test to printing every storage room on a branch', (done) => {
     request(app)
       .get('/storageroom/branch/1')
+      .set('Authorization', `JWT ${TOKEN}`)
       .end((err, resp) => {
         const rooms = resp.body;
         expect(err).to.equal(null);
@@ -257,6 +271,7 @@ describe('Testing package get', () => {
   it('Should test printing all packages from a specific branch', (done) => {
     request(app)
       .get('/package/branch/2')
+      .set('Authorization', `JWT ${TOKEN}`)
       .end((err, resp) => {
         const packages = resp.body.length;
         expect(err).to.equal(null);
@@ -271,6 +286,7 @@ describe('Testing Package/Storageroom/ID Get', () => {
   it('Should test printing all packages in a specific storageroom', (done) => {
     request(app)
       .get('/package/storageroom/1')
+      .set('Authorization', `JWT ${TOKEN}`)
       .end((err, resp) => {
         expect(err).to.equal(null);
         expect(resp.status).to.equal(200);
@@ -284,6 +300,7 @@ describe('Testing Shelf/Storageroom/ID Get', () => {
   it('Should test printing all shelves in a specific storageroom', (done) => {
     request(app)
       .get('/shelf/storageroom/1')
+      .set('Authorization', `JWT ${TOKEN}`)
       .end((err, resp) => {
         expect(err).to.equal(null);
         expect(resp.status).to.equal(200);
@@ -297,6 +314,7 @@ describe('Testing Package/Branch/ID Get', () => {
   it('Should test printing all packages in a specific branch', (done) => {
     request(app)
       .get('/package/branch/1')
+      .set('Authorization', `JWT ${TOKEN}`)
       .end((err, resp) => {
         expect(err).to.equal(null);
         expect(resp.status).to.equal(200);
