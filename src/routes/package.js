@@ -49,15 +49,22 @@ router.post('/', authenticatedRequest, async (request, response) => {
   }
   let containerId;
   let caseId;
-
+  let rightRoom2;
   db.beginTransaction()
     .then(() => {
+      return db.query('SELECT current_storage_room FROM Container WHERE id = ?', [newPackage.shelf]);
+    })
+    .then((rightRoom) => {
+      rightRoom2 = rightRoom[0].current_storage_room;
+      if (rightRoom2 != newPackage.current_storage_room && request.user.role != 'admin') {
+        throw new Error('Given shelf does not exist in given storage room');
+      }
       // Create case if not exists
       db.query('INSERT INTO `Case` (reference_number) SELECT ? WHERE NOT EXISTS (SELECT * FROM `Case` WHERE reference_number= ?)',
         [newPackage.reference_number, newPackage.reference_number]);
     })
     .then(() => {
-      const p1 = db.query('INSERT INTO Container(current_storage_room) VALUES (?)', [newPackage.current_storage_room]);
+      const p1 = db.query('INSERT INTO Container(current_storage_room) VALUES (?)', [rightRoom2]);
       const p2 = db.query('SELECT id FROM `Case` WHERE reference_number = ?', [newPackage.reference_number]);
       return Promise.all([p1, p2]);
     })
@@ -263,6 +270,12 @@ router.post('/check-in', authenticatedRequest, async (request, response) => {
   } else {
     db.beginTransaction()
       .then(() => {
+        return db.query('SELECT current_storage_room FROM Container WHERE id = ?', [checkIn.shelf]);
+      })
+      .then((rightRoom) => {
+        if (rightRoom[0].current_storage_room != checkIn.storage_room && request.user.role != 'admin') {
+          throw new Error('Given shelf does not exist in given storage room');
+        }
         // Updates shelf of package
         const sql = 'UPDATE Package SET shelf = ? WHERE package_number = ?';
         const update = db.query(sql, [checkIn.shelf, checkIn.package_number]);
@@ -273,8 +286,8 @@ router.post('/check-in', authenticatedRequest, async (request, response) => {
           throw new Error('Bad query');
         }
         // Updates storage room in container
-        const sql = 'UPDATE Container SET current_storage_room = ? WHERE id = (SELECT id FROM Package WHERE package_number = ?) ';
-        const update2 = db.query(sql, [checkIn.storage_room, checkIn.package_number]);
+        const sql = 'UPDATE Container SET current_storage_room = (SELECT current_storage_room FROM Container WHERE id = ?) WHERE id = (SELECT id FROM Package WHERE package_number = ?) ';
+        const update2 = db.query(sql, [checkIn.shelf, checkIn.package_number]);
         return update2;
       })
       .then((update2) => {

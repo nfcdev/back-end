@@ -616,7 +616,15 @@ router.post('/check-in', authenticatedRequest, async (request, response) => {
   } else if (checkIn.package) {
     // Checks in the article in a package
     db.beginTransaction()
-      .then(() => db.query('(SELECT id FROM Article WHERE material_number = ?)', checkIn.material_number))
+      .then(() => {
+        return db.query('SELECT reference_number FROM `Case` WHERE id = (SELECT `case` FROM Package WHERE id = ?)', [checkIn.package]);
+      })
+      .then((referens) => {
+        if (referens[0].reference_number != checkIn.material_number.substring(0, 6)) {
+          throw new Error('Package and article are not belonging to the same case');
+        }
+        return db.query('(SELECT id FROM Article WHERE material_number = ?)', checkIn.material_number);
+      })
       .then((idResult) => {
         materialId = idResult[0].id;
         // Gets name of shelf, storageroom and branch, and id of storageroom.
@@ -740,9 +748,17 @@ router.post('/register', authenticatedRequest, async (request, response) => {
   } else if (regInfo.package) {
     // Checks in the article in a package
     db.beginTransaction()
-      // Create case if not exists
-      .then(() => db.query('INSERT INTO `Case` (reference_number) SELECT ? WHERE NOT EXISTS (SELECT * FROM `Case` WHERE reference_number= ?)',
-        [regInfo.reference_number, regInfo.reference_number]))
+      .then(() => {
+        return db.query('SELECT reference_number FROM `Case` WHERE id = (SELECT `case` FROM Package WHERE id = ?)', [regInfo.package]);
+      })
+      .then((referens) => {
+        if (referens[0].reference_number != regInfo.reference_number) {
+          throw new Error('Package and article are not belonging to the same case');
+        }
+        // Create case if not exists
+        db.query('INSERT INTO `Case` (reference_number) SELECT ? WHERE NOT EXISTS (SELECT * FROM `Case` WHERE reference_number= ?)',
+          [regInfo.reference_number, regInfo.reference_number])
+      })
       .then(() => {
         // Checks if article already exists, then throws error
         const alreadyExists = db.query('SELECT * FROM Article WHERE material_number = ?', [regInfo.material_number]);
@@ -917,6 +933,12 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
     // Incorporates the article in a package
     db.beginTransaction()
       .then(() => {
+        return db.query('SELECT reference_number FROM `Case` WHERE id = (SELECT `case` FROM Package WHERE id = ?)', [incorp.package]);
+      })
+      .then((referens) => {
+        if (referens[0].reference_number != incorp.material_number.substring(0, 6)) {
+          throw new Error('Package and article are not belonging to the same case');
+        }
         // Gets name of shelf, storageroom and branch, and id of storageroom.
         const p1 = db.query('SELECT sh.shelf_name, st.name AS StorageRoomName, co.current_storage_room, br.name AS BranchName FROM Shelf sh INNER JOIN Container co ON sh.id IN (SELECT shelf FROM Package WHERE id = co.id) INNER JOIN StorageRoom st ON co.current_storage_room = st.id INNER JOIN Branch br ON st.branch = br.id WHERE co.id = ? ', [incorp.package]);
         return p1;
