@@ -620,7 +620,7 @@ router.post('/check-in', authenticatedRequest, async (request, response) => {
         return db.query('SELECT reference_number FROM `Case` WHERE id = (SELECT `case` FROM Package WHERE id = ?)', [checkIn.package]);
       })
       .then((referens) => {
-        if (referens[0].reference_number != checkIn.material_number.substring(0, 6)) {
+        if (referens[0].reference_number != checkIn.material_number.split('-')[0]) {
           throw new Error('Package and article are not belonging to the same case');
         }
         return db.query('(SELECT id FROM Article WHERE material_number = ?)', checkIn.material_number);
@@ -936,7 +936,7 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
         return db.query('SELECT reference_number FROM `Case` WHERE id = (SELECT `case` FROM Package WHERE id = ?)', [incorp.package]);
       })
       .then((referens) => {
-        if (referens[0].reference_number != incorp.material_number.substring(0, 6)) {
+        if (referens[0].reference_number != incorp.material_number.split('-')[0]) {
           throw new Error('Package and article are not belonging to the same case');
         }
         // Gets name of shelf, storageroom and branch, and id of storageroom.
