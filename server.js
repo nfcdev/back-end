@@ -27,6 +27,7 @@ if (process.env.NODE_ENV !== 'production') {
 const whitelist = [
   FRONTEND_URL,
   BACKEND_URL,
+  'http://10.0.75.1:9001',
 ];
 
 
