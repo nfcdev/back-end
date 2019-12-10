@@ -8,17 +8,17 @@ const { authenticatedRequest, adminAuthorizedRequest } = require('../util/authen
 router.get('/', authenticatedRequest, (request, response) => {
   pool.getConnection(function (err, connection) {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
       let sql = 'SELECT * FROM StorageRoom';
       connection.query(sql, (err, result) => {
         connection.release();
         if (err) {
-          console.log(err);
+          // console.log(err);
           response.status(400).send('Bad query');
         } else {
-          console.log('Data received');
+          // console.log('Data received');
           response.send(result);
         }
       });
@@ -31,17 +31,17 @@ router.get('/branch/:branch_id', authenticatedRequest, (request, response) => {
   const id = request.params.branch_id;
   pool.getConnection(function (err, connection) {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
       let sql = 'SELECT * FROM StorageRoom WHERE branch = ?';
       connection.query(sql, [id], (err, result) => {
         connection.release();
         if (err) {
-          console.log(err);
+          // console.log(err);
           response.status(400).send('Bad query');
         } else {
-          console.log('Data received');
+          // console.log('Data received');
           response.send(result);
         }
       });
@@ -54,17 +54,17 @@ router.delete('/:id', adminAuthorizedRequest, (request, response) => {
   const id = request.params.id;
   pool.getConnection(function (err, connection) {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
       let sql = 'DELETE FROM StorageRoom WHERE id = ?';
       connection.query(sql, [id], function (err, res) {
         connection.release();
         if (err) {
-          console.log(err);
+          // console.log(err);
           response.status(400).send('Bad query');
         } else if (res.affectedRows) {
-          console.log('Room deleted');
+          // console.log('Room deleted');
           response.send(`${id} deleted`);
         } else {
           response.send('Room does not exist');
@@ -81,7 +81,7 @@ router.put('/:id', adminAuthorizedRequest, (request, response) => {
 
   pool.getConnection(function (err, connection) {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
       //If the name is invalid, nothing updates
@@ -90,10 +90,10 @@ router.put('/:id', adminAuthorizedRequest, (request, response) => {
         connection.query(sql, [updatedStorageRoom.branch, updatedStorageRoom.name, id], function (err) {
           connection.release();
           if (err) {
-            console.log(err);
+            // console.log(err);
             response.status(400).send('Bad query');
           } else {
-            console.log('2 data updated');
+            // console.log('2 data updated');
             response.json({ id: id, name: updatedStorageRoom.name, branch: updatedStorageRoom.branch });
           }
         });
@@ -108,10 +108,10 @@ router.put('/:id', adminAuthorizedRequest, (request, response) => {
         connection.query(sql, [updatedStorageRoom.name, id], function (err) {
           connection.release();
           if (err) {
-            console.log(err);
+            // console.log(err);
             response.status(400).send('Bad query');
           } else {
-            console.log('1 data updated');
+            // console.log('1 data updated');
             response.json({ id: id, name: updatedStorageRoom.name, branch: branchNumber });
           }
         });
@@ -125,10 +125,10 @@ router.put('/:id', adminAuthorizedRequest, (request, response) => {
         connection.query(sql, [updatedStorageRoom.branch, id], function (err) {
           connection.release();
           if (err) {
-            console.log(err);
+            // console.log(err);
             response.status(400).send('Bad query');
           } else {
-            console.log('1 data updated');
+            // console.log('1 data updated');
             response.json({ id: id, name: updatedStorageRoom.name, name: roomName, branch: updatedStorageRoom.branch });
           }
         });
@@ -150,17 +150,17 @@ router.post('/', adminAuthorizedRequest, (request, response) => {
   } else {
     pool.getConnection(function (err, connection) {
       if (err) {
-        console.log(err);
+        // console.log(err);
         response.status(500).send('Could not connect to server');
       } else {
         let sql = 'INSERT INTO StorageRoom(name, branch) VALUES (?, ?)';
         connection.query(sql, [newStorageRoom.name, newStorageRoom.branch], function (err, result) {
           connection.release();
           if (err) {
-            console.log(err);
+            // console.log(err);
             response.status(400).send('Bad query');
           } else {
-            console.log('New room added');
+            // console.log('New room added');
             response.json({ id: result.insertId, name: newStorageRoom.name, branch: newStorageRoom.branch });
           }
         });

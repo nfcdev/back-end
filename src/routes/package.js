@@ -7,8 +7,6 @@ const router = express.Router();
 const pool = require('../util/connect');
 
 
-
-
 const makeDb = () => new Promise((resolve, reject) => {
   pool.getConnection((err, connection) => (
     resolve({
@@ -87,7 +85,7 @@ router.post('/', authenticatedRequest, async (request, response) => {
       response.send(newPackageResult);
     })
     .catch((err) => {
-      console.log(err);
+      // console.log(err);
       db.rollback();
       db.close();
       response.status(400).json({ error: err.message });
@@ -98,17 +96,17 @@ router.post('/', authenticatedRequest, async (request, response) => {
 router.get('/', authenticatedRequest, (request, response) => {
   pool.getConnection(function (err, connection) {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
       const sql = 'SELECT * FROM Package INNER JOIN Container ON Package.id = Container.id';
       connection.query(sql, (err, result) => {
         connection.release();
         if (err) {
-          console.log(err);
+          // console.log(err);
           response.status(400).send('Bad query');
         } else {
-          console.log('Data received');
+          // console.log('Data received');
           response.send(result);
         }
       });
@@ -121,17 +119,17 @@ router.get('/storageroom/:storageroom_id', authenticatedRequest, (request, respo
   const { storageroom_id } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
       const sql = 'SELECT * FROM Package INNER JOIN Container ON Package.id = Container.id WHERE Package.id IN (SELECT id FROM Container WHERE Current_Storage_Room = ?)';
       connection.query(sql, [storageroom_id], (err, result) => {
         connection.release();
         if (err) {
-          console.log(err);
+          // console.log(err);
           response.status(400).json({ error: err.message });
         } else {
-          console.log('Data received');
+          // console.log('Data received');
           response.send(result);
         }
       });
@@ -143,17 +141,17 @@ router.get('/shelf/:shelf_id', authenticatedRequest, (request, response) => {
   const { shelf_id } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
       const sql = 'SELECT * FROM Package WHERE shelf = ?';
       connection.query(sql, [shelf_id], (err, result) => {
         connection.release();
         if (err) {
-          console.log(err);
+          // console.log(err);
           response.status(400).json({ error: err.message });
         } else {
-          console.log('Data received');
+          // console.log('Data received');
           response.send(result);
         }
       });
@@ -166,17 +164,17 @@ router.get('/branch/:branch_id', authenticatedRequest, (request, response) => {
   const { branch_id } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
       const sql = 'SELECT * FROM Package INNER JOIN Container ON Package.id = Container.id WHERE Package.id IN (SELECT id FROM Container WHERE Current_Storage_Room IN (SELECT id FROM StorageRoom WHERE Branch = ?))';
       connection.query(sql, [branch_id], (err, result) => {
         connection.release();
         if (err) {
-          console.log(err);
+          // console.log(err);
           response.status(400).json({ error: err.message });
         } else {
-          console.log('Data received');
+          // console.log('Data received');
           response.send(result);
         }
       });
@@ -188,17 +186,17 @@ router.get('/:package_id', authenticatedRequest, (request, response) => {
   const { package_id } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
       const sql = 'SELECT * FROM Package WHERE id = ?';
       connection.query(sql, [package_id], (err, result) => {
         connection.release();
         if (err) {
-          console.log(err);
+          // console.log(err);
           response.status(400).json({ error: err.message });
         } else if (result.length) {
-          console.log('Data received');
+          // console.log('Data received');
           response.send(result[0]);
         } else {
           response.status(400).json({ error: `No package with id ${package_id}` });
@@ -212,17 +210,17 @@ router.get('/package_number/:package_number', authenticatedRequest, (request, re
   const { package_number } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
       const sql = 'SELECT * FROM Package WHERE package_number = ?';
       connection.query(sql, [package_number], (err, result) => {
         connection.release();
         if (err) {
-          console.log(err);
+          // console.log(err);
           response.status(400).json({ error: err.message });
         } else if (result.length) {
-          console.log('Data received');
+          // console.log('Data received');
           response.send(result[0]);
         } else {
           response.status(400).json({ error: `No package with package_number ${package_number}` });
@@ -236,17 +234,17 @@ router.delete('/:id', authenticatedRequest, (request, response) => {
   const { id } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
       const sql = 'DELETE pa, co FROM Package pa JOIN Container co ON pa.id = co.id WHERE pa.id = ?';
       connection.query(sql, [id], function (err, res) {
         connection.release();
         if (err) {
-          console.log(err);
+          // console.log(err);
           response.status(400).json({ error: err.message });
         } else if (res.affectedRows) {
-          console.log('Package deleted');
+          // console.log('Package deleted');
           response.json({ result: 'ok' });
         } else {
           response.send('Package does not exist');
@@ -330,7 +328,7 @@ router.post('/check-in', authenticatedRequest, async (request, response) => {
         response.json({ resultat: 'Ok' });
       })
       .catch((err) => {
-        console.log(err);
+        // console.log(err);
         db.rollback();
         db.close();
         response.status(400).json({ error: err.message });
@@ -414,7 +412,7 @@ router.post('/check-out', authenticatedRequest, async (request, response) => {
         response.json({ resultat: 'Ok' });
       })
       .catch((err) => {
-        console.log('error was: ', err);
+        // console.log('error was: ', err);
         db.rollback();
         db.close();
         response.status(400).json({ error: err.message });

@@ -21,17 +21,17 @@ router.get('/article/:article_id', authenticatedRequest, (request, response) => 
   const { article_id } = request.params;
   pool.getConnection((err, connection) => {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
       const sql = 'SELECT * FROM StorageEvent WHERE Article = ?';
       connection.query(sql, [article_id], (err, result) => {
         connection.release();
         if (err) {
-          console.log(err);
+          // console.log(err);
           response.status(400).send('Bad query');
         } else {
-          console.log('Data received');
+          // console.log('Data received');
           response.send(result);
         }
       });
@@ -44,17 +44,17 @@ router.get('/storageroom/:storageroom_id', authenticatedRequest, (request, respo
   const { storageroom_id } = request.params;
   pool.getConnection((err, connection) => {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(500).send('Cannot connect to server');
     }
     const sql = 'SELECT * FROM StorageEvent WHERE storage_room = (SELECT name FROM StorageRoom WHERE StorageRoom.id = ?)';
     connection.query(sql, [storageroom_id], (err, result) => {
       connection.release();
       if (err) {
-        console.log(err);
+        // console.log(err);
         response.status(400).send('Bad query');
       } else {
-        console.log('Data received');
+        // console.log('Data received');
         response.send(result);
       }
     });

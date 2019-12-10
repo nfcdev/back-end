@@ -13,7 +13,7 @@ function queryUser(shortcode, callback) {
     let sql = 'SELECT * FROM User WHERE `shortcode` = "' + shortcode + '"';
     pool.query(sql, (ex, rows) => {
         if (ex) {
-            console.log(ex);
+            // console.log(ex);
             callback({ code: -1, message: "Error querying DB.", db_error_code: ex })
             return;
         }
