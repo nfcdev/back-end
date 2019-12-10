@@ -117,7 +117,7 @@ router.post('/process', authenticatedRequest, async (req, res) => {
         return db.close();
       })
       .catch((err) => {
-        console.log(err);
+        // console.log(err);
         db.rollback();
         db.close();
         res.status(400).json({ error: err.message });
@@ -205,7 +205,7 @@ router.post('/check-out', authenticatedRequest, async (req, res) => {
         return db.close();
       })
       .catch((err) => {
-        console.log(err);
+        // console.log(err);
         db.rollback();
         db.close();
         res.status(400).json({ error: err.message });
@@ -292,7 +292,7 @@ router.post('/discard', authenticatedRequest, async (req, res) => {
         return db.close();
       })
       .catch((err) => {
-        console.log(err);
+        // console.log(err);
         db.rollback();
         db.close();
         res.status(400).json({ error: err.message });
@@ -317,7 +317,7 @@ router.post('/', authenticatedRequest, (req, res) => {
     // eslint-disable-next-line consistent-return
     pool.getConnection((err, connection) => {
       if (err) {
-        console.log(err);
+        // console.log(err);
         return res.status(500).send('Could not connect to server');
       }
       const sql = 'INSERT INTO Article(material_number, description, `case`) VALUES (?, ?, ?)';
@@ -326,16 +326,16 @@ router.post('/', authenticatedRequest, (req, res) => {
         newArticle.description,
         newArticle.case,
       ];
-      console.log(sql);
-      console.log(article);
+      // console.log(sql);
+      // console.log(article);
       // eslint-disable-next-line consistent-return
       connection.query(sql, article, (err, result) => {
         connection.release();
         if (err) {
-          console.log(err);
+          // console.log(err);
           return res.status(400).send('Bad query');
         }
-        console.log('New article added');
+        // console.log('New article added');
         res.send(result);
       });
     });
@@ -415,7 +415,7 @@ router.get('/', authenticatedRequest, (request, response) => {
 
   pool.query(sql_query, parameters, (err, rows) => {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(400).json({ error: err.message });
     } else {
       response.send(rows);
@@ -453,7 +453,7 @@ router.get('/search', authenticatedRequest, (request, response) => {
   sql_query += ' Order by material_number asc';
   pool.query(sql_query, (err, rows) => {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(400).json({ error: err.message });
     } else {
       response.send(rows);
@@ -466,14 +466,14 @@ router.get('/:id', authenticatedRequest, (req, res) => {
   const { id } = req.params;
   pool.getConnection((err, connection) => {
     if (err) {
-      console.log(err);
+      // console.log(err);
       res.status(500).send('Could not connect to server');
     } else {
       const sql_query = 'SELECT * FROM Article_information WHERE material_number = (SELECT material_number FROM Article WHERE id = ?)';
       connection.query(sql_query, [id], (err1, result) => {
         connection.release();
         if (err1) {
-          console.log(err1);
+          // console.log(err1);
           res.status(400).send('Bad query');
         } else {
           res.send(result);
@@ -488,17 +488,17 @@ router.get('/shelf/:id', authenticatedRequest, (request, response) => {
   const { id } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
       const sql = 'SELECT * FROM Article_information WHERE (material_number IN (SELECT material_number FROM Article WHERE id IN (SELECT article FROM StorageMap WHERE container IN (SELECT id FROM Shelf WHERE id = ?)))) OR  (material_number IN (SELECT material_number FROM Article WHERE id IN (SELECT article FROM StorageMap WHERE container IN (SELECT id FROM Package WHERE shelf = ?))))';
       connection.query(sql, [id, id], (err1, result) => {
         connection.release();
         if (err1) {
-          console.log(err1);
+          // console.log(err1);
           response.status(400).send('Bad query');
         } else {
-          console.log('Data received');
+          // console.log('Data received');
           response.send(result);
         }
       });
@@ -512,14 +512,14 @@ router.get('/case/:id', authenticatedRequest, (req, res) => {
   // eslint-disable-next-line consistent-return
   pool.getConnection((err, connection) => {
     if (err) {
-      console.log(err);
+      // console.log(err);
       res.status(500).send('Could not connect to server');
     } else {
       const sql_query = 'SELECT * FROM Article_information WHERE reference_number = (SELECT reference_number FROM `Case` WHERE id = ?)';
       connection.query(sql_query, [id], (err1, result) => {
         connection.release();
         if (err1) {
-          console.log(err1);
+          // console.log(err1);
           res.status(400).send('Bad query');
         } else {
           res.send(result);
@@ -535,14 +535,14 @@ router.get('/storageroom/:id', authenticatedRequest, (req, res) => {
   // eslint-disable-next-line consistent-return
   pool.getConnection((err, connection) => {
     if (err) {
-      console.log(err);
+      // console.log(err);
       res.status(500).send('Could not connect to server');
     } else {
       const sql_query = 'SELECT * FROM Article_information WHERE storage_room = (SELECT name FROM StorageRoom WHERE id = ?)';
       connection.query(sql_query, [id], (err1, result) => {
         connection.release();
         if (err1) {
-          console.log(err1);
+          // console.log(err1);
           res.status(400).send('Bad query');
         } else {
           res.send(result);
@@ -558,14 +558,14 @@ router.get('/package/:id', authenticatedRequest, (req, res) => {
   // eslint-disable-next-line consistent-return
   pool.getConnection((err, connection) => {
     if (err) {
-      console.log(err);
+      // console.log(err);
       res.status(500).send('Could not connect to server');
     } else {
       const sql_query = 'SELECT * FROM Article_information WHERE package = (SELECT package_number FROM Package WHERE id = ?)';
       connection.query(sql_query, [id], (err1, result) => {
         connection.release();
         if (err1) {
-          console.log(err1);
+          // console.log(err1);
           res.status(400).send('Bad query');
         } else {
           res.send(result);
@@ -580,14 +580,14 @@ router.get('/branch/:id', authenticatedRequest, (request, response) => {
   const { id } = request.params;
   pool.getConnection((err, connection) => {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
       const sql_query = 'SELECT * FROM Article_information WHERE branch = (SELECT name FROM Branch WHERE id = ?)';
       connection.query(sql_query, [id], (err1, result) => {
         connection.release();
         if (err1) {
-          console.log(err1);
+          // console.log(err1);
           response.status(400).send('Bad query');
         } else {
           response.send(result);
@@ -668,7 +668,7 @@ router.post('/check-in', authenticatedRequest, async (request, response) => {
         return db.close();
       })
       .catch((err) => {
-        console.log(err);
+        // console.log(err);
         db.rollback();
         db.close();
         response.status(400).json({ error: err.message });
@@ -721,7 +721,7 @@ router.post('/check-in', authenticatedRequest, async (request, response) => {
         return db.close();
       })
       .catch((err) => {
-        console.log(err);
+        // console.log(err);
         db.rollback();
         db.close();
         response.status(400).json({ error: err.message });
@@ -815,7 +815,7 @@ router.post('/register', authenticatedRequest, async (request, response) => {
         return db.close();
       })
       .catch((err) => {
-        console.log(err);
+        // console.log(err);
         db.rollback();
         db.close();
         response.status(400).json({ error: err.message });
@@ -833,7 +833,7 @@ router.post('/register', authenticatedRequest, async (request, response) => {
         return alreadyExists;
       })
       .then((alreadyExists) => {
-        console.log('already exists', alreadyExists);
+        // console.log('already exists', alreadyExists);
 
         if (alreadyExists[0]) {
           throw new Error('Article with given material_number already exists');
@@ -884,7 +884,7 @@ router.post('/register', authenticatedRequest, async (request, response) => {
         return db.close();
       })
       .catch((err) => {
-        console.log(err);
+        // console.log(err);
         db.rollback();
         db.close();
         response.status(400).json({ error: err.message });
@@ -907,7 +907,7 @@ router.put('/:id', authenticatedRequest, async (request, response) => {
       response.send(modifiedArticle);
     })
     .catch((err) => {
-      console.log(err);
+      // console.log(err);
       db.rollback();
       db.close();
       response.status(400).json({ error: err.message });
@@ -987,7 +987,7 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
         response.send(eventResult);
       })
       .catch((err) => {
-        console.log(err);
+        // console.log(err);
         db.rollback();
         db.close();
         response.status(400).json({ error: err.message });
@@ -1047,7 +1047,7 @@ router.post('/incorporate', authenticatedRequest, async (request, response) => {
         return db.close();
       })
       .catch((err) => {
-        console.log(err);
+        // console.log(err);
         db.rollback();
         db.close();
         response.status(400).json({ error: err.message });
@@ -1060,17 +1060,17 @@ router.get('/material_number/:material_number', authenticatedRequest, (request, 
   const { material_number } = request.params;
   pool.getConnection(function (err, connection) {
     if (err) {
-      console.log(err);
+      // console.log(err);
       response.status(500).send('Could not connect to server');
     } else {
       const sql = 'SELECT * FROM Article_information WHERE material_number = ?';
       connection.query(sql, [material_number], (err, result) => {
         connection.release();
         if (err) {
-          console.log(err);
+          // console.log(err);
           response.status(400).json({ error: err.message });
         } else if (result.length) {
-          console.log('Data received');
+          // console.log('Data received');
           response.send(result[0]);
         } else {
           response.status(400).json({ error: `No article with material_number ${material_number}` });

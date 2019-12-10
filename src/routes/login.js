@@ -11,16 +11,16 @@ const { jwtOptions } = config;
 
 // Mock users
 router.post('/', (req, res) => {
-  console.log('----POST TO /login----');
+  // console.log('----POST TO /login----');
 
   if (req.body.name) {
-    console.log('In if ==> name was sent so server');
+    // console.log('In if ==> name was sent so server');
     var { name } = req.body;
   } else {
     res.status(401).json({ message: 'missing information' });
     return;
   }
-  console.log(`name: ${name}`);
+  // console.log(`name: ${name}`);
   /**
    * This function is used to check if the user exist in the employee database.
    * For now it is stubbed but will later be implemented.
@@ -38,13 +38,13 @@ router.post('/', (req, res) => {
    * If not, the user is added with basic user privilege
    */
   roleHandler({ name: name }, ((callbackResponse) => {
-    console.log('callbackResponse from roleHandler', callbackResponse);
-    console.log('After roleHandler');
+    // console.log('callbackResponse from roleHandler', callbackResponse);
+    // console.log('After roleHandler');
     if (callbackResponse.code != 1) {
       res.status(500).json(callbackResponse);
       return;
     }
-    console.log('Should only be here if user exist');
+    // console.log('Should only be here if user exist');
     const userObj = callbackResponse.user;
     const payload = { id: userObj.id, shortcode: userObj.shortcode, role: userObj.role };
     const signOptions = {
@@ -61,12 +61,12 @@ router.post('/', (req, res) => {
 
 // The following route is just for testing
 router.get('/secret', authenticatedRequest, (req, res) => {
-  console.log('----GET TO /login/secret----');
+  // console.log('----GET TO /login/secret----');
   res.json({ message: 'Success!', user: req.user });
 });
 
 router.get('/admin', adminAuthorizedRequest, (req, res) => {
-  console.log('----GET TO /login/secret----');
+  // console.log('----GET TO /login/secret----');
   res.json({ message: 'Success!', user: req.user });
 });
 

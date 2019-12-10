@@ -18,7 +18,7 @@ jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderWithScheme('JWT');
 const jwtStrategy = new JwtStrategy(jwtOptions, ((jwt_payload, next) => {
   roleHandler({ name: jwt_payload.shortcode }, ((callbackResponse) => {
     if (callbackResponse.code != 1) {
-      console.log('User not found');
+      // console.log('User not found');
       next(null, false);
     } else {
       const userObj = callbackResponse.user;
@@ -31,14 +31,14 @@ const jwtStrategy = new JwtStrategy(jwtOptions, ((jwt_payload, next) => {
 const adminJwtStrategy = new JwtStrategy(jwtOptions, ((jwt_payload, next) => {
   roleHandler({ name: jwt_payload.shortcode }, ((callbackResponse) => {
     if (callbackResponse.code != 1) {
-      console.log('User not found');
+      // console.log('User not found');
       next(null, false);
     } else {
       const userObj = callbackResponse.user;
       if (callbackResponse.user.role === 'admin') {
         next(null, userObj);
       } else {
-        console.log('User is missing admin privileges');
+        // console.log('User is missing admin privileges');
         next(null, false);
       }
     }
